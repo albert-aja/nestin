@@ -102,7 +102,7 @@ class ChallengeEngine {
   ];
 
   static const List<String> _mediumPhrases = [
-    'Every moment, right on time with RooDoo.',
+    'Every moment, right on time with Nestin.',
     'A disciplined morning makes a victorious day.',
     'Wake up early and chase your highest goals.',
   ];

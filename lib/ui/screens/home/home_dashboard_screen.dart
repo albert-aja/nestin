@@ -1,18 +1,32 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/alarm.dart';
+import '../../../data/models/dashboard_config.dart';
+import '../../../data/models/journal_entry.dart';
+import '../../../data/services/weather_service.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/reminder_provider.dart';
-import '../../../providers/timer_provider.dart';
 import '../../../providers/settings_provider.dart';
+import '../../../providers/calendar_provider.dart';
+import '../../../providers/task_provider.dart';
+import '../../../providers/routine_provider.dart';
+import '../../../providers/note_provider.dart';
+import '../../../providers/journal_provider.dart';
+import '../../../providers/dashboard_provider.dart';
 import '../../widgets/category_badge.dart';
-import '../../widgets/roodoo_brand_header.dart';
+import '../../widgets/quick_capture_sheet.dart';
 import '../alarms/alarm_edit_screen.dart';
+import '../search/universal_search_screen.dart';
+import '../settings/settings_screen.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
-  final ValueChanged<int> onNavigateTab;
+  final void Function(int tab, [int? subTab]) onNavigateTab;
 
   const HomeDashboardScreen({super.key, required this.onNavigateTab});
 
@@ -23,6 +37,7 @@ class HomeDashboardScreen extends StatefulWidget {
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   late Timer _ticker;
   DateTime _now = DateTime.now();
+  WeatherInfo? _weatherInfo;
 
   @override
   void initState() {
@@ -34,6 +49,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         });
       }
     });
+    _loadWeather();
+  }
+
+  Future<void> _loadWeather() async {
+    final weatherService = LocalWeatherService();
+    final info = await weatherService.getCurrentWeather();
+    if (mounted) {
+      setState(() {
+        _weatherInfo = info;
+      });
+    }
   }
 
   @override
@@ -42,210 +68,929 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     super.dispose();
   }
 
+  String get _greeting {
+    final hour = _now.hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  bool get _isMorning => _now.hour < 12;
+
   @override
   Widget build(BuildContext context) {
     final alarmProvider = Provider.of<AlarmProvider>(context);
     final reminderProvider = Provider.of<ReminderProvider>(context);
-    final timerProvider = Provider.of<TimerProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
+    final calendarProvider = Provider.of<CalendarProvider>(context);
+    final taskProvider = Provider.of<TaskProvider>(context);
+    final routineProvider = Provider.of<RoutineProvider>(context);
+    final noteProvider = Provider.of<NoteProvider>(context);
+    final journalProvider = Provider.of<JournalProvider>(context);
+    final dashboardProvider = Provider.of<DashboardProvider>(context);
 
+    final config = dashboardProvider.config;
     final nextAlarm = alarmProvider.nextUpcomingAlarm;
     final activeAlarmsCount =
         alarmProvider.alarms.where((a) => a.isEnabled).length;
     final pendingReminders = reminderProvider.pendingReminders;
-    final runningTimers = timerProvider.activeRunningTimers;
+    final todayTasks = taskProvider.tasksDueToday(_now);
+    final todayEvents = calendarProvider.eventsForDate(_now);
+    final routines = routineProvider.routines;
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const RooDooBrandHeader(
-                subtitle: 'Every moment, right on time.',
-              ),
-              const SizedBox(height: 12),
-
-              // Hero Next Alarm Card
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _buildNextAlarmHero(
-                  context,
-                  nextAlarm,
-                  alarmProvider,
-                  settingsProvider,
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          backgroundColor: const Color(0xFF1A1B20),
+          onRefresh: () async {
+            await HapticFeedback.mediumImpact();
+            await _loadWeather();
+            setState(() {
+              _now = DateTime.now();
+            });
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded,
+                          color: AppColors.accent, size: 18),
+                      SizedBox(width: 8),
+                      Text('Today space refreshed!'),
+                    ],
+                  ),
+                  duration: Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
                 ),
-              ),
-              const SizedBox(height: 20),
-
-              // Overview Metric Pills
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    _buildMetricCard(
-                      title: 'Alarms',
-                      count: '$activeAlarmsCount Active',
-                      icon: Icons.alarm_rounded,
-                      color: AppColors.primary,
-                      onTap: () => widget.onNavigateTab(1),
-                    ),
-                    const SizedBox(width: 10),
-                    _buildMetricCard(
-                      title: 'Reminders',
-                      count: '${pendingReminders.length} Due',
-                      icon: Icons.checklist_rounded,
-                      color: AppColors.catWork,
-                      onTap: () => widget.onNavigateTab(2),
-                    ),
-                    const SizedBox(width: 10),
-                    _buildMetricCard(
-                      title: 'Timers',
-                      count: '${runningTimers.length} Running',
-                      icon: Icons.timer_outlined,
-                      color: AppColors.accent,
-                      onTap: () => widget.onNavigateTab(3),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Quick Actions
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionBtn(
-                            label: '+ Alarm',
-                            color: AppColors.primary,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const AlarmEditScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildActionBtn(
-                            label: '+ Reminder',
-                            color: AppColors.catWork,
-                            onTap: () => widget.onNavigateTab(2),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildActionBtn(
-                            label: '+ Timer',
-                            color: AppColors.accent,
-                            onTap: () => widget.onNavigateTab(3),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Upcoming Reminders Snippet
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Upcoming Agenda',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                    ),
-                    TextButton(
-                      onPressed: () => widget.onNavigateTab(2),
-                      child: const Text('View all'),
-                    ),
-                  ],
-                ),
-              ),
-              if (pendingReminders.isEmpty)
+              );
+            }
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Brand Header with Search, Reorder & Settings
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            'assets/logo.jpg',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: AppColors.primary,
+                              child: const Icon(
+                                Icons.wb_twilight_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$_greeting,',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF8E929E),
+                              ),
+                            ),
+                            const Text(
+                              'Nestin Everyday',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.dashboard_customize_rounded,
+                            size: 20),
+                        tooltip: 'Customize Cards',
+                        onPressed: () {
+                          HapticFeedback.selectionClick();
+                          _showReorderDashboardSheet(context);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.search_rounded, size: 22),
+                        tooltip: 'Universal Search',
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const UniversalSearchScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.tune_rounded, size: 22),
+                        tooltip: 'Settings',
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const SettingsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Morning Briefing Banner
+                if (_isMorning || config.showWeather)
+                  _buildMorningBriefingBanner(
+                    context,
+                    nextAlarm,
+                    todayTasks,
+                    todayEvents,
+                    _weatherInfo,
+                  ),
+
+                // Everyday Metrics Quick Strip
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: Row(
+                    children: [
+                      _buildMetricCard(
+                        title: 'Alarms',
+                        count: '$activeAlarmsCount Active',
+                        icon: Icons.alarm_rounded,
+                        color: AppColors.primary,
+                        onTap: () => widget.onNavigateTab(1, 0),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildMetricCard(
+                        title: 'Tasks',
+                        count: '${todayTasks.length} Due',
+                        icon: Icons.checklist_rounded,
+                        color: AppColors.catWork,
+                        onTap: () => widget.onNavigateTab(1, 3),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildMetricCard(
+                        title: 'Reminders',
+                        count: '${pendingReminders.length} Active',
+                        icon: Icons.notifications_active_outlined,
+                        color: AppColors.accent,
+                        onTap: () => widget.onNavigateTab(1, 1),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildMetricCard(
+                        title: 'Notes',
+                        count: '${noteProvider.activeNotes.length} Saved',
+                        icon: Icons.description_outlined,
+                        color: AppColors.catPersonal,
+                        onTap: () => widget.onNavigateTab(2, 0),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Quick Capture & Action Row
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: Container(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1B20),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFF2C2F3A)),
                     ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'No pending agenda items. You are all set!',
-                      style: TextStyle(fontSize: 13, color: Color(0xFF8E929E)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => QuickCaptureSheet.show(context),
+                            icon: const Icon(Icons.bolt_rounded,
+                                size: 16, color: AppColors.accent),
+                            label: const Text('Quick Capture',
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w700)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.accent,
+                              side: BorderSide(
+                                  color: AppColors.accent.withOpacity(0.5)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const AlarmEditScreen()),
+                              );
+                            },
+                            icon: const Icon(Icons.alarm_add_rounded,
+                                size: 16, color: AppColors.primary),
+                            label: const Text('+ Alarm',
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w700)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: BorderSide(
+                                  color: AppColors.primary.withOpacity(0.5)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount:
-                        pendingReminders.length > 3 ? 3 : pendingReminders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final item = pendingReminders[index];
-                      return Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1A1B20),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFF2C2F3A)),
-                        ),
-                        child: Row(
-                          children: [
-                            CategoryBadge(category: item.category, compact: true),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                item.title,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              item.formattedDueTime(
-                                use24Hour: settingsProvider.use24Hour,
-                              ),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF8E929E),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
                 ),
-              const SizedBox(height: 30),
-            ],
+
+                const SizedBox(height: 8),
+
+                // Dynamic Reorderable Sections based on config.sectionOrder
+                ...config.sectionOrder.map((sectionKey) {
+                  return _buildSectionByKey(
+                    sectionKey,
+                    config,
+                    nextAlarm,
+                    alarmProvider,
+                    settingsProvider,
+                    todayEvents,
+                    pendingReminders,
+                    todayTasks,
+                    taskProvider,
+                    routines,
+                    routineProvider,
+                    journalProvider,
+                  );
+                }),
+
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionByKey(
+    String key,
+    DashboardConfig config,
+    Alarm? nextAlarm,
+    AlarmProvider alarmProvider,
+    SettingsProvider settingsProvider,
+    List<dynamic> todayEvents,
+    List<dynamic> pendingReminders,
+    List<dynamic> todayTasks,
+    TaskProvider taskProvider,
+    List<dynamic> routines,
+    RoutineProvider routineProvider,
+    JournalProvider journalProvider,
+  ) {
+    switch (key) {
+      case DashboardConfig.sectionWeather:
+        if (!config.showWeather || _weatherInfo == null) {
+          return const SizedBox.shrink();
+        }
+        final dateFormatted = DateFormat('EEEE, MMM d').format(_now);
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: _buildWeatherBanner(_weatherInfo!, dateFormatted),
+        );
+
+      case DashboardConfig.sectionNextAlarm:
+        if (!config.showNextAlarm) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: _buildNextAlarmHero(
+            context,
+            nextAlarm,
+            alarmProvider,
+            settingsProvider,
+          ),
+        );
+
+      case DashboardConfig.sectionAgenda:
+        if (!config.showTodayAgenda) return const SizedBox.shrink();
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Today\'s Agenda',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                  TextButton(
+                    onPressed: () => widget.onNavigateTab(1, 2),
+                    child: const Text('Full Calendar',
+                        style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
+            _buildAgendaSection(
+                todayEvents, pendingReminders, settingsProvider),
+            const SizedBox(height: 16),
+          ],
+        );
+
+      case DashboardConfig.sectionTasks:
+        if (!config.showTodayTasks) return const SizedBox.shrink();
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Tasks Due Today',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.catWork.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${todayTasks.length}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.catWork,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: () => widget.onNavigateTab(1, 3),
+                    child:
+                        const Text('All Tasks', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
+            _buildTasksSection(todayTasks, taskProvider),
+            const SizedBox(height: 16),
+          ],
+        );
+
+      case DashboardConfig.sectionRoutines:
+        if (!config.showRoutines || routines.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Daily Routines & Habits',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                  TextButton(
+                    onPressed: () => widget.onNavigateTab(1, 4),
+                    child:
+                        const Text('Manage', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
+            _buildRoutinesSection(routines, routineProvider),
+            const SizedBox(height: 16),
+          ],
+        );
+
+      case DashboardConfig.sectionMood:
+        if (!config.showQuickJournal) return const SizedBox.shrink();
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Everyday Reflection',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                  TextButton(
+                    onPressed: () => widget.onNavigateTab(3, 0),
+                    child: const Text('Diary', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildQuickMoodCheckIn(context, journalProvider),
+            ),
+            const SizedBox(height: 24),
+          ],
+        );
+
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildMorningBriefingBanner(
+    BuildContext context,
+    Alarm? nextAlarm,
+    List<dynamic> tasks,
+    List<dynamic> events,
+    WeatherInfo? weather,
+  ) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF2B1B17),
+            Color(0xFF1F1A24),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.accent.withOpacity(0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.wb_sunny_rounded,
+                color: AppColors.accent, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '☀️ Morning Briefing',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.accent,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${weather != null ? "${weather.temperatureCelsius.toInt()}°C • " : ""}${tasks.length} tasks due, ${events.length} events today.',
+                  style:
+                      const TextStyle(fontSize: 11, color: Color(0xFFD1D5DB)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              SystemSound.play(SystemSoundType.click);
+              _showBriefingDialog(context, nextAlarm, tasks, events, weather);
+            },
+            icon: const Icon(Icons.volume_up_rounded, size: 14),
+            label: const Text('Read', style: TextStyle(fontSize: 11)),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.accent.withOpacity(0.25),
+              foregroundColor: AppColors.accent,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBriefingDialog(
+    BuildContext context,
+    Alarm? nextAlarm,
+    List<dynamic> tasks,
+    List<dynamic> events,
+    WeatherInfo? weather,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1B20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.wb_twilight_rounded, color: AppColors.accent, size: 24),
+            SizedBox(width: 10),
+            Text('Daily Briefing',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Good day! Here is your snapshot for ${DateFormat("EEEE, MMM d").format(_now)}:',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF8E929E)),
+            ),
+            const SizedBox(height: 14),
+            if (weather != null) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.cloud_outlined,
+                      size: 18, color: AppColors.accent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Weather: ${weather.temperatureCelsius.toInt()}°C (${weather.condition}). ${weather.advice}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.alarm_rounded,
+                    size: 18, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    nextAlarm != null
+                        ? 'Next Alarm: "${nextAlarm.title}" at ${nextAlarm.formattedTime()}'
+                        : 'No alarms currently scheduled for today.',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.checklist_rounded,
+                    size: 18, color: AppColors.catWork),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Tasks: ${tasks.length} pending items due today.',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.event_available_rounded,
+                    size: 18, color: AppColors.catPersonal),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Agenda: ${events.length} events scheduled in calendar.',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Ready for the day!',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReorderDashboardSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF141519),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Consumer<DashboardProvider>(
+          builder: (context, provider, _) {
+            final config = provider.config;
+            final sectionOrder = config.sectionOrder;
+
+            final Map<String, Map<String, dynamic>> sectionMeta = {
+              DashboardConfig.sectionWeather: {
+                'title': 'Weather & Daily Advice',
+                'icon': Icons.wb_sunny_rounded,
+                'color': AppColors.accent,
+                'isEnabled': config.showWeather,
+                'toggle': (bool v) => provider.toggleWeather(v),
+              },
+              DashboardConfig.sectionNextAlarm: {
+                'title': 'Hero Next Alarm',
+                'icon': Icons.alarm_rounded,
+                'color': AppColors.primary,
+                'isEnabled': config.showNextAlarm,
+                'toggle': (bool v) => provider.toggleNextAlarm(v),
+              },
+              DashboardConfig.sectionAgenda: {
+                'title': 'Today\'s Agenda (Events & Reminders)',
+                'icon': Icons.event_note_rounded,
+                'color': AppColors.catWork,
+                'isEnabled': config.showTodayAgenda,
+                'toggle': (bool v) => provider.toggleTodayAgenda(v),
+              },
+              DashboardConfig.sectionTasks: {
+                'title': 'Tasks Due Today',
+                'icon': Icons.checklist_rounded,
+                'color': AppColors.catWork,
+                'isEnabled': config.showTodayTasks,
+                'toggle': (bool v) => provider.toggleTodayTasks(v),
+              },
+              DashboardConfig.sectionRoutines: {
+                'title': 'Daily Routines & Habits',
+                'icon': Icons.repeat_rounded,
+                'color': AppColors.accent,
+                'isEnabled': config.showRoutines,
+                'toggle': (bool v) => provider.toggleRoutines(v),
+              },
+              DashboardConfig.sectionMood: {
+                'title': 'Reflection & Weekly Mood Trend',
+                'icon': Icons.mood_rounded,
+                'color': AppColors.catPersonal,
+                'isEnabled': config.showQuickJournal,
+                'toggle': (bool v) => provider.toggleQuickJournal(v),
+              },
+            };
+
+            return SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Customize Dashboard Cards',
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w800),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            provider.resetSectionOrder();
+                          },
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: const Text('Reset',
+                              style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Drag handles to reorder sections. Toggle switches to show or hide cards.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF8E929E)),
+                    ),
+                    const SizedBox(height: 12),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.5,
+                      ),
+                      child: ReorderableListView.builder(
+                        shrinkWrap: true,
+                        itemCount: sectionOrder.length,
+                        onReorder: (oldIndex, newIndex) {
+                          HapticFeedback.selectionClick();
+                          provider.reorderSections(oldIndex, newIndex);
+                        },
+                        itemBuilder: (context, index) {
+                          final key = sectionOrder[index];
+                          final meta = sectionMeta[key] ??
+                              {
+                                'title': key,
+                                'icon': Icons.dashboard_rounded,
+                                'color': Colors.white,
+                                'isEnabled': true,
+                                'toggle': (bool _) {},
+                              };
+
+                          return Container(
+                            key: ValueKey(key),
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2028),
+                              borderRadius: BorderRadius.circular(14),
+                              border:
+                                  Border.all(color: const Color(0xFF2C2F3A)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  meta['icon'] as IconData,
+                                  color: meta['color'] as Color,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    meta['title'] as String,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Switch(
+                                  value: meta['isEnabled'] as bool,
+                                  activeColor: AppColors.primary,
+                                  onChanged: (val) {
+                                    HapticFeedback.lightImpact();
+                                    (meta['toggle'] as Function(bool))(val);
+                                  },
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.drag_handle_rounded,
+                                  color: Color(0xFF8E929E),
+                                  size: 22,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildWeatherBanner(WeatherInfo info, String dateText) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1B20),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF2C2F3A)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.wb_sunny_rounded,
+              color: AppColors.accent,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${info.temperatureCelsius.toInt()}°C',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      info.condition,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF8E929E),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      dateText,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF8E929E),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  info.advice,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFB0B4C0),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -258,27 +1003,27 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   ) {
     if (alarm == null) {
       return Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B20),
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: const Color(0xFF2C2F3A)),
         ),
         child: Column(
           children: [
             const Icon(Icons.alarm_off_rounded,
-                size: 38, color: Color(0xFF8E929E)),
-            const SizedBox(height: 12),
+                size: 34, color: Color(0xFF8E929E)),
+            const SizedBox(height: 10),
             const Text(
               'No upcoming alarms set',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             const Text(
               'Set an alarm to keep your schedule punctual',
               style: TextStyle(fontSize: 12, color: Color(0xFF8E929E)),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
@@ -292,7 +1037,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 ),
               ),
               child: const Text('Add Alarm',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -313,7 +1059,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: AppColors.primary.withOpacity(0.35),
           width: 1.2,
@@ -321,7 +1067,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.12),
-            blurRadius: 20,
+            blurRadius: 18,
             offset: const Offset(0, 6),
           ),
         ],
@@ -334,7 +1080,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               CategoryBadge(category: alarm.category),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withOpacity(0.18),
                   borderRadius: BorderRadius.circular(8),
@@ -350,11 +1097,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             alarm.formattedTime(use24Hour: settingsProvider.use24Hour),
             style: const TextStyle(
-              fontSize: 48,
+              fontSize: 44,
               fontWeight: FontWeight.w900,
               letterSpacing: -1.5,
               color: Colors.white,
@@ -363,12 +1110,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           Text(
             alarm.title,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
               color: Color(0xFFE2E4E9),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -379,7 +1126,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         size: 14, color: AppColors.accent),
                     const SizedBox(width: 4),
                     Text(
-                      '${challenge.typeLabel} Challenge Required',
+                      '${challenge.typeLabel} Challenge',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -393,12 +1140,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   'Standard dismissal',
                   style: TextStyle(fontSize: 11, color: Color(0xFF8E929E)),
                 ),
-              FilledButton.tonalIcon(
+              FilledButton.icon(
                 onPressed: () => provider.triggerAlarm(alarm),
                 icon: const Icon(Icons.play_arrow_rounded, size: 16),
                 label: const Text('Test Ring'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary.withOpacity(0.2),
+                  backgroundColor: AppColors.primary.withOpacity(0.25),
                   foregroundColor: AppColors.primaryLight,
                   visualDensity: VisualDensity.compact,
                 ),
@@ -420,23 +1167,23 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           decoration: BoxDecoration(
             color: const Color(0xFF1A1B20),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFF2C2F3A)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(height: 10),
+              Icon(icon, size: 18, color: color),
+              const SizedBox(height: 8),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF8E929E),
                 ),
@@ -445,9 +1192,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               Text(
                 count,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -456,28 +1205,568 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
   }
 
-  Widget _buildActionBtn({
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: BorderSide(color: color.withOpacity(0.5)),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildAgendaSection(
+    List<dynamic> events,
+    List<dynamic> reminders,
+    SettingsProvider settings,
+  ) {
+    if (events.isEmpty && reminders.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1B20),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF2C2F3A)),
+          ),
+          alignment: Alignment.center,
+          child: const Text(
+            'No events or reminders scheduled for today.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF8E929E)),
+          ),
+        ),
+      );
+    }
+
+    final combinedItems = <Widget>[];
+
+    for (final e in events.take(2)) {
+      combinedItems.add(
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1B20),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF2C2F3A)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.catWork.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.event_note_rounded,
+                    size: 16, color: AppColors.catWork),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      e.title,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (e.location != null && e.location!.isNotEmpty)
+                      Text(
+                        e.location!,
+                        style: const TextStyle(
+                            fontSize: 11, color: Color(0xFF8E929E)),
+                      ),
+                  ],
+                ),
+              ),
+              Text(
+                e.formattedTimeRange(use24Hour: settings.use24Hour),
+                style: const TextStyle(fontSize: 11, color: Color(0xFF8E929E)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    for (final r in reminders.take(2)) {
+      combinedItems.add(
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1B20),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF2C2F3A)),
+          ),
+          child: Row(
+            children: [
+              CategoryBadge(category: r.category, compact: true),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  r.title,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                r.formattedDueTime(use24Hour: settings.use24Hour),
+                style: const TextStyle(fontSize: 11, color: Color(0xFF8E929E)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: combinedItems
+            .map((w) =>
+                Padding(padding: const EdgeInsets.only(bottom: 8), child: w))
+            .toList(),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: color,
+    );
+  }
+
+  Widget _buildTasksSection(List<dynamic> tasks, TaskProvider taskProvider) {
+    if (tasks.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1B20),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF2C2F3A)),
+          ),
+          alignment: Alignment.center,
+          child: const Text(
+            'All caught up! No tasks due today.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF8E929E)),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: tasks.length > 3 ? 3 : tasks.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final t = tasks[index];
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1B20),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF2C2F3A)),
+            ),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: t.isCompleted,
+                  activeColor: AppColors.catWork,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5)),
+                  onChanged: (_) {
+                    HapticFeedback.lightImpact();
+                    taskProvider.toggleTaskCompletion(t.id);
+                  },
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.title,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          decoration:
+                              t.isCompleted ? TextDecoration.lineThrough : null,
+                          color: t.isCompleted
+                              ? const Color(0xFF8E929E)
+                              : Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (t.subtasks.isNotEmpty)
+                        Text(
+                          '${t.completedSubtasksCount}/${t.subtasks.length} subtasks',
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF8E929E)),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: t.priorityColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    t.priorityLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: t.priorityColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRoutinesSection(
+      List<dynamic> routines, RoutineProvider provider) {
+    final activeRoutine = routines.first; // primary morning/evening routine
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1B20),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF2C2F3A)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    activeRoutine.typeLabel,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryLight,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '🔥 ${activeRoutine.streakCount} day streak',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.accent,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              activeRoutine.title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            // Progress Bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: activeRoutine.progress,
+                minHeight: 6,
+                backgroundColor: const Color(0xFF2C2F3A),
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(AppColors.accent),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // First 2-3 steps preview with toggle
+            ...List.generate(
+              activeRoutine.steps.length > 3 ? 3 : activeRoutine.steps.length,
+              (idx) {
+                final isDone = activeRoutine.completedStepIndices.contains(idx);
+                return InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    provider.toggleStep(activeRoutine.id, idx);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isDone
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          size: 18,
+                          color: isDone
+                              ? AppColors.accent
+                              : const Color(0xFF8E929E),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            activeRoutine.steps[idx],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDone
+                                  ? const Color(0xFF8E929E)
+                                  : Colors.white,
+                              decoration:
+                                  isDone ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
+  Widget _buildQuickMoodCheckIn(
+      BuildContext context, JournalProvider provider) {
+    final moods = [
+      {'emoji': '😊', 'label': 'Great', 'mood': JournalMood.great},
+      {'emoji': '🙂', 'label': 'Good', 'mood': JournalMood.good},
+      {'emoji': '😐', 'label': 'Neutral', 'mood': JournalMood.neutral},
+      {'emoji': '😔', 'label': 'Low', 'mood': JournalMood.low},
+      {'emoji': '😫', 'label': 'Tough', 'mood': JournalMood.tough},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1B20),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF2C2F3A)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'How are you feeling right now?',
+            style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF8E929E),
+                fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: moods.map((m) {
+              final moodEnum = m['mood'] as JournalMood;
+              final emoji = m['emoji'] as String;
+              final label = m['label'] as String;
+              return InkWell(
+                onTap: () async {
+                  HapticFeedback.mediumImpact();
+                  final now = DateTime.now();
+                  final entry = JournalEntry(
+                    id: const Uuid().v4(),
+                    title: 'Mood Check: $label',
+                    content:
+                        'Logged mood $emoji $label during everyday reflection.',
+                    date: now,
+                    mood: moodEnum,
+                    tags: ['Reflection', label],
+                    createdAt: now,
+                    updatedAt: now,
+                  );
+                  await provider.addJournalEntry(entry);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Logged feeling $emoji $label to diary!'),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF262832),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(emoji, style: const TextStyle(fontSize: 20)),
+                      const SizedBox(height: 4),
+                      Text(label,
+                          style: const TextStyle(
+                              fontSize: 10, color: Color(0xFFB0B4C0))),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          // 7-Day Mood Trend Visualization
+          _buildWeeklyMoodTrend(provider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyMoodTrend(JournalProvider provider) {
+    final entries = provider.journalEntries;
+    final days = <DateTime>[];
+    for (int i = 6; i >= 0; i--) {
+      days.add(DateTime(_now.year, _now.month, _now.day)
+          .subtract(Duration(days: i)));
+    }
+
+    final moodScores = <int>[];
+    final moodEmojis = <String>[];
+    final moodColors = <Color>[];
+
+    int loggedCount = 0;
+    JournalMood? dominantMood;
+    final moodCountMap = <JournalMood, int>{};
+
+    for (final d in days) {
+      final matches = entries
+          .where((e) =>
+              e.date.year == d.year &&
+              e.date.month == d.month &&
+              e.date.day == d.day)
+          .toList();
+
+      if (matches.isNotEmpty) {
+        loggedCount++;
+        final m = matches.first.mood;
+        moodCountMap[m] = (moodCountMap[m] ?? 0) + 1;
+        moodEmojis.add(m.emoji);
+
+        switch (m) {
+          case JournalMood.great:
+            moodScores.add(5);
+            moodColors.add(const Color(0xFF10B981));
+            break;
+          case JournalMood.good:
+            moodScores.add(4);
+            moodColors.add(const Color(0xFF3B82F6));
+            break;
+          case JournalMood.neutral:
+            moodScores.add(3);
+            moodColors.add(const Color(0xFFF59E0B));
+            break;
+          case JournalMood.low:
+            moodScores.add(2);
+            moodColors.add(const Color(0xFFF97316));
+            break;
+          case JournalMood.tough:
+            moodScores.add(1);
+            moodColors.add(const Color(0xFFEF4444));
+            break;
+        }
+      } else {
+        moodScores.add(0);
+        moodEmojis.add('·');
+        moodColors.add(const Color(0xFF2C2F3A));
+      }
+    }
+
+    if (moodCountMap.isNotEmpty) {
+      dominantMood = moodCountMap.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF22242D),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '7-Day Reflection Trend',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              Text(
+                dominantMood != null
+                    ? '$loggedCount/7 days • Mostly ${dominantMood.label} ${dominantMood.emoji}'
+                    : '$loggedCount/7 days logged',
+                style: const TextStyle(fontSize: 10, color: Color(0xFFB0B4C0)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(7, (idx) {
+              final d = days[idx];
+              final score = moodScores[idx];
+              final emoji = moodEmojis[idx];
+              final color = moodColors[idx];
+              final dayInitial = DateFormat('E').format(d).substring(0, 1);
+              final isToday = idx == 6;
+
+              return Column(
+                children: [
+                  Text(
+                    emoji,
+                    style: TextStyle(
+                      fontSize: score > 0 ? 14 : 11,
+                      color: const Color(0xFF8E929E),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 14,
+                    height: score > 0 ? (score * 6.0) : 6.0,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: score >= 4
+                          ? [
+                              BoxShadow(
+                                color: color.withOpacity(0.4),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              )
+                            ]
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    dayInitial,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
+                      color:
+                          isToday ? AppColors.accent : const Color(0xFF8E929E),
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}

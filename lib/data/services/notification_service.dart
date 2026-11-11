@@ -6,16 +6,16 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
-  static const String alarmChannelId = 'roodoo_alarm_channel';
-  static const String alarmChannelName = 'RooDoo Alarms';
+  static const String alarmChannelId = 'nestin_alarm_channel';
+  static const String alarmChannelName = 'Nestin Alarms';
   static const String alarmChannelDesc = 'Critical full-screen alerts for wake up and events';
 
-  static const String reminderChannelId = 'roodoo_reminder_channel';
-  static const String reminderChannelName = 'RooDoo Reminders';
+  static const String reminderChannelId = 'nestin_reminder_channel';
+  static const String reminderChannelName = 'Nestin Reminders';
   static const String reminderChannelDesc = 'Contextual alerts for tasks and activities';
 
-  static const String timerChannelId = 'roodoo_timer_channel';
-  static const String timerChannelName = 'RooDoo Timers';
+  static const String timerChannelId = 'nestin_timer_channel';
+  static const String timerChannelName = 'Nestin Timers';
   static const String timerChannelDesc = 'Notifications when countdown timers reach zero';
 
   Future<void> init() async {

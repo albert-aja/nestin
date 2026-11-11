@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:roodoo/data/models/challenge_profile.dart';
-import 'package:roodoo/domain/challenge/challenge_engine.dart';
+import 'package:nestin/data/models/challenge_profile.dart';
+import 'package:nestin/domain/challenge/challenge_engine.dart';
 
 void main() {
   group('ChallengeEngine Tests', () {

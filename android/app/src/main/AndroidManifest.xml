@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
 
     <application
-        android:label="RooDoo"
+        android:label="Nestin"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

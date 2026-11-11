@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:roodoo/data/models/alarm.dart';
-import 'package:roodoo/data/models/alarm_category.dart';
-import 'package:roodoo/data/models/alarm_schedule.dart';
-import 'package:roodoo/data/models/challenge_profile.dart';
+import 'package:nestin/data/models/alarm.dart';
+import 'package:nestin/data/models/alarm_category.dart';
+import 'package:nestin/data/models/alarm_schedule.dart';
+import 'package:nestin/data/models/challenge_profile.dart';
 
 void main() {
   group('Wake-Up Challenge Inheritance Tests', () {

@@ -57,5 +57,77 @@ class SettingsProvider extends ChangeNotifier {
       ),
     );
   }
+
+  // Security & Privacy Lock
+  bool get isBiometricEnabled => _preferences.isBiometricEnabled;
+  bool get isDiaryLockEnabled => _preferences.isDiaryLockEnabled;
+  bool get isAppLockEnabled => _preferences.isAppLockEnabled;
+  String? get securityPin => _preferences.securityPin;
+  bool get hasPin =>
+      _preferences.securityPin != null && _preferences.securityPin!.isNotEmpty;
+  bool get showJournalPrompts => _preferences.showJournalPrompts;
+  bool get showThrowbacks => _preferences.showThrowbacks;
+
+  // Ephemeral in-session unlock state
+  bool _isDiaryUnlocked = false;
+  bool get isDiaryUnlocked => !isDiaryLockEnabled || _isDiaryUnlocked;
+
+  void unlockDiary() {
+    _isDiaryUnlocked = true;
+    notifyListeners();
+  }
+
+  void lockDiary() {
+    _isDiaryUnlocked = false;
+    notifyListeners();
+  }
+
+  bool verifyPin(String enteredPin) {
+    if (_preferences.securityPin == null || _preferences.securityPin!.isEmpty) {
+      return true;
+    }
+    return _preferences.securityPin == enteredPin;
+  }
+
+  Future<void> setSecurityPin(String pin) async {
+    await updatePreferences(_preferences.copyWith(securityPin: pin));
+  }
+
+  Future<void> removeSecurityPin() async {
+    await updatePreferences(
+      _preferences.copyWith(
+        clearPin: true,
+        isDiaryLockEnabled: false,
+        isBiometricEnabled: false,
+        isAppLockEnabled: false,
+      ),
+    );
+    _isDiaryUnlocked = false;
+  }
+
+  Future<void> toggleBiometric(bool enabled) async {
+    await updatePreferences(_preferences.copyWith(isBiometricEnabled: enabled));
+  }
+
+  Future<void> toggleDiaryLock(bool enabled) async {
+    await updatePreferences(_preferences.copyWith(isDiaryLockEnabled: enabled));
+    if (!enabled) {
+      _isDiaryUnlocked = true;
+    } else {
+      _isDiaryUnlocked = false;
+    }
+  }
+
+  Future<void> toggleAppLock(bool enabled) async {
+    await updatePreferences(_preferences.copyWith(isAppLockEnabled: enabled));
+  }
+
+  Future<void> toggleJournalPrompts(bool enabled) async {
+    await updatePreferences(_preferences.copyWith(showJournalPrompts: enabled));
+  }
+
+  Future<void> toggleThrowbacks(bool enabled) async {
+    await updatePreferences(_preferences.copyWith(showThrowbacks: enabled));
+  }
 }
 

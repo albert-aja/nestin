@@ -73,7 +73,7 @@ class ReminderProvider extends ChangeNotifier {
       _notificationService.scheduleReminderNotification(
         id: reminder.id.hashCode,
         title: reminder.title,
-        body: reminder.notes.isNotEmpty ? reminder.notes : 'RooDoo Reminder',
+        body: reminder.notes.isNotEmpty ? reminder.notes : 'Nestin Reminder',
         scheduledDate: reminder.dueDateTime,
       );
     }

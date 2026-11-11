@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Brand Rooster & Sunrise Palette
-  static const Color primary = Color(0xFFE04A3A); // RooDoo Crimson
+  static const Color primary = Color(0xFFE04A3A); // Nestin Crimson
   static const Color primaryLight = Color(0xFFFF6B5B);
   static const Color primaryDark = Color(0xFFB83224);
 

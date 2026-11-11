@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:roodoo/data/models/alarm_schedule.dart';
+import 'package:nestin/data/models/alarm_schedule.dart';
 
 void main() {
   group('AlarmSchedule Tests', () {

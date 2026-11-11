@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
-class RooDooBrandHeader extends StatelessWidget {
+class NestinBrandHeader extends StatelessWidget {
+  final String title;
   final String? subtitle;
   final Widget? trailing;
 
-  const RooDooBrandHeader({
+  const NestinBrandHeader({
     super.key,
+    this.title = 'Nestin',
     this.subtitle,
     this.trailing,
   });
@@ -23,11 +25,6 @@ class RooDooBrandHeader extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.accent],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
@@ -37,11 +34,29 @@ class RooDooBrandHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Center(
-              child: Icon(
-                Icons.alarm_on_rounded,
-                color: Colors.white,
-                size: 26,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                'assets/logo.jpg',
+                width: 44,
+                height: 44,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.alarm_on_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -53,9 +68,9 @@ class RooDooBrandHeader extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'RooDoo',
-                      style: TextStyle(
+                    Text(
+                      title,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
@@ -98,3 +113,5 @@ class RooDooBrandHeader extends StatelessWidget {
   }
 }
 
+// Backward compatibility alias
+typedef RooDooBrandHeader = NestinBrandHeader;

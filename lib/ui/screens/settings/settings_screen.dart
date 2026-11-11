@@ -5,6 +5,7 @@ import '../../../data/models/challenge_profile.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../providers/sound_provider.dart';
 import '../../widgets/roodoo_brand_header.dart';
+import '../../widgets/security_pin_gate_sheet.dart';
 import '../alarms/sound_picker_sheet.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -495,6 +496,212 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
+          // Privacy & Security Lock
+          const Text(
+            'Privacy, Security & Journal',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: AppColors.accent,
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      'Lock Private Diary',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Require PIN or Biometrics for private entries',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E929E),
+                      ),
+                    ),
+                    value: provider.isDiaryLockEnabled,
+                    activeColor: AppColors.accent,
+                    onChanged: (val) async {
+                      if (val && !provider.hasPin) {
+                        await SecurityPinGateSheet.verifyOrPrompt(context);
+                      } else {
+                        provider.toggleDiaryLock(val);
+                      }
+                    },
+                  ),
+                  const Divider(height: 16),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.fingerprint_rounded,
+                        color: AppColors.primaryLight,
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      'Biometric Quick Unlock',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Fingerprint or Face authentication',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E929E),
+                      ),
+                    ),
+                    value: provider.isBiometricEnabled,
+                    activeColor: AppColors.accent,
+                    onChanged: (val) => provider.toggleBiometric(val),
+                  ),
+                  const Divider(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2C2F3A),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.pin_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      provider.hasPin
+                          ? 'Change 4-Digit Security PIN'
+                          : 'Set 4-Digit Security PIN',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      provider.hasPin
+                          ? 'PIN is configured'
+                          : 'Not configured yet',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E929E),
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFF8E929E),
+                    ),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (ctx) => SecurityPinGateSheet(
+                          isSetupMode: true,
+                          title: provider.hasPin
+                              ? 'Change Security PIN'
+                              : 'Set Security PIN',
+                          onUnlocked: () => Navigator.of(ctx).pop(),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 16),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.history_toggle_off_rounded,
+                        color: Color(0xFF10B981),
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      'Show "On This Day" Throwbacks',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Surface memories from this date in past years',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E929E),
+                      ),
+                    ),
+                    value: provider.showThrowbacks,
+                    activeColor: AppColors.accent,
+                    onChanged: (val) => provider.toggleThrowbacks(val),
+                  ),
+                  const Divider(height: 16),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF59E0B).withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.lightbulb_outline_rounded,
+                        color: Color(0xFFF59E0B),
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      'Show Daily Journal Prompts',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Inspiring questions for daily reflections',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E929E),
+                      ),
+                    ),
+                    value: provider.showJournalPrompts,
+                    activeColor: AppColors.accent,
+                    onChanged: (val) => provider.toggleJournalPrompts(val),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
           // Platform & Reliability Info
           const Text(
             'Platform & System Reliability',
@@ -525,6 +732,63 @@ class SettingsScreen extends StatelessWidget {
                     label: 'Background WakeLock',
                     value: 'Supported',
                     color: AppColors.accent,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // About Nestin Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/logo.jpg',
+                      width: 52,
+                      height: 52,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 52,
+                        height: 52,
+                        color: AppColors.primary,
+                        child: const Icon(Icons.home_rounded, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Nestin',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Version 1.0.0 — Personal Everyday Space',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8E929E),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Local-first money management, alarms & routines',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF8E929E),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

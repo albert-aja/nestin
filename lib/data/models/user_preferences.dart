@@ -12,6 +12,12 @@ class UserPreferences {
   final bool defaultVibration;
   final String defaultSound;
   final WakeUpChallengeProfile globalChallengeProfile;
+  final bool isBiometricEnabled;
+  final bool isDiaryLockEnabled;
+  final bool isAppLockEnabled;
+  final String? securityPin;
+  final bool showJournalPrompts;
+  final bool showThrowbacks;
 
   const UserPreferences({
     this.themeMode = ThemeMode.dark,
@@ -24,6 +30,12 @@ class UserPreferences {
     this.defaultVibration = true,
     this.defaultSound = 'rooster_dawn',
     required this.globalChallengeProfile,
+    this.isBiometricEnabled = false,
+    this.isDiaryLockEnabled = false,
+    this.isAppLockEnabled = false,
+    this.securityPin,
+    this.showJournalPrompts = true,
+    this.showThrowbacks = true,
   });
 
   factory UserPreferences.defaults() {
@@ -43,6 +55,13 @@ class UserPreferences {
     bool? defaultVibration,
     String? defaultSound,
     WakeUpChallengeProfile? globalChallengeProfile,
+    bool? isBiometricEnabled,
+    bool? isDiaryLockEnabled,
+    bool? isAppLockEnabled,
+    String? securityPin,
+    bool? clearPin,
+    bool? showJournalPrompts,
+    bool? showThrowbacks,
   }) {
     return UserPreferences(
       themeMode: themeMode ?? this.themeMode,
@@ -57,6 +76,12 @@ class UserPreferences {
       defaultSound: defaultSound ?? this.defaultSound,
       globalChallengeProfile:
           globalChallengeProfile ?? this.globalChallengeProfile,
+      isBiometricEnabled: isBiometricEnabled ?? this.isBiometricEnabled,
+      isDiaryLockEnabled: isDiaryLockEnabled ?? this.isDiaryLockEnabled,
+      isAppLockEnabled: isAppLockEnabled ?? this.isAppLockEnabled,
+      securityPin: clearPin == true ? null : (securityPin ?? this.securityPin),
+      showJournalPrompts: showJournalPrompts ?? this.showJournalPrompts,
+      showThrowbacks: showThrowbacks ?? this.showThrowbacks,
     );
   }
 
@@ -72,6 +97,12 @@ class UserPreferences {
       'defaultVibration': defaultVibration,
       'defaultSound': defaultSound,
       'globalChallengeProfile': globalChallengeProfile.toJson(),
+      'isBiometricEnabled': isBiometricEnabled,
+      'isDiaryLockEnabled': isDiaryLockEnabled,
+      'isAppLockEnabled': isAppLockEnabled,
+      'securityPin': securityPin,
+      'showJournalPrompts': showJournalPrompts,
+      'showThrowbacks': showThrowbacks,
     };
   }
 
@@ -99,6 +130,12 @@ class UserPreferences {
       defaultVibration: json['defaultVibration'] as bool? ?? true,
       defaultSound: json['defaultSound'] as String? ?? 'rooster_dawn',
       globalChallengeProfile: globalProfile,
+      isBiometricEnabled: json['isBiometricEnabled'] as bool? ?? false,
+      isDiaryLockEnabled: json['isDiaryLockEnabled'] as bool? ?? false,
+      isAppLockEnabled: json['isAppLockEnabled'] as bool? ?? false,
+      securityPin: json['securityPin'] as String?,
+      showJournalPrompts: json['showJournalPrompts'] as bool? ?? true,
+      showThrowbacks: json['showThrowbacks'] as bool? ?? true,
     );
   }
 }

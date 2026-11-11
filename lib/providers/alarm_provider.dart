@@ -102,7 +102,7 @@ class AlarmProvider extends ChangeNotifier {
       _notificationService.scheduleAlarmNotification(
         id: alarm.id.hashCode,
         title: alarm.title,
-        body: 'RooDoo Alarm: ${alarm.formattedTime()}',
+        body: 'Nestin Alarm: ${alarm.formattedTime()}',
         scheduledDate: next,
       );
     }

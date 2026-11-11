@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:roodoo/data/models/alarm_category.dart';
-import 'package:roodoo/ui/widgets/category_badge.dart';
-import 'package:roodoo/ui/widgets/roodoo_brand_header.dart';
+import 'package:nestin/data/models/alarm_category.dart';
+import 'package:nestin/ui/widgets/category_badge.dart';
+import 'package:nestin/ui/widgets/roodoo_brand_header.dart';
 
 void main() {
-  testWidgets('RooDooBrandHeader renders logo and title', (WidgetTester tester) async {
+  testWidgets('NestinBrandHeader renders logo and title', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -16,7 +16,7 @@ void main() {
       ),
     );
 
-    expect(find.text('RooDoo'), findsOneWidget);
+    expect(find.text('Nestin'), findsOneWidget);
     expect(find.text('PRO'), findsOneWidget);
     expect(find.text('Every moment, right on time.'), findsOneWidget);
   });
