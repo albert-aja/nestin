@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nestin</string>
+    <string name="widget_next_alarm_name">Nestin: Next Alarm</string>
+    <string name="widget_next_alarm_desc">Shows your upcoming alarm time and live countdown.</string>
+    <string name="widget_habit_checklist_name">Nestin: Daily Habits</string>
+    <string name="widget_habit_checklist_desc">Glanceable daily habit routine checklist and streak.</string>
+    <string name="widget_quick_capture_name">Nestin: Quick Capture</string>
+    <string name="widget_quick_capture_desc">1-tap shortcuts to capture Notes, Tasks, Alarms, and Journal entries.</string>
+</resources>
+
