@@ -1,6 +1,6 @@
 # Nestin — Personal Everyday Space
 
-![Logo](apps\mobile\assets\banner.jpg)
+![Logo](apps/mobile/assets/banner.jpg)
 
 **Tagline:** Every moment, right on time.  
 **Architecture:** Local-First Monorepo — Flutter Mobile (`apps/mobile`) + Node.js/NestJS Backend (`apps/backend`) + React/TypeScript Admin CMS (`apps/admin`) + Supabase PostgreSQL/Auth/Storage (`infrastructure/supabase`)
@@ -33,7 +33,7 @@ nestin/
 
 ## The Six Bird Families (Strictly 6 Domains)
 
-![Mascots](apps\mobile\source_art\mascots\family\family_polaroid_selfie_frame.jpg)
+![Mascots](apps/mobile/source_art/mascots/family/family_polaroid_selfie_frame.jpg)
 
 1. **Roo (Rooster) — Time, Planning & Habits:** Alarms, wake-up challenges, timers, Pomodoro sprints, calendar events, reminders, tasks, daily routines & streaks, Digital Discipline (App Fast, Focus Lock, Usage Limits), Android glance widgets.
 2. **Echo (Owl) — Journal & Memories:** Diary entries, memories scrapbook, timeline feed, prompts, nostalgic throwbacks, PIN/biometric privacy lock.
