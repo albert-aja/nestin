@@ -5,6 +5,8 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/collection_item.dart';
 import '../../../providers/collection_provider.dart';
+import '../../widgets/mascot_milestone_stamp_overlay.dart';
+import '../explore/bucket_list_screen.dart';
 
 class CollectionsListScreen extends StatefulWidget {
   const CollectionsListScreen({super.key});
@@ -52,7 +54,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        l10n.pick('New Custom List', 'Daftar Baru'),
+                        l10n.tr('new_custom_list'),
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w800),
                       ),
@@ -64,10 +66,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.pick(
-                      'Start Blank or From a Packing Preset',
-                      'Mulai Kosong atau Dari Template Kemas',
-                    ),
+                    l10n.tr('start_blank_or_from_a_packing'),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -81,7 +80,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     children: [
                       ChoiceChip(
                         selected: selectedTemplateKey == null,
-                        label: Text(l10n.pick('Blank', 'Kosong')),
+                        label: Text(l10n.tr('blank')),
                         onSelected: (_) {
                           setSheetState(() => selectedTemplateKey = null);
                         },
@@ -116,10 +115,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     controller: titleController,
                     autofocus: true,
                     decoration: InputDecoration(
-                      labelText: l10n.pick(
-                        'List Title (e.g. Bali Weekend Trip, Gear)',
-                        'Judul Daftar (cth. Liburan Akhir Pekan, Perlengkapan)',
-                      ),
+                      labelText: l10n.tr('list_title_e_g_bali_weekend'),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -127,10 +123,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     TextField(
                       controller: descController,
                       decoration: InputDecoration(
-                        labelText: l10n.pick(
-                          'Description (Optional)',
-                          'Deskripsi (Opsional)',
-                        ),
+                        labelText: l10n.tr('description_optional'),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -139,18 +132,12 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     contentPadding: EdgeInsets.zero,
                     value: isReusable,
                     title: Text(
-                      l10n.pick(
-                        'Reusable Travel / Packing Checklist',
-                        'Daftar Kemas / Perjalanan Berulang',
-                      ),
+                      l10n.tr('reusable_travel_packing_checklist'),
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.w700),
                     ),
                     subtitle: Text(
-                      l10n.pick(
-                        'Shows 1-tap Uncheck All & Reuse counter on this card',
-                        'Tampilkan tombol Reset Semua & penghitung pakai ulang',
-                      ),
+                      l10n.tr('shows_1_tap_uncheck_all_reuse'),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(ctx),
@@ -176,10 +163,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                         if (context.mounted) {
                           _showSnack(
                             context,
-                            l10n.pick(
-                              'Created "${created.title}" (${created.totalCount} items)',
-                              'Membuat "${created.title}" (${created.totalCount} item)',
-                            ),
+                            l10n.tr('created_items', {'created_title': created.title, 'created_totalCount': created.totalCount}),
                           );
                         }
                         return;
@@ -208,8 +192,8 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     ),
                     child: Text(
                       selectedTemplateKey != null
-                          ? l10n.pick('Add Packing List', 'Tambah Daftar Kemas')
-                          : l10n.pick('Create List', 'Buat Daftar'),
+                          ? l10n.tr('add_packing_list')
+                          : l10n.tr('create_list'),
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -297,15 +281,12 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
               TextField(
                 controller: titleCtrl,
                 decoration: InputDecoration(
-                  labelText: l10n.pick('Trip / List Name', 'Nama Perjalanan'),
+                  labelText: l10n.tr('trip_list_name'),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                l10n.pick(
-                  'Included Items (${spec.items.length})',
-                  'Item Termasuk (${spec.items.length})',
-                ),
+                l10n.tr('included_items', {'spec_length': spec.items.length}),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -372,10 +353,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                   if (context.mounted) {
                     _showSnack(
                       context,
-                      l10n.pick(
-                        'Added "${created.title}" (${created.totalCount} items)',
-                        'Menambahkan "${created.title}" (${created.totalCount} item)',
-                      ),
+                      l10n.tr('added_items', {'created_title': created.title, 'created_totalCount': created.totalCount}),
                     );
                   }
                 },
@@ -389,7 +367,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 ),
                 icon: const Icon(Icons.add_task_rounded, size: 18),
                 label: Text(
-                  l10n.pick('Add Packing List', 'Tambah Daftar Kemas'),
+                  l10n.tr('add_packing_list'),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -411,7 +389,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: AppColors.cardSurface(ctx),
           title: Text(
-            l10n.pick('Duplicate Template / List', 'Duplikat Template / Daftar'),
+            l10n.tr('duplicate_template_list'),
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
           ),
           content: Column(
@@ -421,7 +399,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 controller: titleCtrl,
                 autofocus: true,
                 decoration: InputDecoration(
-                  labelText: l10n.pick('New Trip / List Name', 'Nama Daftar Baru'),
+                  labelText: l10n.tr('new_trip_list_name'),
                 ),
               ),
               const SizedBox(height: 8),
@@ -429,10 +407,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 contentPadding: EdgeInsets.zero,
                 value: resetChecks,
                 title: Text(
-                  l10n.pick(
-                    'Start all items unchecked',
-                    'Mulai dengan semua item belum dicentang',
-                  ),
+                  l10n.tr('start_all_items_unchecked'),
                   style: const TextStyle(fontSize: 13),
                 ),
                 onChanged: (v) => setDialogState(() => resetChecks = v),
@@ -442,7 +417,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(l10n.pick('Cancel', 'Batal')),
+              child: Text(l10n.tr('cancel')),
             ),
             ElevatedButton.icon(
               onPressed: () async {
@@ -459,15 +434,12 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 if (context.mounted && copy != null) {
                   _showSnack(
                     context,
-                    l10n.pick(
-                      'Duplicated as "${copy.title}"',
-                      'Diduplikasi menjadi "${copy.title}"',
-                    ),
+                    l10n.tr('duplicated_as', {'copy_title': copy.title}),
                   );
                 }
               },
               icon: const Icon(Icons.copy_all_rounded, size: 16),
-              label: Text(l10n.pick('Duplicate', 'Duplikat')),
+              label: Text(l10n.tr('duplicate')),
             ),
           ],
         ),
@@ -481,18 +453,18 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.pick('Add Entry', 'Tambah Item')),
+        title: Text(l10n.tr('add_entry')),
         content: TextField(
           controller: textController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: l10n.pick('Item name...', 'Nama item...'),
+            hintText: l10n.tr('item_name'),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.pick('Cancel', 'Batal')),
+            child: Text(l10n.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -503,7 +475,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 Navigator.of(ctx).pop();
               }
             },
-            child: Text(l10n.pick('Add', 'Tambah')),
+            child: Text(l10n.tr('add')),
           ),
         ],
       ),
@@ -543,10 +515,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
               ChoiceChip(
                 selected: !_onlyReusableFilter,
                 label: Text(
-                  l10n.pick(
-                    'All Lists (${allCollections.length})',
-                    'Semua Daftar (${allCollections.length})',
-                  ),
+                  l10n.tr('all_lists', {'allCollections_length': allCollections.length}),
                 ),
                 onSelected: (_) => setState(() => _onlyReusableFilter = false),
               ),
@@ -554,12 +523,22 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 selected: _onlyReusableFilter,
                 avatar: const Icon(Icons.luggage_rounded, size: 15),
                 label: Text(
-                  l10n.pick(
-                    'Packing & Reusable (${provider.reusableCollections.length})',
-                    'Kemas & Berulang (${provider.reusableCollections.length})',
-                  ),
+                  l10n.tr('packing_reusable', {'provider_length': provider.reusableCollections.length}),
                 ),
                 onSelected: (_) => setState(() => _onlyReusableFilter = true),
+              ),
+              ActionChip(
+                avatar: const Icon(
+                  Icons.explore_rounded,
+                  size: 15,
+                  color: Color(0xFF10B981),
+                ),
+                label: Text(
+                  l10n.tr('dream_bucket_list'),
+                ),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BucketListScreen()),
+                ),
               ),
             ],
           ),
@@ -578,14 +557,8 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     const SizedBox(height: 8),
                     Text(
                       _onlyReusableFilter
-                          ? l10n.pick(
-                              'No reusable packing checklists yet. Tap a preset above to add one in 1 tap.',
-                              'Belum ada daftar kemas berulang. Ketuk template di atas untuk menambah.',
-                            )
-                          : l10n.pick(
-                              'No lists yet. Create one or pick a packing template above.',
-                              'Belum ada daftar. Buat baru atau pilih template kemas di atas.',
-                            ),
+                          ? l10n.tr('no_reusable_packing_checklists_yet_tap')
+                          : l10n.tr('no_lists_yet_create_one_or'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -610,7 +583,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
-          l10n.pick('New List', 'Daftar Baru'),
+          l10n.tr('new_list'),
           style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
         ),
       ),
@@ -650,20 +623,14 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.pick(
-                          'Travel & Packing Templates',
-                          'Template Kemas & Perjalanan',
-                        ),
+                        l10n.tr('travel_packing_templates'),
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       Text(
-                        l10n.pick(
-                          'Reusable presets • Tap to preview or + for 1-tap add',
-                          'Template berulang • Ketuk pratinjau atau + untuk tambah cepat',
-                        ),
+                        l10n.tr('reusable_presets_tap_to_preview_or'),
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary(context),
@@ -725,10 +692,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                             if (!context.mounted) return;
                             _showSnack(
                               context,
-                              l10n.pick(
-                                'Added "${created.title}" packing checklist',
-                                'Daftar kemas "${created.title}" ditambahkan',
-                              ),
+                              l10n.tr('added_packing_checklist', {'created_title': created.title}),
                             );
                           },
                           borderRadius: BorderRadius.circular(8),
@@ -816,16 +780,13 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                           ),
                           if (col.isReusableTemplate)
                             _miniBadge(
-                              l10n.pick('Reusable', 'Berulang'),
+                              l10n.tr('reusable'),
                               AppColors.primary,
                               icon: Icons.repeat_rounded,
                             ),
                           if (col.reuseCount > 0)
                             _miniBadge(
-                              l10n.pick(
-                                'Reused ${col.reuseCount}x',
-                                'Dipakai ${col.reuseCount}x',
-                              ),
+                              l10n.tr('reused_x', {'col_reuseCount': col.reuseCount}),
                               AppColors.success,
                               icon: Icons.history_rounded,
                             ),
@@ -843,12 +804,12 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                       light: const Color(0xFFB45309),
                     ),
                   ),
-                  tooltip: l10n.pick('Add Entry', 'Tambah Item'),
+                  tooltip: l10n.tr('add_entry'),
                   visualDensity: VisualDensity.compact,
                   onPressed: () => _showAddEntryDialog(context, col.id),
                 ),
                 PopupMenuButton<String>(
-                  tooltip: l10n.pick('List options', 'Opsi daftar'),
+                  tooltip: l10n.tr('list_options'),
                   icon: Icon(
                     Icons.more_vert_rounded,
                     size: 19,
@@ -870,7 +831,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                         children: [
                           const Icon(Icons.copy_all_rounded, size: 17),
                           const SizedBox(width: 8),
-                          Text(l10n.pick('Duplicate List', 'Duplikat Daftar')),
+                          Text(l10n.tr('duplicate_list')),
                         ],
                       ),
                     ),
@@ -882,8 +843,8 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                           const SizedBox(width: 8),
                           Text(
                             col.isReusableTemplate
-                                ? l10n.pick('Unmark Reusable', 'Hapus Tanda Berulang')
-                                : l10n.pick('Mark as Reusable', 'Tandai Berulang'),
+                                ? l10n.tr('unmark_reusable')
+                                : l10n.tr('mark_as_reusable'),
                           ),
                         ],
                       ),
@@ -894,7 +855,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                         children: [
                           const Icon(Icons.delete_outline_rounded, size: 17),
                           const SizedBox(width: 8),
-                          Text(l10n.pick('Delete List', 'Hapus Daftar')),
+                          Text(l10n.tr('delete_list')),
                         ],
                       ),
                     ),
@@ -925,10 +886,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  l10n.pick(
-                    'No items yet. Tap + to add items.',
-                    'Belum ada item. Ketuk + untuk menambah.',
-                  ),
+                  l10n.tr('no_items_yet_tap_to_add'),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary(context),
@@ -937,7 +895,16 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
               )
             else
               ...col.entries.map((entry) => InkWell(
-                    onTap: () => provider.toggleEntryCheck(col.id, entry.id),
+                    onTap: () async {
+                      final justCompleted =
+                          await provider.toggleEntryCheck(col.id, entry.id);
+                      if (justCompleted && context.mounted) {
+                        MascotMilestoneStampOverlay.showPippinStamped(
+                          context,
+                          title: col.title,
+                        );
+                      }
+                    },
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -996,7 +963,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                             ),
                             borderRadius: BorderRadius.circular(10),
                             child: Tooltip(
-                              message: l10n.pick('Remove item', 'Hapus item'),
+                              message: l10n.tr('remove_item'),
                               child: Padding(
                                 padding: const EdgeInsets.all(4),
                                 child: Icon(
@@ -1032,14 +999,8 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                         _showSnack(
                           context,
                           hadChecks
-                              ? l10n.pick(
-                                  'Reset "${col.title}" for next trip!',
-                                  '"${col.title}" direset untuk perjalanan berikutnya!',
-                                )
-                              : l10n.pick(
-                                  'All items already unchecked & ready!',
-                                  'Semua item sudah kosong & siap dipakai!',
-                                ),
+                              ? l10n.tr('reset_for_next_trip', {'col_title': col.title})
+                              : l10n.tr('all_items_already_unchecked_ready'),
                         );
                       },
                       style: TextButton.styleFrom(
@@ -1059,10 +1020,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
-                              l10n.pick(
-                                'Uncheck All / Reuse for Next Trip',
-                                'Reset Semua / Pakai Ulang Nanti',
-                              ),
+                              l10n.tr('uncheck_all_reuse_for_next_trip'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -1083,7 +1041,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     onPressed: () => _showDuplicateDialog(context, col),
                     icon: const Icon(Icons.copy_all_rounded, size: 15),
                     label: Text(
-                      l10n.pick('Duplicate', 'Duplikat'),
+                      l10n.tr('duplicate'),
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,

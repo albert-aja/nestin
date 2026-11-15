@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/medication_item.dart';
 import '../../providers/medication_provider.dart';
@@ -98,22 +99,32 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
   }
 
   void _removeScheduleTime(String time) {
+    final l10n = context.l10n;
     if (_scheduleTimes.length > 1) {
       setState(() {
         _scheduleTimes.remove(time);
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least one schedule time is required.')),
+        SnackBar(
+          content: Text(
+            l10n.tr('at_least_one_schedule_time_is'),
+          ),
+        ),
       );
     }
   }
 
   void _saveMedication() {
+    final l10n = context.l10n;
     if (!_formKey.currentState!.validate()) return;
     if (_scheduleTimes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one reminder time.')),
+        SnackBar(
+          content: Text(
+            l10n.tr('add_at_least_one_reminder_time'),
+          ),
+        ),
       );
       return;
     }
@@ -173,8 +184,12 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isEditing = widget.initialItem != null;
+    final dayInitials = l10n.isIndonesian
+        ? const ['S', 'S', 'R', 'K', 'J', 'S', 'M']
+        : const ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     final violetAccent = AppColors.adaptive(
       context,
@@ -221,7 +236,9 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      isEditing ? 'Edit Medication' : 'Add Medication',
+                      isEditing
+                          ? l10n.tr('edit_medication')
+                          : l10n.tr('add_medication'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -253,9 +270,9 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                       fontWeight: FontWeight.w600,
                     ),
                     decoration: InputDecoration(
-                      labelText: 'Medication or Supplement Name',
+                      labelText: l10n.tr('medication_or_supplement_name'),
                       labelStyle: TextStyle(color: AppColors.textSecondary(context)),
-                      hintText: 'e.g. Vitamin D3, Amoxicillin, Omega-3',
+                      hintText: l10n.tr('e_g_vitamin_d3_amoxicillin_omega'),
                       hintStyle: TextStyle(color: AppColors.textMuted(context)),
                       prefixIcon: Icon(Icons.vaccines_rounded, color: violetAccent),
                       filled: true,
@@ -265,8 +282,9 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Please enter a name' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.tr('please_enter_a_name')
+                        : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -284,7 +302,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                             fontWeight: FontWeight.w600,
                           ),
                           decoration: InputDecoration(
-                            labelText: 'Dose Amount',
+                            labelText: l10n.tr('dose_amount'),
                             labelStyle: TextStyle(color: AppColors.textSecondary(context)),
                             filled: true,
                             fillColor: AppColors.elevatedSurface(context),
@@ -293,8 +311,9 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          validator: (v) =>
-                              (v == null || double.tryParse(v) == null) ? 'Invalid' : null,
+                          validator: (v) => (v == null || double.tryParse(v) == null)
+                              ? l10n.tr('invalid')
+                              : null,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -308,7 +327,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                             fontWeight: FontWeight.w600,
                           ),
                           decoration: InputDecoration(
-                            labelText: 'Unit',
+                            labelText: l10n.tr('unit'),
                             labelStyle: TextStyle(color: AppColors.textSecondary(context)),
                             filled: true,
                             fillColor: AppColors.elevatedSurface(context),
@@ -318,7 +337,10 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                             ),
                           ),
                           items: _commonUnits.map((u) {
-                            return DropdownMenuItem(value: u, child: Text(u));
+                            return DropdownMenuItem(
+                              value: u,
+                              child: Text(MedicationItem.localizeUnit(u)),
+                            );
                           }).toList(),
                           onChanged: (v) {
                             if (v != null) setState(() => _dosageUnit = v);
@@ -331,7 +353,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
 
                   // Meal Instruction
                   Text(
-                    'MEAL INSTRUCTION',
+                    l10n.tr('meal_instruction'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -375,7 +397,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'DOSE SCHEDULE TIMES',
+                        l10n.tr('dose_schedule_times'),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -387,7 +409,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                         onPressed: _pickScheduleTime,
                         icon: Icon(Icons.add_alarm_rounded, size: 16, color: violetAccent),
                         label: Text(
-                          '+ Add Time',
+                          l10n.tr('add_time'),
                           style: TextStyle(color: violetAccent, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -421,7 +443,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
 
                   // Days of the Week
                   Text(
-                    'REPEAT DAYS',
+                    l10n.tr('repeat_days'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -461,7 +483,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                               ),
                             ),
                             child: Text(
-                              ['M', 'T', 'W', 'T', 'F', 'S', 'S'][day - 1],
+                              dayInitials[day - 1],
                               style: TextStyle(
                                 color: _daysOfWeek.contains(day)
                                     ? Colors.white
@@ -496,7 +518,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                                 Icon(Icons.inventory_2_outlined, size: 18, color: violetAccent),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Pill Inventory & Refill Alert',
+                                  l10n.tr('pill_inventory_refill_alert'),
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
@@ -525,7 +547,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                                     fontSize: 13,
                                   ),
                                   decoration: InputDecoration(
-                                    labelText: 'Current Stock',
+                                    labelText: l10n.tr('current_stock'),
                                     labelStyle: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary(context),
@@ -549,7 +571,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                                     fontSize: 13,
                                   ),
                                   decoration: InputDecoration(
-                                    labelText: 'Refill Warning At',
+                                    labelText: l10n.tr('refill_warning_at'),
                                     labelStyle: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary(context),
@@ -567,7 +589,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Decrements automatically when marked Taken. Alerts when stock reaches threshold.',
+                            l10n.tr('decrements_automatically_when_marked_taken_alerts'),
                             style: TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary(context),
@@ -588,9 +610,9 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                       fontSize: 13,
                     ),
                     decoration: InputDecoration(
-                      labelText: 'Special Notes / Instructions',
+                      labelText: l10n.tr('special_notes_instructions'),
                       labelStyle: TextStyle(color: AppColors.textSecondary(context)),
-                      hintText: 'e.g. Drink full glass of water, doctor prescribed for 7 days',
+                      hintText: l10n.tr('e_g_drink_full_glass_of'),
                       hintStyle: TextStyle(color: AppColors.textMuted(context)),
                       filled: true,
                       fillColor: AppColors.elevatedSurface(context),
@@ -616,7 +638,9 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                 ),
               ),
               child: Text(
-                isEditing ? 'Save Changes' : 'Add Medication',
+                isEditing
+                    ? l10n.tr('save_changes')
+                    : l10n.tr('add_medication'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,

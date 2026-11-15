@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum MoneyCurrency {
   idr('IDR', 'Rp', 'Indonesian Rupiah'),
   usd('USD', r'$', 'US Dollar'),
@@ -11,6 +13,18 @@ enum MoneyCurrency {
   final String displayName;
 
   const MoneyCurrency(this.code, this.symbol, this.displayName);
+
+  String get localizedName {
+    final l10n = AppLocalizations.current;
+    return switch (this) {
+      MoneyCurrency.idr => l10n.tr('indonesian_rupiah'),
+      MoneyCurrency.usd => l10n.tr('us_dollar'),
+      MoneyCurrency.eur => l10n.tr('euro'),
+      MoneyCurrency.gbp => l10n.tr('british_pound'),
+      MoneyCurrency.sgd => l10n.tr('singapore_dollar'),
+      MoneyCurrency.jpy => l10n.tr('japanese_yen'),
+    };
+  }
 
   static MoneyCurrency fromCode(String? code) {
     return MoneyCurrency.values.firstWhere(

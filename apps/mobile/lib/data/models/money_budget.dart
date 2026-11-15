@@ -1,9 +1,24 @@
+import '../../core/l10n/app_localizations.dart';
 import 'money_account.dart';
 
 enum BudgetHealthStatus {
   healthy,
   nearLimit,
   exceeded,
+}
+
+extension BudgetHealthStatusExt on BudgetHealthStatus {
+  String get label {
+    final l10n = AppLocalizations.current;
+    switch (this) {
+      case BudgetHealthStatus.healthy:
+        return l10n.tr('on_track');
+      case BudgetHealthStatus.nearLimit:
+        return l10n.tr('near_limit');
+      case BudgetHealthStatus.exceeded:
+        return l10n.tr('over_budget');
+    }
+  }
 }
 
 class MoneyBudget {

@@ -9,7 +9,10 @@ import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import org.json.JSONArray
+import org.json.JSONObject
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -22,7 +25,7 @@ import java.util.Calendar
 import kotlin.math.roundToInt
 
 /**
- * Native Android MethodChannel handler for Scout Digital Wellbeing, Phone Modes,
+ * Shared native Android MethodChannel handler for Roo Digital Discipline, Scout Phone Modes,
  * System Settings Safe State Restoration, and Centralized Permission Center.
  * Reports missing permissions or OS refusals honestly without faking success.
  */
@@ -52,7 +55,25 @@ class DeviceControlPlugin(
             "getAppUsageToday" -> {
                 @Suppress("UNCHECKED_CAST")
                 val packages = call.argument<List<String>>("packages") ?: emptyList()
-                result.success(queryAppUsageToday(packages))
+                val resetHour = (call.argument<Int>("resetHour") ?: 0).coerceIn(0, 23)
+                val resetMinute = (call.argument<Int>("resetMinute") ?: 0).coerceIn(0, 59)
+                result.success(queryAppUsageToday(packages, resetHour, resetMinute))
+            }
+            "getInstalledApps" -> {
+                val includeSystem = call.argument<Boolean>("includeSystemApps") ?: false
+                result.success(queryInstalledApps(includeSystem))
+            }
+            "syncRestrictionPolicy" -> {
+                @Suppress("UNCHECKED_CAST")
+                val policies = call.argument<List<Map<String, Any?>>>("policies") ?: emptyList()
+                val focusExpiresAtMs = (call.argument<Number>("focusExpiresAtMs")?.toLong()) ?: 0L
+                result.success(syncRestrictionPolicy(policies, focusExpiresAtMs))
+            }
+            "getCurrentForegroundApp" -> {
+                result.success(queryCurrentForegroundApp())
+            }
+            "requestFamilyControlsAuthorization" -> {
+                result.success(false)
             }
             "setDndEnabled" -> {
                 val enable = call.argument<Boolean>("enable") ?: false
@@ -229,12 +250,35 @@ class DeviceControlPlugin(
         )
     }
 
-    private fun queryAppUsageToday(targetPackages: List<String>): Map<String, Any> {
+    private fun consumeBypassedPackages(): List<String> {
+        val bypassPrefs = context.getSharedPreferences(NestinAppShieldService.PREFS_NAME, Context.MODE_PRIVATE)
+        val bypassedPackages = mutableListOf<String>()
+        bypassPrefs.all.forEach { (key, _) ->
+            if (key.startsWith("bypassed_at_")) {
+                val pkg = key.removePrefix("bypassed_at_")
+                bypassedPackages.add(pkg)
+            }
+        }
+        if (bypassedPackages.isNotEmpty()) {
+            val editor = bypassPrefs.edit()
+            bypassedPackages.forEach { editor.remove("bypassed_at_$it") }
+            editor.apply()
+        }
+        return bypassedPackages
+    }
+
+    private fun queryAppUsageToday(
+        targetPackages: List<String>,
+        resetHour: Int = 0,
+        resetMinute: Int = 0
+    ): Map<String, Any> {
+        val bypassed = consumeBypassedPackages()
         if (!hasUsageStatsAccess()) {
             return mapOf(
                 "permissionGranted" to false,
                 "boundaryMessage" to "Usage Access permission is not granted. Enable it in Permission Center for real Android app screen time.",
-                "records" to emptyList<Map<String, Any>>()
+                "records" to emptyList<Map<String, Any>>(),
+                "bypassedPackages" to bypassed
             )
         }
 
@@ -242,14 +286,19 @@ class DeviceControlPlugin(
             ?: return mapOf(
                 "permissionGranted" to false,
                 "boundaryMessage" to "UsageStatsManager service is unavailable on this device.",
-                "records" to emptyList<Map<String, Any>>()
+                "records" to emptyList<Map<String, Any>>(),
+                "bypassedPackages" to bypassed
             )
 
+        val nowCal = Calendar.getInstance()
         val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
+            set(Calendar.HOUR_OF_DAY, resetHour)
+            set(Calendar.MINUTE, resetMinute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
+            if (after(nowCal)) {
+                add(Calendar.DAY_OF_YEAR, -1)
+            }
         }
         val startMs = cal.timeInMillis
         val endMs = System.currentTimeMillis()
@@ -301,7 +350,8 @@ class DeviceControlPlugin(
         return mapOf(
             "permissionGranted" to true,
             "boundaryMessage" to "",
-            "records" to records
+            "records" to records,
+            "bypassedPackages" to bypassed
         )
     }
 
@@ -496,6 +546,114 @@ class DeviceControlPlugin(
             true
         } catch (_: Exception) {
             false
+        }
+    }
+
+    private fun queryInstalledApps(includeSystemApps: Boolean): List<Map<String, Any>> {
+        val pm = context.packageManager
+        val launcherIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        val launchable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.queryIntentActivities(launcherIntent, PackageManager.ResolveInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.queryIntentActivities(launcherIntent, 0)
+        }
+
+        val seen = mutableSetOf<String>()
+        val results = mutableListOf<Map<String, Any>>()
+        for (ri in launchable) {
+            val pkg = ri.activityInfo?.packageName ?: continue
+            if (pkg == context.packageName) continue
+            if (!seen.add(pkg)) continue
+            if (NestinAppShieldService.isEssentialPackage(pkg, context.packageName)) continue
+
+            val appInfo = ri.activityInfo?.applicationInfo
+            val isSystem = appInfo != null && ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0)
+            if (isSystem && !includeSystemApps) {
+                // Keep popular launchable preinstalled apps (e.g. YouTube) unless strict exclude requested
+                val hasLaunch = pm.getLaunchIntentForPackage(pkg) != null
+                if (!hasLaunch) continue
+            }
+
+            val label = ri.loadLabel(pm)?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: pkg
+            val category = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && appInfo != null) {
+                when (appInfo.category) {
+                    ApplicationInfo.CATEGORY_SOCIAL -> "social"
+                    ApplicationInfo.CATEGORY_VIDEO -> "video"
+                    ApplicationInfo.CATEGORY_GAME -> "gaming"
+                    ApplicationInfo.CATEGORY_PRODUCTIVITY -> "productivity"
+                    else -> "other"
+                }
+            } else {
+                "other"
+            }
+
+            results.add(
+                mapOf(
+                    "packageName" to pkg,
+                    "appName" to label,
+                    "category" to category,
+                    "isSystemApp" to isSystem
+                )
+            )
+        }
+
+        results.sortBy { (it["appName"] as String).lowercase() }
+        return results
+    }
+
+    private fun syncRestrictionPolicy(
+        policies: List<Map<String, Any?>>,
+        focusExpiresAtMs: Long
+    ): Boolean {
+        return try {
+            val arr = JSONArray()
+            for (policy in policies) {
+                val obj = JSONObject()
+                for ((k, v) in policy) {
+                    obj.put(k, v)
+                }
+                arr.put(obj)
+            }
+            val prefs = context.getSharedPreferences(NestinAppShieldService.PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putString(NestinAppShieldService.KEY_POLICIES_JSON, arr.toString())
+                .putLong(NestinAppShieldService.KEY_FOCUS_EXPIRES_AT_MS, focusExpiresAtMs)
+                .apply()
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun queryCurrentForegroundApp(): String? {
+        if (!hasUsageStatsAccess()) return null
+        val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager ?: return null
+        val endMs = System.currentTimeMillis()
+        val startMs = endMs - 15_000L
+        return try {
+            val events = usm.queryEvents(startMs, endMs)
+            val event = UsageEvents.Event()
+            var latestPkg: String? = null
+            var latestTs = 0L
+            val resumeEventType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                UsageEvents.Event.ACTIVITY_RESUMED
+            } else {
+                @Suppress("DEPRECATION")
+                UsageEvents.Event.MOVE_TO_FOREGROUND
+            }
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                if (event.eventType == resumeEventType && event.timeStamp >= latestTs) {
+                    latestTs = event.timeStamp
+                    latestPkg = event.packageName
+                }
+            }
+            latestPkg
+        } catch (_: Exception) {
+            null
         }
     }
 }

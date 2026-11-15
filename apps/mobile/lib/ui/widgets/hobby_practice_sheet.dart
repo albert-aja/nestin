@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/hobby_item.dart';
 import '../../data/models/hobby_milestone.dart';
@@ -38,11 +39,54 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
     super.dispose();
   }
 
+  String _localizeCategory(BuildContext context, String category) {
+    final l10n = context.l10n;
+    switch (category) {
+      case 'Music':
+        return l10n.tr('music');
+      case 'Art':
+        return l10n.tr('art');
+      case 'Language':
+        return l10n.tr('language');
+      case 'Tech':
+        return l10n.tr('tech');
+      case 'Writing':
+        return l10n.tr('writing');
+      case 'Craft':
+        return l10n.tr('craft');
+      case 'Fitness':
+        return l10n.tr('fitness');
+      default:
+        return category;
+    }
+  }
+
+  String _localizeFocusTag(BuildContext context, String tag) {
+    final l10n = context.l10n;
+    switch (tag) {
+      case 'Technique':
+        return l10n.tr('technique');
+      case 'Repertoire':
+        return l10n.tr('repertoire');
+      case 'Theory':
+        return l10n.tr('theory');
+      case 'Drills':
+        return l10n.tr('drills');
+      case 'Creative Play':
+        return l10n.tr('creative_play');
+      case 'Practice':
+        return l10n.tr('practice');
+      default:
+        return tag;
+    }
+  }
+
   void _showMilestoneCelebrationDialog(
       BuildContext context, List<HobbyMilestone> unlocked, String hobbyName) {
     showDialog(
       context: context,
       builder: (ctx) {
+        final l10n = ctx.l10n;
         final emeraldText = AppColors.adaptive(
           ctx,
           dark: const Color(0xFF10B981),
@@ -59,7 +103,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
               const Text('🎉', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 12),
               Text(
-                'Milestone Unlocked!',
+                l10n.tr('milestone_unlocked'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
@@ -68,7 +112,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
               ),
               const SizedBox(height: 8),
               Text(
-                'Dedication in $hobbyName reached new heights:',
+                l10n.tr('dedication_in_reached_new_heights', {'hobbyName': hobbyName}),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
@@ -95,7 +139,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${m.title} (${m.requiredHours} Hours)',
+                              '${m.displayTitle} (${l10n.tr('hours', {'m_requiredHours': m.requiredHours})})',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
@@ -104,7 +148,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              m.description,
+                              m.displayDescription,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textPrimary(ctx),
@@ -127,8 +171,10 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Keep Exploring!',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+              child: Text(
+                l10n.tr('keep_exploring'),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              ),
             ),
           ],
         );
@@ -137,6 +183,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
   }
 
   void _showLogSessionDialog(BuildContext context, HobbyItem hobby) {
+    final parentL10n = context.l10n;
     int durationMinutes = 45;
     String focusTag = 'Technique';
     int rating = 5;
@@ -148,6 +195,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
     showDialog(
       context: context,
       builder: (ctx) {
+        final l10n = ctx.l10n;
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             final emeraldText = AppColors.adaptive(
@@ -164,7 +212,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Log ${hobby.name}',
+                      l10n.tr('log_2', {'hobby_name': hobby.name}),
                       style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -179,12 +227,15 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Duration Section
-                    Text('DURATION',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary(ctx),
-                            letterSpacing: 0.8)),
+                    Text(
+                      l10n.tr('duration'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary(ctx),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
@@ -221,7 +272,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         fontSize: 13,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Custom minutes (e.g. 75)',
+                        hintText: l10n.tr('custom_minutes_e_g_75'),
                         hintStyle: TextStyle(
                           color: AppColors.textMuted(ctx),
                           fontSize: 12,
@@ -244,12 +295,15 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     const SizedBox(height: 16),
 
                     // Focus Tag
-                    Text('FOCUS AREA',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary(ctx),
-                            letterSpacing: 0.8)),
+                    Text(
+                      l10n.tr('focus_area'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary(ctx),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
@@ -257,7 +311,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       children: tags.map((t) {
                         final isSel = focusTag == t;
                         return ChoiceChip(
-                          label: Text(t),
+                          label: Text(_localizeFocusTag(ctx, t)),
                           selected: isSel,
                           selectedColor: const Color(0xFF10B981).withValues(alpha: 0.3),
                           backgroundColor: AppColors.elevatedSurface(ctx),
@@ -275,12 +329,15 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     const SizedBox(height: 16),
 
                     // Session Rating
-                    Text('SESSION QUALITY',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary(ctx),
-                            letterSpacing: 0.8)),
+                    Text(
+                      l10n.tr('session_quality'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary(ctx),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -314,7 +371,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         fontSize: 13,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Notes (e.g. Practiced fingerpicking patterns)',
+                        hintText: l10n.tr('notes_e_g_practiced_fingerpicking_patterns'),
                         hintStyle: TextStyle(
                           color: AppColors.textMuted(ctx),
                           fontSize: 12,
@@ -333,8 +390,10 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text('Cancel',
-                      style: TextStyle(color: AppColors.textSecondary(ctx))),
+                  child: Text(
+                    l10n.tr('cancel'),
+                    style: TextStyle(color: AppColors.textSecondary(ctx)),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -355,10 +414,14 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       _showMilestoneCelebrationDialog(
                           context, newlyUnlocked, hobby.name);
                     } else if (context.mounted) {
+                      final totalFormatted = provider.hobbies
+                          .firstWhere((h) => h.id == hobby.id)
+                          .formattedHours;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                              'Logged ${durationMinutes}m of ${hobby.name}! Total: ${provider.hobbies.firstWhere((h) => h.id == hobby.id).formattedHours}'),
+                            l10n.tr('logged_m_of_total', {'durationMinutes': durationMinutes, 'hobby_name': hobby.name, 'totalFormatted': totalFormatted}),
+                          ),
                         ),
                       );
                     }
@@ -368,9 +431,13 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Log Practice',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    l10n.tr('log_practice'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -400,6 +467,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
     showDialog(
       context: context,
       builder: (ctx) {
+        final l10n = ctx.l10n;
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             final emeraldText = AppColors.adaptive(
@@ -415,11 +483,14 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                   const Text('🦜', style: TextStyle(fontSize: 22)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text('Add New Hobby / Skill',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary(ctx))),
+                    child: Text(
+                      l10n.tr('add_new_hobby_skill'),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary(ctx),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -435,12 +506,12 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'Hobby Name',
+                        labelText: l10n.tr('hobby_name'),
                         labelStyle: TextStyle(
                           color: AppColors.textSecondary(ctx),
                           fontSize: 13,
                         ),
-                        hintText: 'e.g. Classical Piano, Rust Programming',
+                        hintText: l10n.tr('e_g_classical_piano_rust_programming'),
                         hintStyle: TextStyle(color: AppColors.textMuted(ctx)),
                         filled: true,
                         fillColor: AppColors.elevatedSurface(ctx),
@@ -452,12 +523,15 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     const SizedBox(height: 14),
 
                     // Category & Emoji chips
-                    Text('CATEGORY',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary(ctx),
-                            letterSpacing: 0.8)),
+                    Text(
+                      l10n.tr('category_3'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary(ctx),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
@@ -465,7 +539,9 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       children: categories.map((cat) {
                         final isSel = category == cat['name'];
                         return ChoiceChip(
-                          label: Text('${cat['emoji']} ${cat['name']}'),
+                          label: Text(
+                            '${cat['emoji']} ${_localizeCategory(ctx, cat['name']!)}',
+                          ),
                           selected: isSel,
                           selectedColor: const Color(0xFF10B981).withValues(alpha: 0.3),
                           backgroundColor: AppColors.elevatedSurface(ctx),
@@ -496,12 +572,12 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         fontSize: 13,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'Target Goal (Hours)',
+                        labelText: l10n.tr('target_goal_hours'),
                         labelStyle: TextStyle(
                           color: AppColors.textSecondary(ctx),
                           fontSize: 12,
                         ),
-                        hintText: 'e.g. 50 (Half Century) or 100',
+                        hintText: l10n.tr('e_g_50_half_century_or'),
                         hintStyle: TextStyle(color: AppColors.textMuted(ctx)),
                         filled: true,
                         fillColor: AppColors.elevatedSurface(ctx),
@@ -521,12 +597,12 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         fontSize: 13,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'Notes / Intentions',
+                        labelText: l10n.tr('notes_intentions'),
                         labelStyle: TextStyle(
                           color: AppColors.textSecondary(ctx),
                           fontSize: 12,
                         ),
-                        hintText: 'e.g. 30 mins every evening after work',
+                        hintText: l10n.tr('e_g_30_mins_every_evening'),
                         hintStyle: TextStyle(color: AppColors.textMuted(ctx)),
                         filled: true,
                         fillColor: AppColors.elevatedSurface(ctx),
@@ -541,8 +617,10 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text('Cancel',
-                      style: TextStyle(color: AppColors.textSecondary(ctx))),
+                  child: Text(
+                    l10n.tr('cancel'),
+                    style: TextStyle(color: AppColors.textSecondary(ctx)),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -574,9 +652,13 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Add Hobby',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    l10n.tr('add_hobby'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -588,6 +670,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final emeraldText = AppColors.adaptive(
       context,
       dark: const Color(0xFF10B981),
@@ -631,7 +714,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Hobby Practice Space',
+                            l10n.tr('hobby_practice_space'),
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -639,7 +722,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                             ),
                           ),
                           Text(
-                            'Pippin Curiosity & Mastery',
+                            l10n.tr('pippin_curiosity_mastery'),
                             style: TextStyle(
                               fontSize: 11,
                               color: emeraldText,
@@ -669,19 +752,23 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatColumn(context, 'Total Practiced', '$totalHours hrs',
-                        emeraldText),
+                    _buildStatColumn(
+                      context,
+                      l10n.tr('total_practiced'),
+                      l10n.tr('hrs_2', {'totalHours': totalHours}),
+                      emeraldText,
+                    ),
                     Container(height: 28, width: 1, color: AppColors.border(context)),
                     _buildStatColumn(
                       context,
-                      'Sessions',
+                      l10n.tr('sessions'),
                       '$totalSessions',
                       AppColors.textPrimary(context),
                     ),
                     Container(height: 28, width: 1, color: AppColors.border(context)),
                     _buildStatColumn(
                       context,
-                      'Badges',
+                      l10n.tr('badges_2'),
                       '🏆 $badgesUnlocked',
                       AppColors.adaptive(
                         context,
@@ -712,8 +799,12 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                   labelStyle:
                       const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                   tabs: [
-                    Tab(text: 'Hobbies & Milestones (${hobbies.length})'),
-                    Tab(text: 'Session Logs ($totalSessions)'),
+                    Tab(
+                      text: l10n.tr('hobbies_milestones', {'hobbies_length': hobbies.length}),
+                    ),
+                    Tab(
+                      text: l10n.tr('session_logs', {'totalSessions': totalSessions}),
+                    ),
                   ],
                 ),
               ),
@@ -739,9 +830,9 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
               ElevatedButton.icon(
                 onPressed: () => _showAddHobbyDialog(context),
                 icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-                label: const Text(
-                  'Add New Hobby / Skill',
-                  style: TextStyle(
+                label: Text(
+                  l10n.tr('add_new_hobby_skill'),
+                  style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 14),
@@ -777,6 +868,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
 
   Widget _buildHobbiesTab(
       BuildContext context, HobbyProvider provider, List<HobbyItem> hobbies) {
+    final l10n = context.l10n;
     final emeraldText = AppColors.adaptive(
       context,
       dark: const Color(0xFF10B981),
@@ -795,15 +887,22 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
           children: [
             const Text('🦜', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 10),
-            Text('No hobbies registered yet',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary(context))),
+            Text(
+              l10n.tr('no_hobbies_registered_yet'),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('Tap "+ Add New Hobby / Skill" to begin tracking hours.',
-                style: TextStyle(
-                    fontSize: 11, color: AppColors.textMuted(context))),
+            Text(
+              l10n.tr('tap_add_new_hobby_skill_to'),
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.textMuted(context),
+              ),
+            ),
           ],
         ),
       );
@@ -814,6 +913,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
         final nextMilestone = hobby.nextMilestone;
         final progress = hobby.progressToNextMilestone;
         final unlocked = hobby.unlockedMilestones;
+        final hourUnitShort = l10n.tr('h');
 
         return Card(
           color: AppColors.elevatedSurface(context),
@@ -856,7 +956,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                hobby.category,
+                                _localizeCategory(context, hobby.category),
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
@@ -881,7 +981,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         ),
                         if (hobby.targetHours != null)
                           Text(
-                            'Target: ${hobby.targetHours}h',
+                            l10n.tr('target_h', {'hobby_targetHours': hobby.targetHours}),
                             style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary(context)),
@@ -898,7 +998,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Next: ${nextMilestone.iconEmoji} ${nextMilestone.title} (${nextMilestone.requiredHours}h)',
+                        l10n.tr('next_h', {'nextMilestone_iconEmoji': nextMilestone.iconEmoji, 'nextMilestone_displayTitle': nextMilestone.displayTitle, 'nextMilestone_requiredHours': nextMilestone.requiredHours}),
                         style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -930,7 +1030,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       const Text('👑', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 6),
                       Text(
-                        'Virtuoso reached! All major milestones unlocked.',
+                        l10n.tr('virtuoso_reached_all_major_milestones_unlocked'),
                         style: TextStyle(
                             fontSize: 11,
                             color: amberText,
@@ -949,7 +1049,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       final isUnlocked = unlocked.any((m) => m.id == milestone.id);
 
                       return Tooltip(
-                        message: '${milestone.title}: ${milestone.description}',
+                        message: '${milestone.displayTitle}: ${milestone.displayDescription}',
                         child: Container(
                           margin: const EdgeInsets.only(right: 8),
                           padding: const EdgeInsets.symmetric(
@@ -978,7 +1078,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                                   )),
                               const SizedBox(width: 4),
                               Text(
-                                '${milestone.requiredHours}h',
+                                '${milestone.requiredHours}$hourUnitShort',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -1061,11 +1161,14 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       onPressed: () => _showLogSessionDialog(context, hobby),
                       icon: const Icon(Icons.add_task_rounded,
                           size: 15, color: Colors.white),
-                      label: const Text('Log Session',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white)),
+                      label: Text(
+                        l10n.tr('log_session'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF10B981),
                         padding: const EdgeInsets.symmetric(
@@ -1085,6 +1188,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
   }
 
   Widget _buildSessionsTab(BuildContext context, HobbyProvider provider) {
+    final l10n = context.l10n;
     final sessions = provider.sessions;
     final emeraldText = AppColors.adaptive(
       context,
@@ -1100,15 +1204,22 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
             Icon(Icons.history_toggle_off_rounded,
                 size: 44, color: AppColors.textMuted(context)),
             const SizedBox(height: 10),
-            Text('No practice sessions logged yet',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary(context))),
+            Text(
+              l10n.tr('no_practice_sessions_logged_yet'),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('Practice sessions you log will appear here.',
-                style: TextStyle(
-                    fontSize: 11, color: AppColors.textMuted(context))),
+            Text(
+              l10n.tr('practice_sessions_you_log_will_appear'),
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.textMuted(context),
+              ),
+            ),
           ],
         ),
       );
@@ -1116,8 +1227,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
 
     return ListView(
       children: sessions.map((session) {
-        final dateStr =
-            '${session.sessionDate.year}-${session.sessionDate.month.toString().padLeft(2, '0')}-${session.sessionDate.day.toString().padLeft(2, '0')}';
+        final dateStr = l10n.formatDate(session.sessionDate, 'y-MM-dd');
 
         return Card(
           color: AppColors.elevatedSurface(context),
@@ -1176,7 +1286,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          session.focusTag!,
+                          _localizeFocusTag(context, session.focusTag!),
                           style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,

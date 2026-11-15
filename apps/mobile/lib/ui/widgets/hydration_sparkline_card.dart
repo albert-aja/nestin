@@ -7,6 +7,7 @@ import '../../core/l10n/app_localizations.dart';
 import '../../providers/hydration_provider.dart';
 import '../../providers/wearable_provider.dart';
 import 'hydration_settings_sheet.dart';
+import 'mascot_milestone_stamp_overlay.dart';
 
 class HydrationSparklineCard extends StatefulWidget {
   final bool isCompact;
@@ -88,10 +89,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.pick(
-                            'Hydration & Weekly Intake',
-                            'Hidrasi & Asupan Mingguan',
-                          ),
+                          l10n.tr('hydration_weekly_intake'),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -100,10 +98,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          l10n.pick(
-                            '${hydration.currentMilliliters}ml / ${hydration.targetMilliliters}ml target today',
-                            '${hydration.currentMilliliters}ml / ${hydration.targetMilliliters}ml target hari ini',
-                          ),
+                          l10n.tr('ml_ml_target_today', {'hydration_currentMilliliters': hydration.currentMilliliters, 'hydration_targetMilliliters': hydration.targetMilliliters}),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary(context),
@@ -314,11 +309,19 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
 
                   // Add Glass Button
                   ElevatedButton.icon(
-                    onPressed: () {
-                      hydration.addGlass();
+                    onPressed: () async {
+                      final goalJustMet = await hydration.addGlass();
+                      if (!context.mounted) return;
                       Provider.of<WearableProvider>(context, listen: false)
                           .syncHydrationToWearable(
                               hydration.currentMilliliters);
+                      if (goalJustMet) {
+                        MascotMilestoneStampOverlay.showSerenRefreshed(
+                          context,
+                          currentMl: hydration.currentMilliliters,
+                          targetMl: hydration.targetMilliliters,
+                        );
+                      }
                     },
                     icon: const Icon(Icons.add_rounded, size: 18),
                     label: const Text(
@@ -449,7 +452,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
 
         // 7 Bars
         SizedBox(
-          height: chartHeight + 28,
+          height: chartHeight + 44,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: List.generate(7, (index) {

@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 class HobbyMilestone {
   final String id;
   final String title;
@@ -14,6 +16,20 @@ class HobbyMilestone {
   });
 
   bool isUnlocked(double currentHours) => currentHours >= requiredHours;
+
+  String get displayTitle {
+    final l10n = AppLocalizations.current;
+    final key = 'milestone_${id}_title';
+    final tr = l10n.tr(key);
+    return tr != key ? tr : title;
+  }
+
+  String get displayDescription {
+    final l10n = AppLocalizations.current;
+    final key = 'milestone_${id}_desc';
+    final tr = l10n.tr(key);
+    return tr != key ? tr : description;
+  }
 
   static const List<HobbyMilestone> standardMilestones = [
     HobbyMilestone(

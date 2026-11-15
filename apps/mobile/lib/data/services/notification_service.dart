@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import '../../core/l10n/app_localizations.dart';
 import '../models/before_you_go.dart';
 import '../models/medication_item.dart';
 import '../models/medication_snooze.dart';
@@ -108,7 +109,7 @@ class NotificationService {
           actions: [
             DarwinNotificationAction.plain(
               actionMedicationSnooze15m,
-              'Snooze 15m',
+              AppLocalizations.current.tr('notif_action_snooze_15m'),
             ),
           ],
         ),
@@ -117,11 +118,11 @@ class NotificationService {
           actions: [
             DarwinNotificationAction.plain(
               actionDepartureMarkAllReady,
-              'Mark All Ready',
+              AppLocalizations.current.tr('notif_action_mark_all_ready'),
             ),
             DarwinNotificationAction.plain(
               actionDepartureSnooze5m,
-              'Snooze 5m',
+              AppLocalizations.current.tr('notif_action_snooze_5m'),
             ),
           ],
         ),
@@ -179,10 +180,11 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
+    final l10n = AppLocalizations.current;
+    final androidDetails = AndroidNotificationDetails(
       alarmChannelId,
-      alarmChannelName,
-      channelDescription: alarmChannelDesc,
+      l10n.tr('notif_channel_alarm_name'),
+      channelDescription: l10n.tr('notif_channel_alarm_desc'),
       importance: Importance.max,
       priority: Priority.high,
       fullScreenIntent: true,
@@ -198,7 +200,7 @@ class NotificationService {
       sound: 'default',
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: darwinDetails,
     );
@@ -218,12 +220,13 @@ class NotificationService {
     required DateTime scheduledDate,
   }) async {
     try {
+      final l10n = AppLocalizations.current;
       final tzTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
-      const androidDetails = AndroidNotificationDetails(
+      final androidDetails = AndroidNotificationDetails(
         alarmChannelId,
-        alarmChannelName,
-        channelDescription: alarmChannelDesc,
+        l10n.tr('notif_channel_alarm_name'),
+        channelDescription: l10n.tr('notif_channel_alarm_desc'),
         importance: Importance.max,
         priority: Priority.high,
         fullScreenIntent: true,
@@ -238,7 +241,7 @@ class NotificationService {
         presentBadge: true,
       );
 
-      const details = NotificationDetails(
+      final details = NotificationDetails(
         android: androidDetails,
         iOS: darwinDetails,
       );
@@ -263,12 +266,13 @@ class NotificationService {
     required DateTime scheduledDate,
   }) async {
     try {
+      final l10n = AppLocalizations.current;
       final tzTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
-      const androidDetails = AndroidNotificationDetails(
+      final androidDetails = AndroidNotificationDetails(
         reminderChannelId,
-        reminderChannelName,
-        channelDescription: reminderChannelDesc,
+        l10n.tr('notif_channel_reminder_name'),
+        channelDescription: l10n.tr('notif_channel_reminder_desc'),
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         playSound: true,
@@ -279,7 +283,7 @@ class NotificationService {
         presentSound: true,
       );
 
-      const details = NotificationDetails(
+      final details = NotificationDetails(
         android: androidDetails,
         iOS: darwinDetails,
       );
@@ -300,10 +304,11 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
+    final l10n = AppLocalizations.current;
+    final androidDetails = AndroidNotificationDetails(
       timerChannelId,
-      timerChannelName,
-      channelDescription: timerChannelDesc,
+      l10n.tr('notif_channel_timer_name'),
+      channelDescription: l10n.tr('notif_channel_timer_desc'),
       importance: Importance.high,
       priority: Priority.high,
       playSound: true,
@@ -315,7 +320,7 @@ class NotificationService {
       presentSound: true,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: darwinDetails,
     );
@@ -335,10 +340,11 @@ class NotificationService {
     String? payload,
   }) async {
     try {
-      const androidDetails = AndroidNotificationDetails(
+      final l10n = AppLocalizations.current;
+      final androidDetails = AndroidNotificationDetails(
         wellnessChannelId,
-        wellnessChannelName,
-        channelDescription: wellnessChannelDesc,
+        l10n.tr('notif_channel_wellness_name'),
+        channelDescription: l10n.tr('notif_channel_wellness_desc'),
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         playSound: true,
@@ -350,7 +356,7 @@ class NotificationService {
         presentSound: true,
       );
 
-      const details = NotificationDetails(
+      final details = NotificationDetails(
         android: androidDetails,
         iOS: darwinDetails,
       );
@@ -373,12 +379,13 @@ class NotificationService {
     String? payload,
   }) async {
     try {
+      final l10n = AppLocalizations.current;
       final tzTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
-      const androidDetails = AndroidNotificationDetails(
+      final androidDetails = AndroidNotificationDetails(
         wellnessChannelId,
-        wellnessChannelName,
-        channelDescription: wellnessChannelDesc,
+        l10n.tr('notif_channel_wellness_name'),
+        channelDescription: l10n.tr('notif_channel_wellness_desc'),
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         playSound: true,
@@ -389,7 +396,7 @@ class NotificationService {
         presentSound: true,
       );
 
-      const details = NotificationDetails(
+      final details = NotificationDetails(
         android: androidDetails,
         iOS: darwinDetails,
       );
@@ -411,19 +418,20 @@ class NotificationService {
   static NotificationDetails _medicationNotificationDetails({
     bool includeSnoozeAction = true,
   }) {
+    final l10n = AppLocalizations.current;
     final androidDetails = AndroidNotificationDetails(
       medicationChannelId,
-      medicationChannelName,
-      channelDescription: medicationChannelDesc,
+      l10n.tr('notif_channel_medication_name'),
+      channelDescription: l10n.tr('notif_channel_medication_desc'),
       importance: Importance.high,
       priority: Priority.high,
       playSound: true,
       enableVibration: true,
       actions: includeSnoozeAction
-          ? const <AndroidNotificationAction>[
+          ? <AndroidNotificationAction>[
               AndroidNotificationAction(
                 actionMedicationSnooze15m,
-                'Snooze 15m',
+                l10n.tr('notif_action_snooze_15m'),
                 showsUserInterface: false,
                 cancelNotification: true,
               ),
@@ -529,6 +537,7 @@ class NotificationService {
       MedicationSnooze.regularDoseNotificationId(med.id, timeString, 0),
     );
 
+    final l10n = AppLocalizations.current;
     final mealAdvice = med.mealInstruction != MealInstruction.anytime
         ? ' • ${med.mealInstruction.label}'
         : '';
@@ -540,9 +549,8 @@ class NotificationService {
 
     await scheduleMedicationNotification(
       id: snoozeId,
-      title: '⏰ Seren (Snoozed +${duration.inMinutes}m): ${med.name}',
-      body:
-          'Take ${med.dosageString}$mealAdvice. Tap Snooze 15m again if needed.',
+      title: l10n.tr('seren_snoozed_m', {'duration_inMinutes': duration.inMinutes, 'med_name': med.name}),
+      body: l10n.tr('take_tap_snooze_15m_again_if', {'med_dosageString': med.dosageString, 'mealAdvice': mealAdvice}),
       scheduledDate: snoozeUntil,
       payload: MedicationSnooze.buildDosePayload(med.id, timeString),
     );
@@ -590,6 +598,7 @@ class NotificationService {
     ensureTimezonesInitialized();
     final storage = storageOverride ?? await StorageService.init();
     await storage.reloadPrefs();
+    AppLocalizations.currentLanguage = storage.loadPreferences().language;
 
     MedicationItem? med;
     for (final item in storage.loadMedications()) {
@@ -626,6 +635,7 @@ class NotificationService {
     ensureTimezonesInitialized();
     final storage = storageOverride ?? await StorageService.init();
     await storage.reloadPrefs();
+    AppLocalizations.currentLanguage = storage.loadPreferences().language;
     final now = nowOverride ?? DateTime.now();
 
     var presets = storage.loadDeparturePresets();
@@ -695,10 +705,11 @@ class NotificationService {
     String? payload,
   }) async {
     try {
-      const androidDetails = AndroidNotificationDetails(
+      final l10n = AppLocalizations.current;
+      final androidDetails = AndroidNotificationDetails(
         geofenceChannelId,
-        geofenceChannelName,
-        channelDescription: geofenceChannelDesc,
+        l10n.tr('notif_channel_geofence_name'),
+        channelDescription: l10n.tr('notif_channel_geofence_desc'),
         importance: Importance.high,
         priority: Priority.high,
         playSound: true,
@@ -711,7 +722,7 @@ class NotificationService {
         presentSound: true,
       );
 
-      const details = NotificationDetails(
+      final details = NotificationDetails(
         android: androidDetails,
         iOS: darwinDetails,
       );
@@ -730,25 +741,26 @@ class NotificationService {
   static NotificationDetails buildDepartureNotificationDetails({
     bool includeInlineActions = true,
   }) {
+    final l10n = AppLocalizations.current;
     final androidDetails = AndroidNotificationDetails(
       departureChannelId,
-      departureChannelName,
-      channelDescription: departureChannelDesc,
+      l10n.tr('notif_channel_departure_name'),
+      channelDescription: l10n.tr('notif_channel_departure_desc'),
       importance: Importance.high,
       priority: Priority.high,
       playSound: true,
       enableVibration: true,
       actions: includeInlineActions
-          ? const <AndroidNotificationAction>[
+          ? <AndroidNotificationAction>[
               AndroidNotificationAction(
                 actionDepartureMarkAllReady,
-                'Mark All Ready',
+                l10n.tr('notif_action_mark_all_ready'),
                 showsUserInterface: false,
                 cancelNotification: true,
               ),
               AndroidNotificationAction(
                 actionDepartureSnooze5m,
-                'Snooze 5m',
+                l10n.tr('notif_action_snooze_5m'),
                 showsUserInterface: false,
                 cancelNotification: true,
               ),
@@ -770,9 +782,9 @@ class NotificationService {
   }
 
   static const String wellbeingChannelId = 'nestin_wellbeing_channel';
-  static const String wellbeingChannelName = 'Scout Digital Wellbeing';
+  static const String wellbeingChannelName = 'Roo Digital Discipline';
   static const String wellbeingChannelDesc =
-      'App limit warnings, mindful pause prompts, and Phone Mode state alerts';
+      'App Fast, Focus Lock, daily usage limit warnings, and Phone Mode state alerts';
 
   static const String automationChannelId = 'nestin_automation_channel';
   static const String automationChannelName = 'Nestin Automations';
@@ -784,61 +796,67 @@ class NotificationService {
   static const String readingChannelDesc =
       'Optional evening daily reading page goal & streak reminders from Pippin';
 
-  static const NotificationDetails _readingNotificationDetails =
-      NotificationDetails(
-    android: AndroidNotificationDetails(
-      readingChannelId,
-      readingChannelName,
-      channelDescription: readingChannelDesc,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      playSound: true,
-      enableVibration: true,
-    ),
-    iOS: DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    ),
-  );
+  static NotificationDetails get _readingNotificationDetails {
+    final l10n = AppLocalizations.current;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        readingChannelId,
+        l10n.tr('notif_channel_reading_name'),
+        channelDescription: l10n.tr('notif_channel_reading_desc'),
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        playSound: true,
+        enableVibration: true,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+  }
 
-  static const NotificationDetails _wellbeingNotificationDetails =
-      NotificationDetails(
-    android: AndroidNotificationDetails(
-      wellbeingChannelId,
-      wellbeingChannelName,
-      channelDescription: wellbeingChannelDesc,
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-    ),
-    iOS: DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    ),
-  );
+  static NotificationDetails get _wellbeingNotificationDetails {
+    final l10n = AppLocalizations.current;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        wellbeingChannelId,
+        l10n.tr('notif_channel_wellbeing_name'),
+        channelDescription: l10n.tr('notif_channel_wellbeing_desc'),
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+  }
 
-  static const NotificationDetails _automationNotificationDetails =
-      NotificationDetails(
-    android: AndroidNotificationDetails(
-      automationChannelId,
-      automationChannelName,
-      channelDescription: automationChannelDesc,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      playSound: true,
-      enableVibration: false,
-    ),
-    iOS: DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    ),
-  );
+  static NotificationDetails get _automationNotificationDetails {
+    final l10n = AppLocalizations.current;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        automationChannelId,
+        l10n.tr('notif_channel_automation_name'),
+        channelDescription: l10n.tr('notif_channel_automation_desc'),
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        playSound: true,
+        enableVibration: false,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+  }
 
-  /// Displays a Scout Digital Wellbeing or Phone Mode status notification.
+  /// Displays a Roo Digital Discipline or Scout Phone Mode status notification.
   Future<void> showWellbeingNotification({
     required int id,
     required String title,
@@ -1049,21 +1067,23 @@ class NotificationService {
   static const int dailyInspirationNotificationId = 94001;
   static const int inspirationPreviewNotificationId = 94002;
 
-  NotificationDetails get _inspirationNotificationDetails =>
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          inspirationChannelId,
-          inspirationChannelName,
-          channelDescription: inspirationChannelDesc,
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
-          playSound: true,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentSound: true,
-        ),
-      );
+  NotificationDetails get _inspirationNotificationDetails {
+    final l10n = AppLocalizations.current;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        inspirationChannelId,
+        l10n.tr('notif_channel_inspiration_name'),
+        channelDescription: l10n.tr('notif_channel_inspiration_desc'),
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        playSound: true,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+      ),
+    );
+  }
 
   /// Schedules or updates the optional daily Inspiration notification.
   /// Only invoked when the user has explicitly opted in.

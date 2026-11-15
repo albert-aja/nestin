@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/reading_item.dart';
 import '../../providers/reading_provider.dart';
+import 'mascot_milestone_stamp_overlay.dart';
 
 const Color _pippinEmerald = Color(0xFF10B981);
 const Color _pippinGold = Color(0xFFF59E0B);
@@ -28,6 +30,7 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final book = widget.book;
     final provider = Provider.of<ReadingProvider>(context, listen: false);
     final hasPages = book.totalPages > 0;
@@ -68,7 +71,7 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          'Page ${book.safeCurrentPage} / ${book.totalPages}',
+                          l10n.tr('page', {'book_safeCurrentPage': book.safeCurrentPage, 'book_totalPages': book.totalPages}),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -94,8 +97,8 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
               children: [
                 Text(
                   book.isCompleted
-                      ? 'Completed!'
-                      : '${book.pagesRemaining} left',
+                      ? l10n.tr('completed_3')
+                      : l10n.tr('left', {'book_pagesRemaining': book.pagesRemaining}),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -248,7 +251,7 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
                 ),
               ),
               child: Text(
-                '$label p',
+                '$label ${l10n.tr('p')}',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -277,6 +280,7 @@ Future<void> showSetReadingPageDialog(
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, setDialogState) {
+          final l10n = ctx.l10n;
           final parsedTotal =
               (int.tryParse(totalController.text.trim()) ?? book.totalPages)
                   .clamp(1, 99999);
@@ -295,7 +299,7 @@ Future<void> showSetReadingPageDialog(
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Update Progress',
+                    l10n.tr('update_progress'),
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
@@ -331,7 +335,8 @@ Future<void> showSetReadingPageDialog(
                               fontSize: 14,
                               fontWeight: FontWeight.w700),
                           decoration: InputDecoration(
-                            labelText: 'Current Page',
+                            labelText:
+                                l10n.tr('current_page'),
                             labelStyle: TextStyle(
                                 color: AppColors.textSecondary(context),
                                 fontSize: 12),
@@ -355,7 +360,8 @@ Future<void> showSetReadingPageDialog(
                               fontSize: 14,
                               fontWeight: FontWeight.w700),
                           decoration: InputDecoration(
-                            labelText: 'Total Pages',
+                            labelText:
+                                l10n.tr('total_pages'),
                             labelStyle: TextStyle(
                                 color: AppColors.textSecondary(context),
                                 fontSize: 12),
@@ -384,7 +390,7 @@ Future<void> showSetReadingPageDialog(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '$parsedPage / $parsedTotal pages',
+                              l10n.tr('pages_2', {'parsedPage': parsedPage, 'parsedTotal': parsedTotal}),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -426,7 +432,7 @@ Future<void> showSetReadingPageDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('Cancel',
+                child: Text(l10n.tr('cancel'),
                     style: TextStyle(color: AppColors.textSecondary(context))),
               ),
               ElevatedButton(
@@ -466,9 +472,9 @@ Future<void> showSetReadingPageDialog(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Save Page',
-                  style: TextStyle(
+                child: Text(
+                  l10n.tr('save_page'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                   ),
@@ -494,6 +500,7 @@ Future<void> showReadingCelebrationDialog(
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, setDialogState) {
+          final l10n = ctx.l10n;
           return AlertDialog(
             backgroundColor: AppColors.sheetSurface(context),
             shape:
@@ -503,10 +510,14 @@ Future<void> showReadingCelebrationDialog(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 6),
-                  const Text('🦜🎉', style: TextStyle(fontSize: 42)),
+                  MascotMilestoneStampBadge(
+                    type: MascotMilestoneType.pippinStamped,
+                    spriteSize: 94,
+                    isIndonesian: l10n.isIndonesian,
+                  ),
                   const SizedBox(height: 10),
                   Text(
-                    'Book Finished!',
+                    l10n.tr('book_finished'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -515,7 +526,7 @@ Future<void> showReadingCelebrationDialog(
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Pippin stamped "${book.title}" as 100% complete (${book.totalPages} pages)!',
+                    l10n.tr('pippin_stamped_as_100_complete_pages', {'book_title': book.title, 'book_totalPages': book.totalPages}),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
@@ -524,7 +535,7 @@ Future<void> showReadingCelebrationDialog(
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'YOUR RATING',
+                    l10n.tr('your_rating'),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -563,7 +574,7 @@ Future<void> showReadingCelebrationDialog(
                       fontSize: 12,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Key takeaway or favorite quote (optional)...',
+                      hintText: l10n.tr('key_takeaway_or_favorite_quote_optional'),
                       hintStyle: TextStyle(
                           color: AppColors.textMuted(context), fontSize: 12),
                       filled: true,
@@ -580,7 +591,7 @@ Future<void> showReadingCelebrationDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('Close',
+                child: Text(l10n.tr('close'),
                     style: TextStyle(color: AppColors.textSecondary(context))),
               ),
               ElevatedButton(
@@ -599,9 +610,9 @@ Future<void> showReadingCelebrationDialog(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Save Takeaway',
-                  style: TextStyle(
+                child: Text(
+                  l10n.tr('save_takeaway'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                   ),

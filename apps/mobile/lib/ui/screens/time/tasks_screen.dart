@@ -342,19 +342,13 @@ class _TasksScreenState extends State<TasksScreen> {
               children: [
                 Expanded(
                   child: _buildFilterTab(
-                      l10n.pick(
-                        'Pending (${taskProvider.pendingTasks.length})',
-                        'Tertunda (${taskProvider.pendingTasks.length})',
-                      ),
+                      l10n.tr('pending_2', {'taskProvider_length': taskProvider.pendingTasks.length}),
                       0),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildFilterTab(
-                      l10n.pick(
-                        'Completed (${taskProvider.completedTasks.length})',
-                        'Selesai (${taskProvider.completedTasks.length})',
-                      ),
+                      l10n.tr('completed_2', {'taskProvider_length': taskProvider.completedTasks.length}),
                       1),
                 ),
               ],
@@ -373,8 +367,8 @@ class _TasksScreenState extends State<TasksScreen> {
                         const SizedBox(height: 12),
                         Text(
                           _tabIndex == 0
-                              ? l10n.pick('No pending tasks!', 'Tidak ada tugas tertunda!')
-                              : l10n.pick('No completed tasks yet', 'Belum ada tugas selesai'),
+                              ? l10n.tr('no_pending_tasks')
+                              : l10n.tr('no_completed_tasks_yet'),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                         ),
                       ],
@@ -393,12 +387,12 @@ class _TasksScreenState extends State<TasksScreen> {
                         dismissKey: ValueKey('task_${task.id}'),
                         swipeRightStyle: task.isCompleted
                             ? SwipeActionStyle(
-                                label: l10n.pick('Reopen', 'Buka Lagi'),
+                                label: l10n.tr('reopen'),
                                 icon: Icons.replay_rounded,
                                 color: AppColors.info,
                               )
                             : SwipeActionStyle(
-                                label: l10n.pick('Complete', 'Selesai'),
+                                label: l10n.tr('complete'),
                                 icon: Icons.check_circle_rounded,
                                 color: AppColors.success,
                               ),

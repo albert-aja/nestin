@@ -116,6 +116,38 @@ class Alarm {
     }
   }
 
+  /// Formats a concise countdown string for snackbars when enabling or saving
+  /// an alarm (e.g. "Rings in 7h 14m" or "Berbunyi dalam 7j 14m").
+  String formatRingsIn(DateTime now, {bool isIndonesian = false}) {
+    final next = nextOccurrence(now);
+    final diff = next.difference(now);
+    if (diff.isNegative) {
+      return isIndonesian ? 'Berbunyi sekarang' : 'Rings now';
+    }
+
+    final days = diff.inDays;
+    final hours = diff.inHours % 24;
+    final minutes = diff.inMinutes % 60;
+
+    if (days > 0) {
+      return isIndonesian
+          ? 'Berbunyi dalam ${days}h ${hours}j ${minutes}m'
+          : 'Rings in ${days}d ${hours}h ${minutes}m';
+    } else if (hours > 0) {
+      return isIndonesian
+          ? 'Berbunyi dalam ${hours}j ${minutes}m'
+          : 'Rings in ${hours}h ${minutes}m';
+    } else if (minutes > 0) {
+      return isIndonesian
+          ? 'Berbunyi dalam ${minutes}m'
+          : 'Rings in ${minutes}m';
+    } else {
+      return isIndonesian
+          ? 'Berbunyi kurang dari semenit'
+          : 'Rings in less than a minute';
+    }
+  }
+
   Alarm copyWith({
     String? id,
     String? title,

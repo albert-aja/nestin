@@ -1,3 +1,4 @@
+import '../../core/l10n/app_localizations.dart';
 import 'alarm_category.dart';
 
 enum GeofenceTriggerType {
@@ -8,35 +9,38 @@ enum GeofenceTriggerType {
 
 extension GeofenceTriggerTypeExt on GeofenceTriggerType {
   String get displayName {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case GeofenceTriggerType.arrive:
-        return 'On Arrival';
+        return l10n.tr('on_arrival');
       case GeofenceTriggerType.leave:
-        return 'On Departure';
+        return l10n.tr('on_departure');
       case GeofenceTriggerType.both:
-        return 'Arrive & Leave';
+        return l10n.tr('arrive_leave');
     }
   }
 
   String get shortLabel {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case GeofenceTriggerType.arrive:
-        return 'Arriving';
+        return l10n.tr('arriving');
       case GeofenceTriggerType.leave:
-        return 'Leaving';
+        return l10n.tr('leaving');
       case GeofenceTriggerType.both:
-        return 'Enter / Exit';
+        return l10n.tr('enter_exit');
     }
   }
 
   String get preposition {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case GeofenceTriggerType.arrive:
-        return 'when arriving near';
+        return l10n.tr('when_arriving_near');
       case GeofenceTriggerType.leave:
-        return 'when leaving';
+        return l10n.tr('when_leaving');
       case GeofenceTriggerType.both:
-        return 'near';
+        return l10n.tr('near');
     }
   }
 
@@ -60,13 +64,14 @@ enum GeofenceTransitionEvent {
 
 extension GeofenceTransitionEventExt on GeofenceTransitionEvent {
   String get displayName {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case GeofenceTransitionEvent.enter:
-        return 'Arrived';
+        return l10n.tr('arrived');
       case GeofenceTransitionEvent.exit:
-        return 'Departed';
+        return l10n.tr('departed');
       case GeofenceTransitionEvent.dwell:
-        return 'At Location';
+        return l10n.tr('at_location');
     }
   }
 
@@ -92,17 +97,18 @@ enum LocationPermissionState {
 
 extension LocationPermissionStateExt on LocationPermissionState {
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case LocationPermissionState.unknown:
-        return 'Checking Permission';
+        return l10n.tr('checking_permission');
       case LocationPermissionState.denied:
-        return 'Location Off';
+        return l10n.tr('location_off');
       case LocationPermissionState.deniedForever:
-        return 'Blocked in Settings';
+        return l10n.tr('blocked_in_settings');
       case LocationPermissionState.whileInUse:
-        return 'While Using App';
+        return l10n.tr('while_using_app');
       case LocationPermissionState.alwaysGranted:
-        return 'Background Active';
+        return l10n.tr('background_active');
     }
   }
 
@@ -229,7 +235,7 @@ class LocationReminder {
   }
 
   String describeRule(String placeName) {
-    return 'Remind to $title ${triggerType.preposition} $placeName';
+    return AppLocalizations.current.tr('remind_to', {'title': title, 'triggerType_preposition': triggerType.preposition, 'placeName': placeName});
   }
 
   LocationReminder copyWith({

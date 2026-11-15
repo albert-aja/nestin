@@ -81,10 +81,7 @@ class _InspirationNotificationSheetState
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.pick(
-                'Daily Inspiration Reminders',
-                'Pengingat Inspirasi Harian',
-              ),
+              l10n.tr('daily_inspiration_reminders'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -93,10 +90,7 @@ class _InspirationNotificationSheetState
             ),
             const SizedBox(height: 4),
             Text(
-              l10n.pick(
-                'Optional & calm — turned off by default so Nestin never interrupts without permission.',
-                'Opsional & tenang — nonaktif secara default agar tidak mengganggu tanpa izin.',
-              ),
+              l10n.tr('optional_calm_turned_off_by_default'),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary(context),
@@ -106,10 +100,7 @@ class _InspirationNotificationSheetState
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: Text(
-                l10n.pick(
-                  'Enable Daily Quote Reminder',
-                  'Aktifkan Pengingat Kutipan Harian',
-                ),
+                l10n.tr('enable_daily_quote_reminder'),
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
               ),
               value: _draft.dailyEnabled,
@@ -122,7 +113,7 @@ class _InspirationNotificationSheetState
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.schedule_rounded, color: AppColors.accent),
-                title: Text(l10n.pick('Preferred Time', 'Waktu Pilihan')),
+                title: Text(l10n.tr('preferred_time')),
                 trailing: Text(
                   _draft.preferredTime,
                   style: const TextStyle(
@@ -135,7 +126,7 @@ class _InspirationNotificationSheetState
               ),
               const SizedBox(height: 8),
               Text(
-                l10n.pick('Frequency', 'Frekuensi'),
+                l10n.tr('frequency'),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -149,11 +140,11 @@ class _InspirationNotificationSheetState
                   final selected = _draft.frequency == freq;
                   final label = switch (freq) {
                     InspirationNotificationFrequency.daily =>
-                      l10n.pick('Daily', 'Setiap Hari'),
+                      l10n.tr('daily'),
                     InspirationNotificationFrequency.weekdays =>
-                      l10n.pick('Weekdays', 'Hari Kerja'),
+                      l10n.tr('weekdays'),
                     InspirationNotificationFrequency.weekly =>
-                      l10n.pick('Weekly', 'Mingguan'),
+                      l10n.tr('freq_weekly'),
                   };
                   return ChoiceChip(
                     label: Text(label),
@@ -166,7 +157,7 @@ class _InspirationNotificationSheetState
               ),
               const SizedBox(height: 12),
               Text(
-                l10n.pick('Language', 'Bahasa Kutipan'),
+                l10n.tr('language_2'),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -195,10 +186,7 @@ class _InspirationNotificationSheetState
               ),
               const SizedBox(height: 12),
               Text(
-                l10n.pick(
-                  'Category Filter (optional)',
-                  'Filter Kategori (opsional)',
-                ),
+                l10n.tr('category_filter_optional'),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -233,17 +221,11 @@ class _InspirationNotificationSheetState
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: Text(
-                l10n.pick(
-                  'Submission Review Alerts',
-                  'Notifikasi Status Pengajuan',
-                ),
+                l10n.tr('submission_review_alerts'),
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               subtitle: Text(
-                l10n.pick(
-                  'Notify when a moderator approves or reviews your submitted quote.',
-                  'Beri tahu saat moderator meninjau kutipan Anda.',
-                ),
+                l10n.tr('notify_when_a_moderator_approves_or'),
                 style: const TextStyle(fontSize: 11),
               ),
               value: _draft.submissionUpdatesEnabled,
@@ -262,17 +244,14 @@ class _InspirationNotificationSheetState
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              l10n.pick(
-                                'Preview notification dispatched',
-                                'Pratinjau notifikasi dikirim',
-                              ),
+                              l10n.tr('preview_notification_dispatched'),
                             ),
                           ),
                         );
                       }
                     },
                     icon: const Icon(Icons.notifications_none_rounded, size: 18),
-                    label: Text(l10n.pick('Preview', 'Pratinjau')),
+                    label: Text(l10n.tr('preview')),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -291,20 +270,14 @@ class _InspirationNotificationSheetState
                           SnackBar(
                             content: Text(
                               _draft.dailyEnabled
-                                  ? l10n.pick(
-                                      'Daily inspiration set for ${_draft.preferredTime}',
-                                      'Inspirasi harian diatur pukul ${_draft.preferredTime}',
-                                    )
-                                  : l10n.pick(
-                                      'Daily inspiration notifications paused',
-                                      'Notifikasi inspirasi harian dimatikan',
-                                    ),
+                                  ? l10n.tr('daily_inspiration_set_for', {'draft_preferredTime': _draft.preferredTime})
+                                  : l10n.tr('daily_inspiration_notifications_paused'),
                             ),
                           ),
                         );
                       }
                     },
-                    child: Text(l10n.pick('Save Preferences', 'Simpan Pengaturan')),
+                    child: Text(l10n.tr('save_preferences')),
                   ),
                 ),
               ],

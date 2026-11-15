@@ -88,11 +88,8 @@ class _InspirationScreenState extends State<InspirationScreen> {
                   children: [
                     Text(
                       existing == null
-                          ? l10n.pick(
-                              'Create Personal Quote',
-                              'Buat Kutipan Pribadi',
-                            )
-                          : l10n.pick('Edit Quote', 'Ubah Kutipan'),
+                          ? l10n.tr('create_personal_quote')
+                          : l10n.tr('edit_quote'),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -104,11 +101,8 @@ class _InspirationScreenState extends State<InspirationScreen> {
                       maxLines: 4,
                       maxLength: 500,
                       decoration: InputDecoration(
-                        labelText: l10n.pick('Quote Text', 'Teks Kutipan'),
-                        hintText: l10n.pick(
-                          'Write a calm reflection or reminder...',
-                          'Tulis refleksi atau pengingat singkat...',
-                        ),
+                        labelText: l10n.tr('quote_text'),
+                        hintText: l10n.tr('write_a_calm_reflection_or_reminder'),
                         border: const OutlineInputBorder(),
                       ),
                     ),
@@ -116,10 +110,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                     TextField(
                       controller: authorCtrl,
                       decoration: InputDecoration(
-                        labelText: l10n.pick(
-                          'Author / Attribution (optional)',
-                          'Penulis (opsional)',
-                        ),
+                        labelText: l10n.tr('author_attribution_optional'),
                         border: const OutlineInputBorder(),
                       ),
                     ),
@@ -127,10 +118,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                     TextField(
                       controller: sourceCtrl,
                       decoration: InputDecoration(
-                        labelText: l10n.pick(
-                          'Source / Book (optional)',
-                          'Sumber (opsional)',
-                        ),
+                        labelText: l10n.tr('source_book_optional'),
                         border: const OutlineInputBorder(),
                       ),
                     ),
@@ -138,7 +126,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                     DropdownButtonFormField<InspirationCategory>(
                       initialValue: selectedCategory,
                       decoration: InputDecoration(
-                        labelText: l10n.pick('Category', 'Kategori'),
+                        labelText: l10n.tr('category'),
                         border: const OutlineInputBorder(),
                       ),
                       items: categories
@@ -183,10 +171,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                     SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
-                        l10n.pick(
-                          'Publish anonymously if shared globally',
-                          'Terbitkan sebagai anonim jika diajukan ke publik',
-                        ),
+                        l10n.tr('publish_anonymously_if_shared_globally'),
                         style: const TextStyle(fontSize: 13),
                       ),
                       value: displayPref == 'anonymous',
@@ -208,10 +193,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  l10n.pick(
-                                    'Quote must be at least 5 characters.',
-                                    'Kutipan minimal 5 karakter.',
-                                  ),
+                                  l10n.tr('quote_must_be_at_least_5'),
                                 ),
                               ),
                             );
@@ -240,7 +222,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                             setState(() => _tab = InspirationSectionTab.myQuotes);
                           }
                         },
-                        child: Text(l10n.pick('Save Quote', 'Simpan Kutipan')),
+                        child: Text(l10n.tr('save_quote')),
                       ),
                     ),
                   ],
@@ -264,7 +246,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: Text(
-            l10n.pick('Submit for Global Review', 'Ajukan ke Pustaka Global'),
+            l10n.tr('submit_for_global_review'),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -278,10 +260,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  l10n.pick(
-                    'Publish anonymously (recommended)',
-                    'Publikasikan secara anonim',
-                  ),
+                  l10n.tr('publish_anonymously_recommended'),
                   style: const TextStyle(fontSize: 13),
                 ),
                 value: anonymousPub,
@@ -291,10 +270,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  l10n.pick(
-                    'I confirm this quote is original or properly attributed for review.',
-                    'Saya pastikan kutipan ini asli atau memiliki atribusi yang benar.',
-                  ),
+                  l10n.tr('i_confirm_this_quote_is_original'),
                   style: const TextStyle(fontSize: 13),
                 ),
                 value: rightsConfirmed,
@@ -306,13 +282,13 @@ class _InspirationScreenState extends State<InspirationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(l10n.pick('Cancel', 'Batal')),
+              child: Text(l10n.tr('cancel')),
             ),
             FilledButton(
               onPressed: rightsConfirmed
                   ? () => Navigator.of(ctx).pop(true)
                   : null,
-              child: Text(l10n.pick('Submit', 'Ajukan')),
+              child: Text(l10n.tr('submit')),
             ),
           ],
         ),
@@ -330,10 +306,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
       SnackBar(
         content: Text(
           res.isSuccess
-              ? l10n.pick(
-                  'Submitted for moderator review.',
-                  'Terkirim untuk ditinjau moderator.',
-                )
+              ? l10n.tr('submitted_for_moderator_review')
               : (res.errorMessage ?? 'Unable to submit'),
         ),
       ),
@@ -350,10 +323,10 @@ class _InspirationScreenState extends State<InspirationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.pick('Inspiration', 'Inspirasi')),
+        title: Text(l10n.tr('inspiration')),
         actions: [
           IconButton(
-            tooltip: l10n.pick('Notification Settings', 'Pengaturan Notifikasi'),
+            tooltip: l10n.tr('notification_settings'),
             icon: Icon(
               provider.notificationPreferences.dailyEnabled
                   ? Icons.notifications_active_rounded
@@ -365,7 +338,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
             onPressed: () => InspirationNotificationSheet.show(context),
           ),
           IconButton(
-            tooltip: l10n.pick('Create Personal Quote', 'Buat Kutipan'),
+            tooltip: l10n.tr('create_personal_quote_2'),
             icon: const Icon(Icons.add_rounded),
             onPressed: () => _openCreateOrEditPersonalQuoteSheet(),
           ),
@@ -383,31 +356,28 @@ class _InspirationScreenState extends State<InspirationScreen> {
                   _tabChip(
                     context,
                     InspirationSectionTab.browse,
-                    l10n.pick('Browse', 'Jelajah'),
+                    l10n.tr('browse'),
                     Icons.explore_outlined,
                   ),
                   const SizedBox(width: 8),
                   _tabChip(
                     context,
                     InspirationSectionTab.favorites,
-                    l10n.pick(
-                      'Favorites (${provider.favorites.length})',
-                      'Favorit (${provider.favorites.length})',
-                    ),
+                    l10n.tr('favorites', {'provider_length': provider.favorites.length}),
                     Icons.bookmark_rounded,
                   ),
                   const SizedBox(width: 8),
                   _tabChip(
                     context,
                     InspirationSectionTab.myQuotes,
-                    l10n.pick('My Quotes', 'Kutipan Saya'),
+                    l10n.tr('my_quotes'),
                     Icons.edit_note_rounded,
                   ),
                   const SizedBox(width: 8),
                   _tabChip(
                     context,
                     InspirationSectionTab.submissions,
-                    l10n.pick('Submissions', 'Pengajuan'),
+                    l10n.tr('submissions'),
                     Icons.outbox_rounded,
                   ),
                 ],
@@ -503,7 +473,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        l10n.pick('DAILY FEATURED', 'PILIHAN HARI INI'),
+                        l10n.tr('daily_featured'),
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -524,7 +494,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                     if (provider.isFromCache)
                       Chip(
                         label: Text(
-                          l10n.pick('Offline Cache', 'Cache Offline'),
+                          l10n.tr('offline_cache'),
                           style: const TextStyle(fontSize: 10),
                         ),
                         visualDensity: VisualDensity.compact,
@@ -563,8 +533,8 @@ class _InspirationScreenState extends State<InspirationScreen> {
                       ),
                       label: Text(
                         provider.isFavorite(featured.id)
-                            ? l10n.pick('Saved', 'Tersimpan')
-                            : l10n.pick('Save', 'Simpan'),
+                            ? l10n.tr('saved')
+                            : l10n.tr('save'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -585,10 +555,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                         ),
                         icon: const Icon(Icons.palette_rounded, size: 18),
                         label: Text(
-                          l10n.pick(
-                            'Open Quote Card',
-                            'Buka Kartu Kutipan',
-                          ),
+                          l10n.tr('open_quote_card'),
                         ),
                       ),
                     ),
@@ -603,10 +570,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: l10n.pick(
-                'Search quotes, authors, themes...',
-                'Cari kutipan, penulis, atau topik...',
-              ),
+              hintText: l10n.tr('search_quotes_authors_themes'),
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
@@ -638,7 +602,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text(l10n.pick('All Topics', 'Semua Topik')),
+                    label: Text(l10n.tr('all_topics')),
                     selected: provider.selectedCategorySlug == null &&
                         !provider.favoritesOnlyFilter,
                     onSelected: (_) => provider.applyFilters(
@@ -650,7 +614,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
-                    label: Text(l10n.pick('Saved Only', 'Favorit Saja')),
+                    label: Text(l10n.tr('saved_only')),
                     selected: provider.favoritesOnlyFilter,
                     onSelected: (v) => provider.applyFilters(favoritesOnly: v),
                   ),
@@ -682,7 +646,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: ChoiceChip(
-                    label: Text(l10n.pick('All Lang', 'Semua Bahasa')),
+                    label: Text(l10n.tr('all_lang')),
                     selected: provider.selectedLocale == null,
                     onSelected: (_) => provider.applyFilters(clearLocale: true),
                   ),
@@ -729,10 +693,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
           else if (quotes.isEmpty)
             _emptyState(
               context,
-              l10n.pick(
-                'No matching quotes found for these filters.',
-                'Belum ada kutipan untuk filter ini.',
-              ),
+              l10n.tr('no_matching_quotes_found_for_these'),
             )
           else
             ...quotes.map((q) => _quoteCardTile(context, provider, q)),
@@ -742,7 +703,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
               padding: const EdgeInsets.only(top: 12),
               child: OutlinedButton(
                 onPressed: provider.isLoading ? null : provider.loadMoreQuotes,
-                child: Text(l10n.pick('Load More Quotes', 'Muat Lebih Banyak')),
+                child: Text(l10n.tr('load_more_quotes')),
               ),
             ),
         ],
@@ -762,10 +723,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
         TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: l10n.pick(
-              'Search saved quotes...',
-              'Cari kutipan tersimpan...',
-            ),
+            hintText: l10n.tr('search_saved_quotes'),
             prefixIcon: const Icon(Icons.search_rounded),
             filled: true,
             fillColor: AppColors.cardSurface(context),
@@ -779,10 +737,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
         if (items.isEmpty)
           _emptyState(
             context,
-            l10n.pick(
-              'Bookmark quotes to keep a calm personal collection offline.',
-              'Simpan kutipan favorit untuk dibaca kapan saja secara offline.',
-            ),
+            l10n.tr('bookmark_quotes_to_keep_a_calm'),
           )
         else
           ...items.map((q) => _quoteCardTile(context, provider, q)),
@@ -807,10 +762,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              l10n.pick(
-                'Guest mode saves personal quotes locally on your device. Sign in optionally in Settings to submit quotes for global moderation.',
-                'Mode tamu menyimpan kutipan pribadi di perangkat Anda. Masuk melalui Pengaturan untuk mengajukan kutipan ke pustaka global.',
-              ),
+              l10n.tr('guest_mode_saves_personal_quotes_locally'),
               style: const TextStyle(fontSize: 12),
             ),
           ),
@@ -823,17 +775,14 @@ class _InspirationScreenState extends State<InspirationScreen> {
             ),
             onPressed: () => _openCreateOrEditPersonalQuoteSheet(),
             icon: const Icon(Icons.add_rounded),
-            label: Text(l10n.pick('New Personal Quote', 'Tulis Kutipan Baru')),
+            label: Text(l10n.tr('new_personal_quote')),
           ),
         ),
         const SizedBox(height: 14),
         if (provider.userQuotes.isEmpty)
           _emptyState(
             context,
-            l10n.pick(
-              'Create personal reminders or reflections. Turn any quote into a wallpaper card.',
-              'Tulis pengingat pribadi Anda dan ubah menjadi kartu wallpaper.',
-            ),
+            l10n.tr('create_personal_reminders_or_reflections_turn'),
           )
         else
           ...provider.userQuotes.map((uq) {
@@ -854,8 +803,8 @@ class _InspirationScreenState extends State<InspirationScreen> {
                         Chip(
                           label: Text(
                             uq.isLocalOnlyDraft
-                                ? l10n.pick('Local Draft', 'Draf Lokal')
-                                : l10n.pick('Cloud Synced', 'Tersinkronisasi'),
+                                ? l10n.tr('local_draft')
+                                : l10n.tr('cloud_synced'),
                             style: const TextStyle(fontSize: 10),
                           ),
                           visualDensity: VisualDensity.compact,
@@ -894,25 +843,25 @@ class _InspirationScreenState extends State<InspirationScreen> {
                             ),
                           ),
                           icon: const Icon(Icons.palette_outlined, size: 16),
-                          label: Text(l10n.pick('Card', 'Kartu')),
+                          label: Text(l10n.tr('card')),
                         ),
                         TextButton.icon(
                           onPressed: () =>
                               _openCreateOrEditPersonalQuoteSheet(existing: uq),
                           icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: Text(l10n.pick('Edit', 'Ubah')),
+                          label: Text(l10n.tr('edit')),
                         ),
                         TextButton.icon(
                           onPressed: () => _openSubmitDialog(uq),
                           icon: const Icon(Icons.publish_rounded, size: 16),
                           label: Text(
-                            l10n.pick('Submit Globally', 'Ajukan Global'),
+                            l10n.tr('submit_globally'),
                           ),
                         ),
                         TextButton(
                           onPressed: () => provider.deletePersonalQuote(uq.id),
                           child: Text(
-                            l10n.pick('Delete', 'Hapus'),
+                            l10n.tr('delete'),
                             style: const TextStyle(color: AppColors.error),
                           ),
                         ),
@@ -938,10 +887,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
         if (provider.submissions.isEmpty)
           _emptyState(
             context,
-            l10n.pick(
-              'No global submissions yet. Submitted personal quotes appear here with moderation status.',
-              'Belum ada pengajuan global. Status peninjauan moderator akan muncul di sini.',
-            ),
+            l10n.tr('no_global_submissions_yet_submitted_personal'),
           )
         else
           ...provider.submissions.map((sub) {
@@ -953,7 +899,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
               InspirationSubmissionStatus.draft => AppColors.textSecondary(context),
             };
             final statusLabel = !sub.isConfirmedByServer
-                ? l10n.pick('OFFLINE DRAFT (NOT SUBMITTED)', 'DRAF OFFLINE')
+                ? l10n.tr('offline_draft_not_submitted')
                 : sub.status.toApi();
 
             return Card(
@@ -1012,7 +958,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${l10n.pick('Moderator Note', 'Catatan Moderator')}: ${sub.rejectionReason}',
+                          '${l10n.tr('moderator_note')}: ${sub.rejectionReason}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.error,
@@ -1027,7 +973,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                         child: TextButton.icon(
                           onPressed: () => provider.withdrawSubmission(sub.id),
                           icon: const Icon(Icons.undo_rounded, size: 16),
-                          label: Text(l10n.pick('Withdraw', 'Tarik Pengajuan')),
+                          label: Text(l10n.tr('withdraw')),
                         ),
                       ),
                     ],
@@ -1083,7 +1029,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                 ),
                 const Spacer(),
                 IconButton(
-                  tooltip: l10n.pick('Save Favorite', 'Simpan Favorit'),
+                  tooltip: l10n.tr('save_favorite'),
                   icon: Icon(
                     isFav
                         ? Icons.bookmark_rounded
@@ -1095,7 +1041,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                   onPressed: () => provider.toggleFavorite(q),
                 ),
                 IconButton(
-                  tooltip: l10n.pick('Open Card Studio', 'Buat Kartu'),
+                  tooltip: l10n.tr('open_card_studio'),
                   icon: const Icon(Icons.palette_outlined),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
@@ -1108,7 +1054,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                   ),
                 ),
                 IconButton(
-                  tooltip: l10n.pick('Copy Quote', 'Salin Kutipan'),
+                  tooltip: l10n.tr('copy_quote'),
                   icon: const Icon(Icons.copy_rounded, size: 18),
                   onPressed: () {
                     Clipboard.setData(
@@ -1117,7 +1063,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          l10n.pick('Quote copied', 'Kutipan disalin'),
+                          l10n.tr('quote_copied'),
                         ),
                       ),
                     );

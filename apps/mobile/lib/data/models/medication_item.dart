@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum MealInstruction {
   anytime,
   beforeMeal,
@@ -8,32 +10,34 @@ enum MealInstruction {
 
 extension MealInstructionExtension on MealInstruction {
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case MealInstruction.anytime:
-        return 'Any Time';
+        return l10n.tr('any_time');
       case MealInstruction.beforeMeal:
-        return 'Before Food';
+        return l10n.tr('before_food');
       case MealInstruction.withMeal:
-        return 'With Food';
+        return l10n.tr('with_food');
       case MealInstruction.afterMeal:
-        return 'After Food';
+        return l10n.tr('after_food');
       case MealInstruction.emptyStomach:
-        return 'Empty Stomach';
+        return l10n.tr('empty_stomach');
     }
   }
 
   String get shortLabel {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case MealInstruction.anytime:
-        return 'Anytime';
+        return l10n.tr('anytime');
       case MealInstruction.beforeMeal:
-        return 'Before meal';
+        return l10n.tr('before_meal');
       case MealInstruction.withMeal:
-        return 'With meal';
+        return l10n.tr('with_meal');
       case MealInstruction.afterMeal:
-        return 'After meal';
+        return l10n.tr('after_meal');
       case MealInstruction.emptyStomach:
-        return 'Empty stomach';
+        return l10n.tr('empty_stomach_2');
     }
   }
 
@@ -92,14 +96,30 @@ class MedicationItem {
       refillThreshold != null &&
       currentStock! <= refillThreshold!;
 
+  static String localizeUnit(String unit, {double? quantity}) {
+    final l10n = AppLocalizations.current;
+    switch (unit.toLowerCase()) {
+      case 'pills':
+      case 'pill':
+        return quantity == 1.0 ? l10n.tr('unit_pill') : l10n.tr('unit_pills');
+      case 'drops':
+        return quantity == 1.0 ? l10n.tr('unit_drop') : l10n.tr('unit_drops');
+      case 'puffs':
+        return quantity == 1.0 ? l10n.tr('unit_puff') : l10n.tr('unit_puffs');
+      case 'capsules':
+        return quantity == 1.0 ? l10n.tr('unit_capsule') : l10n.tr('unit_capsules');
+      default:
+        return unit;
+    }
+  }
+
+  String get localizedUnitLabel => localizeUnit(dosageUnit);
+
   String get dosageString {
     final cleanAmount = dosageAmount % 1 == 0
         ? dosageAmount.toInt().toString()
         : dosageAmount.toString();
-    if (dosageUnit.toLowerCase() == 'pills' || dosageUnit.toLowerCase() == 'pill') {
-      return dosageAmount == 1.0 ? '1 pill' : '$cleanAmount pills';
-    }
-    return '$cleanAmount $dosageUnit';
+    return '$cleanAmount ${localizeUnit(dosageUnit, quantity: dosageAmount)}';
   }
 
   bool isScheduledForDate(DateTime date) {

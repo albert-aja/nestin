@@ -10,11 +10,30 @@ abstract class OemHardeningServiceInterface {
   Future<bool> openBatterySettings();
   Future<bool> startKeepAliveService();
   Future<bool> stopKeepAliveService();
+  Future<QuickSettingsTileStatus> getQuickSettingsTileStatus();
+  Future<String> requestAddQuickSettingsTile();
+  void setOnKeepAliveChangedHandler(void Function(bool enabled)? handler);
 }
 
 class OemHardeningService implements OemHardeningServiceInterface {
   static const MethodChannel _channel =
       MethodChannel('com.nestin.app/oem_hardening');
+
+  void Function(bool enabled)? _onKeepAliveChanged;
+
+  OemHardeningService() {
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'onKeepAliveStateChanged') {
+        final enabled = call.arguments as bool? ?? false;
+        _onKeepAliveChanged?.call(enabled);
+      }
+    });
+  }
+
+  @override
+  void setOnKeepAliveChangedHandler(void Function(bool enabled)? handler) {
+    _onKeepAliveChanged = handler;
+  }
 
   @override
   Future<OemHardeningStatus> getStatus() async {
@@ -107,6 +126,36 @@ class OemHardeningService implements OemHardeningServiceInterface {
     }
     return false;
   }
+
+  @override
+  Future<QuickSettingsTileStatus> getQuickSettingsTileStatus() async {
+    try {
+      if (!kIsWeb && Platform.isAndroid) {
+        final res = await _channel
+            .invokeMethod<Map<dynamic, dynamic>>('getQuickSettingsTileStatus');
+        if (res != null) {
+          return QuickSettingsTileStatus.fromPlatformMap(res);
+        }
+      }
+    } catch (e) {
+      debugPrint('OemHardeningService getQuickSettingsTileStatus error: $e');
+    }
+    return const QuickSettingsTileStatus.unsupported();
+  }
+
+  @override
+  Future<String> requestAddQuickSettingsTile() async {
+    try {
+      if (!kIsWeb && Platform.isAndroid) {
+        final res =
+            await _channel.invokeMethod<String>('requestAddQuickSettingsTile');
+        return res ?? 'unsupported';
+      }
+    } catch (e) {
+      debugPrint('OemHardeningService requestAddQuickSettingsTile error: $e');
+    }
+    return 'unsupported';
+  }
 }
 
 class MockOemHardeningService implements OemHardeningServiceInterface {
@@ -116,12 +165,17 @@ class MockOemHardeningService implements OemHardeningServiceInterface {
   int sdkInt;
   bool isIgnoringBatteryOptimizations;
   bool isKeepAliveRunning;
+  bool qsSupported;
+  bool qsCanRequestAdd;
+  bool qsTileAdded;
 
   bool requestIgnoreCalled = false;
   bool openAutostartCalled = false;
   bool openBatterySettingsCalled = false;
   bool startKeepAliveCalled = false;
   bool stopKeepAliveCalled = false;
+  bool requestAddTileCalled = false;
+  void Function(bool enabled)? _onKeepAliveChanged;
 
   MockOemHardeningService({
     this.manufacturer = 'Xiaomi',
@@ -130,7 +184,39 @@ class MockOemHardeningService implements OemHardeningServiceInterface {
     this.sdkInt = 34,
     this.isIgnoringBatteryOptimizations = false,
     this.isKeepAliveRunning = false,
+    this.qsSupported = true,
+    this.qsCanRequestAdd = true,
+    this.qsTileAdded = false,
   });
+
+  @override
+  void setOnKeepAliveChangedHandler(void Function(bool enabled)? handler) {
+    _onKeepAliveChanged = handler;
+  }
+
+  /// Simulates the user tapping Nestin Guard inside Android Quick Settings.
+  void simulateNativeTileToggle(bool enabled) {
+    isKeepAliveRunning = enabled;
+    _onKeepAliveChanged?.call(enabled);
+  }
+
+  @override
+  Future<QuickSettingsTileStatus> getQuickSettingsTileStatus() async {
+    return QuickSettingsTileStatus(
+      supported: qsSupported,
+      canRequestAdd: qsCanRequestAdd,
+      isTileAdded: qsTileAdded,
+    );
+  }
+
+  @override
+  Future<String> requestAddQuickSettingsTile() async {
+    requestAddTileCalled = true;
+    if (!qsSupported || !qsCanRequestAdd) return 'unsupported';
+    if (qsTileAdded) return 'already_added';
+    qsTileAdded = true;
+    return 'added';
+  }
 
   @override
   Future<OemHardeningStatus> getStatus() async {

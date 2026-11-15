@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
@@ -57,7 +56,7 @@ class ReadingStreakBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            l10n.pick('${streak}d streak', '${streak}h beruntun'),
+            l10n.tr('d_streak', {'streak': streak}),
             style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w800,
@@ -140,14 +139,8 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                         children: [
                           Text(
                             isGoalMet
-                                ? l10n.pick(
-                                    'Today: $todayRead/$dailyGoal p ✓',
-                                    'Hari ini: $todayRead/$dailyGoal hal ✓',
-                                  )
-                                : l10n.pick(
-                                    'Today: $todayRead/$dailyGoal pages',
-                                    'Hari ini: $todayRead/$dailyGoal hal',
-                                  ),
+                                ? l10n.tr('today_p', {'todayRead': todayRead, 'dailyGoal': dailyGoal})
+                                : l10n.tr('today_pages', {'todayRead': todayRead, 'dailyGoal': dailyGoal}),
                             style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
@@ -215,7 +208,7 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                           Text(
                             provider.eveningReminderEnabled
                                 ? provider.formattedReminderTime
-                                : l10n.pick('Nudge', 'Pengingat'),
+                                : l10n.tr('nudge'),
                             style: TextStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
@@ -238,7 +231,7 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l10n.pick('7-DAY PAGES READ', 'BACAAN 7 HARI'),
+                    l10n.tr('k_7_day_pages_read'),
                     style: TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w800,
@@ -247,10 +240,7 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                     ),
                   ),
                   Text(
-                    l10n.pick(
-                      'Goal: $dailyGoal p • ${provider.weeklyDaysMetCount}/7d',
-                      'Target: $dailyGoal hal • ${provider.weeklyDaysMetCount}/7h',
-                    ),
+                    l10n.tr('goal_p_7d', {'dailyGoal': dailyGoal, 'provider_weeklyDaysMetCount': provider.weeklyDaysMetCount}),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -304,8 +294,9 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                         barColor = AppColors.trackSurface(context);
                       }
 
+                      final rawDay = l10n.formatDate(date, 'E');
                       final dayLetter =
-                          DateFormat('E').format(date).substring(0, 3);
+                          rawDay.length > 3 ? rawDay.substring(0, 3) : rawDay;
 
                       return Expanded(
                         child: GestureDetector(
@@ -361,7 +352,7 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                                 const SizedBox(height: 3),
                                 Text(
                                   isToday
-                                      ? l10n.pick('Today', 'Kini')
+                                      ? l10n.tr('today_3')
                                       : dayLetter,
                                   style: TextStyle(
                                     fontSize: widget.compact ? 8.5 : 9.5,
@@ -398,7 +389,7 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      DateFormat('EEE, MMM d').format(dates[_selectedBarIndex!]),
+                      l10n.formatDate(dates[_selectedBarIndex!], 'EEE, MMM d'),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -407,14 +398,8 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
                     ),
                     Text(
                       pagesList[_selectedBarIndex!] >= dailyGoal
-                          ? l10n.pick(
-                              '${pagesList[_selectedBarIndex!]} pages • Goal Met 🎉',
-                              '${pagesList[_selectedBarIndex!]} hal • Target Tercapai 🎉',
-                            )
-                          : l10n.pick(
-                              '${pagesList[_selectedBarIndex!]} / $dailyGoal pages',
-                              '${pagesList[_selectedBarIndex!]} / $dailyGoal hal',
-                            ),
+                          ? l10n.tr('pages_goal_met', {'pagesList_selectedBarIndex': pagesList[_selectedBarIndex!]})
+                          : l10n.tr('pages_3', {'pagesList_selectedBarIndex': pagesList[_selectedBarIndex!], 'dailyGoal': dailyGoal}),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,

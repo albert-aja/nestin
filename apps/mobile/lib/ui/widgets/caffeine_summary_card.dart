@@ -73,13 +73,13 @@ class CaffeineSummaryCard extends StatelessWidget {
   static String impactLabel(AppLocalizations l10n, CaffeineSleepImpact impact) {
     switch (impact) {
       case CaffeineSleepImpact.clear:
-        return l10n.pick('Sleep-Safe', 'Aman Tidur');
+        return l10n.tr('sleep_safe');
       case CaffeineSleepImpact.mild:
-        return l10n.pick('Low Residual', 'Sisa Rendah');
+        return l10n.tr('low_residual');
       case CaffeineSleepImpact.moderate:
-        return l10n.pick('Moderate Load', 'Beban Sedang');
+        return l10n.tr('moderate_load');
       case CaffeineSleepImpact.elevated:
-        return l10n.pick('High Load', 'Beban Tinggi');
+        return l10n.tr('high_load');
     }
   }
 
@@ -152,10 +152,7 @@ class CaffeineSummaryCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.pick(
-                            'Caffeine & Cutoff',
-                            'Kafein & Batas Sore',
-                          ),
+                          l10n.tr('caffeine_cutoff'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -166,18 +163,8 @@ class CaffeineSummaryCard extends StatelessWidget {
                         ),
                         Text(
                           caffeine.curfewEnabled
-                              ? l10n.pick(
-                                  pastCurfew
-                                      ? 'Past ${_formatHm(curfewTime)} curfew'
-                                      : 'Curfew at ${_formatHm(curfewTime)}',
-                                  pastCurfew
-                                      ? 'Lewat batas ${_formatHm(curfewTime)}'
-                                      : 'Batas pukul ${_formatHm(curfewTime)}',
-                                )
-                              : l10n.pick(
-                                  'Curfew nudge paused',
-                                  'Pengingat batas dijeda',
-                                ),
+                              ? pastCurfew ? l10n.tr('past_curfew_time', {'time': _formatHm(curfewTime)}) : l10n.tr('curfew_at_time', {'time': _formatHm(curfewTime)})
+                              : l10n.tr('curfew_nudge_paused'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -200,10 +187,7 @@ class CaffeineSummaryCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      l10n.pick(
-                        '${_formatHm(targetBedtime)}: ~${bedtimeResidualMg}mg',
-                        '${_formatHm(targetBedtime)}: ~${bedtimeResidualMg}mg',
-                      ),
+                      l10n.tr('mg', {'formatHm_targetBedtime': _formatHm(targetBedtime), 'bedtimeResidualMg': bedtimeResidualMg}),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -223,10 +207,7 @@ class CaffeineSummaryCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    l10n.pick(
-                      'Today: ${todayTotalMg}mg',
-                      'Hari ini: ${todayTotalMg}mg',
-                    ),
+                    l10n.tr('today_mg', {'todayTotalMg': todayTotalMg}),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -240,10 +221,7 @@ class CaffeineSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    l10n.pick(
-                      'Active now: ~${activeNowMg}mg',
-                      'Aktif kini: ~${activeNowMg}mg',
-                    ),
+                    l10n.tr('active_now_mg', {'activeNowMg': activeNowMg}),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -292,10 +270,7 @@ class CaffeineSummaryCard extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                l10n.pick(
-                                  '${type.emoji} +${type.defaultMg}mg ${type.enName} logged',
-                                  '${type.emoji} +${type.defaultMg}mg ${type.idName} dicatat',
-                                ),
+                                l10n.tr('mg_logged', {'type_emoji': type.emoji, 'type_defaultMg': type.defaultMg, 'type_enName': type.enName, 'type_idName': type.idName}),
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -370,10 +345,7 @@ class CaffeineBedtimeBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.pick(
-                        'Caffeine at Bedtime ($bedHm)',
-                        'Kafein Saat Jam Tidur ($bedHm)',
-                      ),
+                      l10n.tr('caffeine_at_bedtime', {'bedHm': bedHm}),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -381,10 +353,7 @@ class CaffeineBedtimeBanner extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      l10n.pick(
-                        '~${residualMg}mg residual • ${todayMg}mg logged today',
-                        'Sisa ~${residualMg}mg • ${todayMg}mg tercatat hari ini',
-                      ),
+                      l10n.tr('mg_residual_mg_logged_today', {'residualMg': residualMg, 'todayMg': todayMg}),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(context),

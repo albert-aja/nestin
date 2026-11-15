@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../../core/l10n/app_localizations.dart';
 import 'alarm_category.dart';
 
 enum ReminderRecurrence {
@@ -48,17 +49,18 @@ class Reminder {
   }
 
   String recurrenceLabel() {
+    final l10n = AppLocalizations.current;
     switch (recurrence) {
       case ReminderRecurrence.none:
-        return 'No recurrence';
+        return l10n.tr('no_recurrence');
       case ReminderRecurrence.daily:
-        return 'Repeats Daily';
+        return l10n.tr('repeats_daily');
       case ReminderRecurrence.weekdays:
-        return 'Repeats Weekdays';
+        return l10n.tr('repeats_weekdays');
       case ReminderRecurrence.weekly:
-        return 'Repeats Weekly';
+        return l10n.tr('repeats_weekly');
       case ReminderRecurrence.monthly:
-        return 'Repeats Monthly';
+        return l10n.tr('repeats_monthly');
     }
   }
 

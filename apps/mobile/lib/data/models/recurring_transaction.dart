@@ -1,16 +1,19 @@
+import '../../core/l10n/app_localizations.dart';
 import 'money_account.dart';
 import 'money_transaction.dart';
 
 enum RecurrenceFrequency {
-  daily('Daily'),
-  weekly('Weekly'),
-  biweekly('Bi-weekly'),
-  monthly('Monthly'),
-  yearly('Yearly');
+  daily('freq_daily'),
+  weekly('freq_weekly'),
+  biweekly('freq_biweekly'),
+  monthly('freq_monthly'),
+  yearly('freq_yearly');
 
-  final String label;
+  final String translationKey;
 
-  const RecurrenceFrequency(this.label);
+  String get label => AppLocalizations.current.tr(translationKey);
+
+  const RecurrenceFrequency(this.translationKey);
 
   static RecurrenceFrequency fromName(String? name) {
     return RecurrenceFrequency.values.firstWhere(

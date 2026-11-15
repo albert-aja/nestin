@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/reminder.dart';
 import '../data/models/alarm_category.dart';
 import '../data/services/storage_service.dart';
@@ -62,8 +63,11 @@ class ReminderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void rescheduleNotifications() => _rescheduleNotifications();
+
   void _rescheduleNotifications() {
     final now = DateTime.now();
+    final l10n = AppLocalizations.current;
     for (final reminder in _reminders) {
       if (reminder.isCompleted || reminder.dueDateTime.isBefore(now)) {
         _notificationService.cancel(reminder.id.hashCode);
@@ -73,7 +77,9 @@ class ReminderProvider extends ChangeNotifier {
       _notificationService.scheduleReminderNotification(
         id: reminder.id.hashCode,
         title: reminder.title,
-        body: reminder.notes.isNotEmpty ? reminder.notes : 'Nestin Reminder',
+        body: reminder.notes.isNotEmpty
+            ? reminder.notes
+            : l10n.tr('nestin_reminder'),
         scheduledDate: reminder.dueDateTime,
       );
     }

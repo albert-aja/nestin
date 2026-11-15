@@ -19,12 +19,12 @@
 
 | Family | Bird | Focus Domain | Explicit Product Boundaries |
 | :--- | :--- | :--- | :--- |
-| **Roo** | Rooster | Time & Planning (Alarms, Timers, Pomodoro, Calendar, Reminders, Tasks, Routines) | Alarms retain higher reliability (`USE_EXACT_ALARM`, `fullScreenIntent`, `OemHardeningService`) than normal reminders. |
+| **Roo** | Rooster | Time, Planning & Habits (Alarms, Timers, Pomodoro, Calendar, Reminders, Tasks, Routines, Digital Discipline: App Fast, Focus Lock, Usage Limits) | Alarms retain higher reliability (`USE_EXACT_ALARM`, `fullScreenIntent`, `OemHardeningService`) than normal reminders. Enforces Digital Discipline via shared restriction engine. |
 | **Echo** | Owl | Journal & Memories (Diary, Memories scrapbook, Timeline, Prompts, Throwbacks, PIN lock) | Reflective companion; avoids guilt-inducing mandatory daily streak enforcement. |
 | **Seren** | Dove | Personal Wellness (Dose Medications, Hydration, Sleep Cycles, Caffeine, Vitals) | Practical organizer only. Never prescribes dosages, alters medical instructions, or claims symptom correlations. |
 | **Pippin** | Dodo | Personal Interests (Reading tracker, Hobbies, Practice hours & milestones) | Pluggable activity tracking without building monolithic sub-apps per hobby. |
 | **Twill** | Weaverbird | Notes & Organization (Markdown Notes, Quick Capture, Collections, Wishlist, Money) | Basic manual personal finance only (`MoneyProvider`). Never connects to banks, moves money, or gives financial/investment advice. |
-| **Scout** | Carrier Pigeon | Everyday Assistance (Today, BeforeYouGo, Geofences, Digital Wellbeing, Phone Modes, Permissions, Automations) | Respects Android OEM quirks and iOS `FamilyControls`/Focus sandboxes transparently. |
+| **Scout** | Carrier Pigeon | Everyday Assistance & Device Utilities (Today, BeforeYouGo, Geofences, Phone Modes, Permissions, Automations) | Respects Android OEM quirks and platform sandboxes transparently; provides shared device utilities and automation infrastructure. |
 
 ---
 
@@ -32,8 +32,8 @@
 
 - **5 Primary Bottom Tabs (`MainNavigationScreen`):**
   1. `Today` (`HomeDashboardScreen`): Daily briefing, next alarm hero, active Phone Mode / pending automation banner, quick capture, agenda, tasks, and customizable mascot summary cards.
-  2. `Time` (`TimeHubScreen`): Sub-tabs for Alarms, Reminders, Timers/Pomodoro, Tasks, Calendar, and Routines.
+  2. `Time` (`TimeHubScreen`): Sub-tabs for Alarms, Reminders, Calendar, Tasks, Routines, Timers/Pomodoro, and Discipline (`DigitalDisciplineScreen`: Overview, App Fast, Focus Lock, Usage Limits, Application Usage).
   3. `Organize` (`OrganizeHubScreen`): Notes, Collections, Wishlist, and Twill Money Management.
   4. `Journal` (`JournalHubScreen`): Diary entries, Memories scrapbook, and Unified Timeline (protected when Diary Lock is enabled).
-  5. `Explore` (`ExploreHubScreen`): Seren Wellness, Pippin Interests, Scout Geofencing, Digital Wellbeing & Phone Modes, Automation Engine, Permission Center, and Local JSON Backup.
+  5. `Explore` (`ExploreHubScreen`): Seren Wellness, Pippin Interests, Scout Geofencing, Scout Phone Modes & Controls (`PhoneModesScreen`), Automation Engine, Permission Center, and Local JSON Backup.
 - **Theme & Localization:** Adaptive Material 3 Light & Dark themes (`AppColors`, `AppTheme`) plus full offline English (`en_US`) and Bahasa Indonesia (`id_ID`) switching (`AppLocalizations`, `SettingsProvider`).

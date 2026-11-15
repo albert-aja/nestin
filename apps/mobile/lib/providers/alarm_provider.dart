@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/alarm.dart';
 import '../data/models/alarm_category.dart';
 import '../data/models/alarm_schedule.dart';
@@ -93,8 +94,11 @@ class AlarmProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void rescheduleNotifications() => _rescheduleNotifications();
+
   void _rescheduleNotifications() {
     final now = DateTime.now();
+    final l10n = AppLocalizations.current;
     for (int i = 0; i < _alarms.length; i++) {
       final alarm = _alarms[i];
       if (!alarm.isEnabled) {
@@ -106,7 +110,7 @@ class AlarmProvider extends ChangeNotifier {
       _notificationService.scheduleAlarmNotification(
         id: alarm.id.hashCode,
         title: alarm.title,
-        body: 'Nestin Alarm: ${alarm.formattedTime()}',
+        body: l10n.tr('nestin_alarm', {'alarm_formattedTime': alarm.formattedTime()}),
         scheduledDate: next,
       );
     }
@@ -183,7 +187,7 @@ class AlarmProvider extends ChangeNotifier {
     await _notificationService.showAlarmNotification(
       id: alarm.id.hashCode,
       title: alarm.title,
-      body: 'Time to wake up! ${alarm.description}',
+      body: AppLocalizations.current.tr('time_to_wake_up', {'alarm_description': alarm.description}),
     );
   }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/money_budget.dart';
 import '../../../../data/models/money_transaction.dart';
@@ -17,6 +17,7 @@ class MoneyBudgetsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final period = provider.selectedPeriodMonth;
     final overview = provider.budgetOverviewForMonth(period.year, period.month);
@@ -39,10 +40,13 @@ class MoneyBudgetsView extends StatelessWidget {
                 backgroundColor: kTwillAmber.withValues(alpha: 0.16),
                 child: Icon(Icons.shield_outlined, color: amberInk),
               ),
-              title: const Text('Overall Monthly Limit',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              title: Text(
+                l10n.tr('overall_monthly_limit'),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
               subtitle: Text(
-                'Set a total monthly spending ceiling across all expense categories',
+                l10n.tr('set_a_total_monthly_spending_ceiling'),
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.textSecondary(context),
@@ -54,25 +58,27 @@ class MoneyBudgetsView extends StatelessWidget {
                   year: period.year,
                   month: period.month,
                 ),
-                child: const Text('Set Limit'),
+                child: Text(l10n.tr('set_limit')),
               ),
             ),
           )
         else
           _BudgetCard(
             summary: overview.overallBudget!,
-            title: 'Overall Monthly Budget',
-            subtitle: 'Counts all expenses • Excludes income & transfers',
+            title:
+                l10n.tr('overall_monthly_budget'),
+            subtitle: l10n.tr('counts_all_expenses_excludes_income_transfers'),
             provider: provider,
             color: kTwillAmber,
           ),
         const SizedBox(height: 16),
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Category Budgets',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                l10n.tr('category_budgets'),
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
               ),
             ),
             TextButton.icon(
@@ -82,7 +88,7 @@ class MoneyBudgetsView extends StatelessWidget {
                 month: period.month,
               ),
               icon: const Icon(Icons.add_rounded, size: 16),
-              label: const Text('Add Budget'),
+              label: Text(l10n.tr('add_budget')),
             ),
           ],
         ),
@@ -93,7 +99,7 @@ class MoneyBudgetsView extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(18),
               child: Text(
-                'No category budgets set for this month yet. Tap "Add Budget" to set a cap for Food & Drinks, Shopping, or other categories.',
+                l10n.tr('no_category_budgets_set_for_this'),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary(context),
@@ -107,8 +113,8 @@ class MoneyBudgetsView extends StatelessWidget {
                 provider.findCategoryById(summary.budget.categoryId);
             return _BudgetCard(
               summary: summary,
-              title: cat?.name ?? 'Category',
-              subtitle: 'Monthly spending cap',
+              title: cat?.displayName ?? l10n.tr('category'),
+              subtitle: l10n.tr('monthly_spending_cap'),
               provider: provider,
               color: cat?.color ?? kTwillAmber,
             );
@@ -135,6 +141,7 @@ class _BudgetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final limit = summary.budget.limitMinor;
     final spent = summary.spentMinor;
     final rem = summary.remainingMinor;
@@ -145,15 +152,15 @@ class _BudgetCard extends StatelessWidget {
     switch (summary.status) {
       case BudgetHealthStatus.exceeded:
         statusColor = AppColors.error;
-        statusText = 'Over budget (${summary.utilizationPercent}%)';
+        statusText = l10n.tr('over_budget_2', {'summary_utilizationPercent': summary.utilizationPercent});
         break;
       case BudgetHealthStatus.nearLimit:
         statusColor = AppColors.warning;
-        statusText = 'Approaching limit (${summary.utilizationPercent}%)';
+        statusText = l10n.tr('approaching_limit', {'summary_utilizationPercent': summary.utilizationPercent});
         break;
       case BudgetHealthStatus.healthy:
         statusColor = AppColors.success;
-        statusText = '${summary.utilizationPercent}% used';
+        statusText = l10n.tr('used', {'summary_utilizationPercent': summary.utilizationPercent});
         break;
     }
 
@@ -237,14 +244,14 @@ class _BudgetCard extends StatelessWidget {
               runSpacing: 4,
               children: [
                 Text(
-                  'Budget: ${provider.formatAmount(limit)}',
+                  l10n.tr('budget', {'provider_limit': provider.formatAmount(limit)}),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
                   ),
                 ),
                 Text(
-                  'Spent: ${provider.formatAmount(spent)}',
+                  l10n.tr('spent', {'provider_spent': provider.formatAmount(spent)}),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -253,8 +260,8 @@ class _BudgetCard extends StatelessWidget {
                 ),
                 Text(
                   rem >= 0
-                      ? 'Remaining: ${provider.formatAmount(rem)}'
-                      : 'Over by: ${provider.formatAmount(rem.abs())}',
+                      ? l10n.tr('remaining', {'provider_rem': provider.formatAmount(rem)})
+                      : l10n.tr('over_by', {'provider_abs': provider.formatAmount(rem.abs())}),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -279,6 +286,7 @@ class MoneyRecurringView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final rules = provider.recurringTransactions;
     final due = provider.dueRecurringTemplates();
@@ -311,7 +319,7 @@ class MoneyRecurringView extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${due.length} Scheduled Item(s) Ready to Record',
+                        l10n.tr('scheduled_item_s_ready_to_record', {'due_length': due.length}),
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 13,
@@ -323,7 +331,7 @@ class MoneyRecurringView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Confirm each item below to record its transaction and update balances.',
+                  l10n.tr('confirm_each_item_below_to_record'),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
@@ -334,16 +342,17 @@ class MoneyRecurringView extends StatelessWidget {
           ),
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Recurring Income & Bills',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                l10n.tr('recurring_income_bills'),
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
               ),
             ),
             ElevatedButton.icon(
               onPressed: () => showMoneyRecurringDialog(context),
               icon: const Icon(Icons.add_rounded, size: 16),
-              label: const Text('New Rule'),
+              label: Text(l10n.tr('new_rule')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: kTwillAmber,
                 foregroundColor: Colors.black,
@@ -358,7 +367,7 @@ class MoneyRecurringView extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'No recurring schedules yet. Add monthly salary, rent, or subscriptions to review and confirm on due dates without duplicates.',
+                l10n.tr('no_recurring_schedules_yet_add_monthly'),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary(context),
@@ -395,7 +404,7 @@ class MoneyRecurringView extends StatelessWidget {
                                     fontWeight: FontWeight.w800, fontSize: 14),
                               ),
                               Text(
-                                '${r.frequency.label} • ${cat?.name ?? 'Category'} • ${acct?.name ?? 'Wallet'}',
+                                '${r.frequency.label} • ${cat?.displayName ?? l10n.tr('category')} • ${acct?.name ?? l10n.tr('wallet')}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textSecondary(context),
@@ -427,7 +436,7 @@ class MoneyRecurringView extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          'Next: ${DateFormat('MMM d, yyyy').format(r.nextOccurrenceDate)}',
+                          l10n.tr('next', {'l10n_yyyy': l10n.formatDate(r.nextOccurrenceDate, 'MMM d, yyyy')}),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -445,7 +454,8 @@ class MoneyRecurringView extends StatelessWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          'Recorded "${r.title}" transaction.'),
+                                        l10n.tr('recorded_transaction', {'r_title': r.title}),
+                                      ),
                                     ),
                                   );
                                 }
@@ -458,15 +468,19 @@ class MoneyRecurringView extends StatelessWidget {
                               }
                             },
                             icon: const Icon(Icons.check_rounded, size: 14),
-                            label: const Text('Record Now',
-                                style: TextStyle(fontSize: 11)),
+                            label: Text(
+                              l10n.tr('record_now'),
+                              style: const TextStyle(fontSize: 11),
+                            ),
                           ),
                         if (r.isActive)
                           TextButton(
                             onPressed: () =>
                                 provider.skipRecurringOccurrence(r.id),
-                            child: const Text('Skip Next',
-                                style: TextStyle(fontSize: 11)),
+                            child: Text(
+                              l10n.tr('skip_next'),
+                              style: const TextStyle(fontSize: 11),
+                            ),
                           ),
                         IconButton(
                           icon: Icon(
@@ -498,6 +512,7 @@ class MoneyReportsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final period = provider.selectedPeriodMonth;
     final summary = provider.summaryForMonth(period.year, period.month);
@@ -529,7 +544,7 @@ class MoneyReportsView extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'No recorded financial data for this month yet. Add an account and record transactions to see reports.',
+                l10n.tr('no_recorded_financial_data_for_this'),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary(context),
@@ -549,13 +564,14 @@ class MoneyReportsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Income vs Expense Comparison',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                Text(
+                  l10n.tr('income_vs_expense_comparison'),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
                 _ComparisonBarRow(
-                  label: 'Income',
+                  label: l10n.tr('money_income'),
                   valueText: provider.formatAmount(summary.totalIncomeMinor),
                   ratio: MoneyAmount.barRatio(
                       summary.totalIncomeMinor, maxCompare),
@@ -563,7 +579,7 @@ class MoneyReportsView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _ComparisonBarRow(
-                  label: 'Expenses',
+                  label: l10n.tr('expenses'),
                   valueText: provider.formatAmount(summary.totalExpenseMinor),
                   ratio: MoneyAmount.barRatio(
                       summary.totalExpenseMinor, maxCompare),
@@ -573,9 +589,11 @@ class MoneyReportsView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Monthly Net Cash Flow',
-                        style: TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w700)),
+                    Text(
+                      l10n.tr('monthly_net_cash_flow'),
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
                     Text(
                       provider.formatAmount(
                         summary.netCashFlowMinor,
@@ -607,14 +625,15 @@ class MoneyReportsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Spending by Category',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                Text(
+                  l10n.tr('spending_by_category'),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 10),
                 if (breakdown.isEmpty)
                   Text(
-                    'No expenses recorded for this month.',
+                    l10n.tr('no_expenses_recorded_for_this_month'),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary(context),
@@ -634,7 +653,7 @@ class MoneyReportsView extends StatelessWidget {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  row.category.name,
+                                  row.category.displayName,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                       fontSize: 12,
@@ -684,9 +703,10 @@ class MoneyReportsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '6-Month Income & Spending History',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                Text(
+                  l10n.tr('k_6_month_income_spending_history'),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 14),
                 SizedBox(
@@ -721,8 +741,8 @@ class MoneyReportsView extends StatelessWidget {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              DateFormat('MMM')
-                                  .format(DateTime(pt.year, pt.month)),
+                              l10n.formatDate(
+                                  DateTime(pt.year, pt.month), 'MMM'),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.textSecondary(context),
@@ -751,10 +771,10 @@ class MoneyReportsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Account Balance Overview',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                  Text(
+                    l10n.tr('account_balance_overview'),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 10),
                   ...provider.activeAccounts.map(
@@ -857,8 +877,8 @@ class _PeriodMonthBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label =
-        DateFormat('MMMM yyyy').format(provider.selectedPeriodMonth);
+    final label = context.l10n
+        .formatDate(provider.selectedPeriodMonth, 'MMMM yyyy');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(

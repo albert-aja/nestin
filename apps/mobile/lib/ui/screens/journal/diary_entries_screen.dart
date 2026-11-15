@@ -612,10 +612,7 @@ class DiaryEntriesScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                context.l10n.pick(
-                  'REFLECTIONS (${entries.length})',
-                  'REFLEKSI (${entries.length})',
-                ),
+                context.l10n.tr('reflections', {'entries_length': entries.length}),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -632,10 +629,7 @@ class DiaryEntriesScreen extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            context.l10n.pick(
-                              'Private reflections locked.',
-                              'Refleksi pribadi dikunci.',
-                            ),
+                            context.l10n.tr('private_reflections_locked'),
                           ),
                           duration: const Duration(seconds: 1),
                         ),
@@ -643,10 +637,7 @@ class DiaryEntriesScreen extends StatelessWidget {
                     } else {
                       await SecurityPinGateSheet.verifyOrPrompt(
                         context,
-                        title: context.l10n.pick(
-                          'Unlock Private Reflections',
-                          'Buka Refleksi Pribadi',
-                        ),
+                        title: context.l10n.tr('unlock_private_reflections'),
                       );
                     }
                   },
@@ -671,14 +662,8 @@ class DiaryEntriesScreen extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           settings.hasActiveDiaryUnlocks
-                              ? context.l10n.pick(
-                                  'Unlocked (Tap to Lock)',
-                                  'Terbuka (Ketuk untuk Kunci)',
-                                )
-                              : context.l10n.pick(
-                                  'Locked (Tap to Unlock)',
-                                  'Terkunci (Ketuk untuk Buka)',
-                                ),
+                              ? context.l10n.tr('unlocked_tap_to_lock')
+                              : context.l10n.tr('locked_tap_to_unlock'),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -708,7 +693,7 @@ class DiaryEntriesScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          context.l10n.pick('Set Lock', 'Atur Kunci'),
+                          context.l10n.tr('set_lock'),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -738,10 +723,7 @@ class DiaryEntriesScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      context.l10n.pick(
-                        'No diary entries yet',
-                        'Belum ada entri diari',
-                      ),
+                      context.l10n.tr('no_diary_entries_yet'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -749,10 +731,7 @@ class DiaryEntriesScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      context.l10n.pick(
-                        'Tap a prompt above or the + button to capture your thoughts',
-                        'Ketuk pertanyaan di atas atau tombol + untuk menulis pikiranmu',
-                      ),
+                      context.l10n.tr('tap_a_prompt_above_or_the'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),

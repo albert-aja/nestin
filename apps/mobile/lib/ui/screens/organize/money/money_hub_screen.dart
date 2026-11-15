@@ -84,10 +84,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            context.l10n.pick(
-              'Sign in or select an active profile to access Twill Money.',
-              'Masuk atau pilih profil aktif untuk mengakses Keuangan Twill.',
-            ),
+            context.l10n.tr('sign_in_or_select_an_active'),
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary(context)),
           ),
@@ -111,18 +108,12 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                context.l10n.pick(
-                  'Twill Money Locked',
-                  'Keuangan Twill Terkunci',
-                ),
+                context.l10n.tr('twill_money_locked'),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 6),
               Text(
-                context.l10n.pick(
-                  'Enter your Nestin security PIN to view balances and transactions.',
-                  'Masukkan PIN keamanan Nestin untuk melihat saldo dan transaksi.',
-                ),
+                context.l10n.tr('enter_your_nestin_security_pin_to'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
@@ -146,14 +137,8 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (ctx) => SecurityPinGateSheet(
-                      title: ctx.l10n.pick(
-                        'Unlock Twill Money',
-                        'Buka Keuangan Twill',
-                      ),
-                      subtitle: ctx.l10n.pick(
-                        'Enter your 4-digit PIN to access money data',
-                        'Masukkan 4-digit PIN untuk mengakses data keuangan',
-                      ),
+                      title: ctx.l10n.tr('unlock_twill_money'),
+                      subtitle: ctx.l10n.tr('enter_your_4_digit_pin_to'),
                       onUnlocked: () {
                         provider.unlockMoneyWithPin();
                         Navigator.of(ctx).pop();
@@ -163,7 +148,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
                 },
                 icon: const Icon(Icons.key_rounded, size: 18),
                 label: Text(
-                  context.l10n.pick('Unlock with PIN', 'Buka dengan PIN'),
+                  context.l10n.tr('unlock_with_pin'),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kTwillAmber,
@@ -200,10 +185,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            l10n.pick(
-              'Twill Money Management',
-              'Pengelolaan Keuangan Twill',
-            ),
+            l10n.tr('twill_money_management_2'),
           ),
         ),
         body: content,
@@ -211,7 +193,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
           onPressed: () => showMoneyTransactionSheet(context),
           backgroundColor: kTwillAmber,
           foregroundColor: Colors.black,
-          tooltip: l10n.pick('Add Transaction', 'Tambah Transaksi'),
+          tooltip: l10n.tr('add_transaction'),
           child: const Icon(Icons.add_rounded),
         ),
       );
@@ -253,20 +235,14 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.pick('Twill Money Organizer', 'Pengatur Keuangan Twill'),
+                  l10n.tr('twill_money_organizer'),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                 ),
                 Text(
                   dueCount > 0
-                      ? l10n.pick(
-                          '$dueCount recurring due • ${provider.activeAccounts.length} wallets',
-                          '$dueCount rutin jatuh tempo • ${provider.activeAccounts.length} dompet',
-                        )
-                      : l10n.pick(
-                          '${provider.activeAccounts.length} active wallet(s) • Local ledger',
-                          '${provider.activeAccounts.length} dompet aktif • Catatan lokal',
-                        ),
+                      ? l10n.tr('recurring_due_wallets', {'dueCount': dueCount, 'provider_length': provider.activeAccounts.length})
+                      : l10n.tr('active_wallet_s_local_ledger', {'provider_length': provider.activeAccounts.length}),
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 11,
@@ -293,7 +269,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
             visualDensity: VisualDensity.compact,
           ),
           IconButton(
-            tooltip: context.l10n.pick('Categories', 'Kategori'),
+            tooltip: context.l10n.tr('categories'),
             icon: const Icon(Icons.category_outlined, size: 20),
             onPressed: () => showMoneyCategoriesSheet(context),
             visualDensity: VisualDensity.compact,
@@ -437,7 +413,7 @@ class _MoneyOverviewView extends StatelessWidget {
                   TextButton(
                     onPressed: () => onJumpSection(MoneySection.accounts),
                     child: Text(
-                        context.l10n.pick('Wallets ->', 'Dompet ->'),
+                        context.l10n.tr('wallets'),
                         style: TextStyle(fontSize: 11, color: amberInk)),
                   ),
                 ],
@@ -464,7 +440,7 @@ class _MoneyOverviewView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _SummaryMetricTile(
-                      label: context.l10n.pick('Expenses', 'Pengeluaran'),
+                      label: context.l10n.tr('expenses'),
                       value: provider.formatAmount(summary.totalExpenseMinor),
                       color: MoneyTransactionType.expense.color,
                       icon: MoneyTransactionType.expense.icon,
@@ -473,7 +449,7 @@ class _MoneyOverviewView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _SummaryMetricTile(
-                      label: context.l10n.pick('Net Flow', 'Arus Bersih'),
+                      label: context.l10n.tr('net_flow'),
                       value: provider.formatAmount(
                         summary.netCashFlowMinor,
                         showPlusSign: true,
@@ -579,18 +555,12 @@ class _MoneyOverviewView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  context.l10n.pick(
-                    'Welcome to Twill Money',
-                    'Selamat Datang di Keuangan Twill',
-                  ),
+                  context.l10n.tr('welcome_to_twill_money'),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  context.l10n.pick(
-                    'Start by creating your first wallet (Cash, Bank Account, or E-Wallet) to track balances, budgets, and daily spending offline.',
-                    'Mulai dengan membuat dompet pertama (Tunai, Rekening Bank, atau E-Wallet) untuk melacak saldo, anggaran, dan belanja harian secara lokal.',
-                  ),
+                  context.l10n.tr('start_by_creating_your_first_wallet'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
@@ -602,10 +572,7 @@ class _MoneyOverviewView extends StatelessWidget {
                   onPressed: () => showMoneyAccountDialog(context),
                   icon: const Icon(Icons.add_rounded, size: 18),
                   label: Text(
-                    context.l10n.pick(
-                      'Create First Account',
-                      'Buat Akun Pertama',
-                    ),
+                    context.l10n.tr('create_first_account'),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kTwillAmber,
@@ -630,10 +597,7 @@ class _MoneyOverviewView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        context.l10n.pick(
-                          'Monthly Income vs. Expense',
-                          'Pemasukan vs. Pengeluaran Bulanan',
-                        ),
+                        context.l10n.tr('monthly_income_vs_expense'),
                         style: const TextStyle(
                             fontSize: 13, fontWeight: FontWeight.w800),
                       ),
@@ -641,7 +605,7 @@ class _MoneyOverviewView extends StatelessWidget {
                     TextButton(
                       onPressed: () => onJumpSection(MoneySection.reports),
                       child: Text(
-                          context.l10n.pick('Reports ->', 'Laporan ->'),
+                          context.l10n.tr('reports'),
                           style: TextStyle(fontSize: 11, color: amberInk)),
                     ),
                   ],
@@ -669,10 +633,7 @@ class _MoneyOverviewView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.l10n.pick(
-                      'Spending Breakdown by Category',
-                      'Rincian Pengeluaran per Kategori',
-                    ),
+                    context.l10n.tr('spending_breakdown_by_category'),
                     style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w800),
                   ),
@@ -687,7 +648,7 @@ class _MoneyOverviewView extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  row.category.name,
+                                  row.category.displayName,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(fontSize: 12),
                                 ),
@@ -723,10 +684,7 @@ class _MoneyOverviewView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        context.l10n.pick(
-                          'Budget Utilization',
-                          'Penggunaan Anggaran',
-                        ),
+                        context.l10n.tr('budget_utilization'),
                         style: const TextStyle(
                             fontSize: 13, fontWeight: FontWeight.w800),
                       ),
@@ -734,17 +692,14 @@ class _MoneyOverviewView extends StatelessWidget {
                     TextButton(
                       onPressed: () => onJumpSection(MoneySection.budgets),
                       child: Text(
-                          context.l10n.pick('Manage ->', 'Kelola ->'),
+                          context.l10n.tr('manage_2'),
                           style: TextStyle(fontSize: 11, color: amberInk)),
                     ),
                   ],
                 ),
                 if (!budgets.hasAnyBudgets)
                   Text(
-                    context.l10n.pick(
-                      'No monthly budget configured yet. Tap Manage to set limits.',
-                      'Belum ada anggaran bulanan. Ketuk Kelola untuk mengatur batas.',
-                    ),
+                    context.l10n.tr('no_monthly_budget_configured_yet_tap'),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary(context),
@@ -753,10 +708,7 @@ class _MoneyOverviewView extends StatelessWidget {
                 else ...[
                   if (budgets.overallBudget != null)
                     _CompactBudgetLine(
-                      label: context.l10n.pick(
-                        'Overall Monthly Limit',
-                        'Batas Bulanan Keseluruhan',
-                      ),
+                      label: context.l10n.tr('overall_monthly_limit'),
                       summary: budgets.overallBudget!,
                       provider: provider,
                     ),
@@ -764,8 +716,8 @@ class _MoneyOverviewView extends StatelessWidget {
                         (b) => _CompactBudgetLine(
                           label:
                               provider.findCategoryById(b.budget.categoryId)
-                                      ?.name ??
-                                  context.l10n.pick('Category', 'Kategori'),
+                                      ?.displayName ??
+                                  context.l10n.tr('category'),
                           summary: b,
                           provider: provider,
                         ),
@@ -781,10 +733,7 @@ class _MoneyOverviewView extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  context.l10n.pick(
-                    'Recent Transactions',
-                    'Transaksi Terbaru',
-                  ),
+                  context.l10n.tr('recent_transactions'),
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w800),
                 ),
@@ -792,7 +741,7 @@ class _MoneyOverviewView extends StatelessWidget {
               TextButton(
                 onPressed: () => onJumpSection(MoneySection.transactions),
                 child: Text(
-                    context.l10n.pick('See All ->', 'Lihat Semua ->'),
+                    context.l10n.tr('see_all'),
                     style: TextStyle(fontSize: 11, color: amberInk)),
               ),
             ],
@@ -803,10 +752,7 @@ class _MoneyOverviewView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text(
-                  context.l10n.pick(
-                    'No transactions recorded yet.',
-                    'Belum ada transaksi tercatat.',
-                  ),
+                  context.l10n.tr('no_transactions_recorded_yet'),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary(context),

@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum ScheduleType {
   oneTime,
   daily,
@@ -114,27 +116,34 @@ class AlarmSchedule {
   }
 
   String getDisplayText() {
+    final l10n = AppLocalizations.current;
     switch (type) {
       case ScheduleType.oneTime:
-        return 'Once';
+        return l10n.tr('once');
       case ScheduleType.daily:
-        return 'Every day';
+        return l10n.tr('departure_rec_daily');
       case ScheduleType.weekdays:
-        return 'Mon - Fri';
+        return l10n.tr('mon_fri');
       case ScheduleType.weekends:
-        return 'Sat, Sun';
+        return l10n.tr('sat_sun');
       case ScheduleType.customDays:
-        if (selectedDays.isEmpty) return 'No days selected';
-        if (selectedDays.length == 7) return 'Every day';
+        if (selectedDays.isEmpty) {
+          return l10n.tr('no_days_selected');
+        }
+        if (selectedDays.length == 7) {
+          return l10n.tr('departure_rec_daily');
+        }
         if (selectedDays.length == 5 &&
             selectedDays.contains(1) &&
             selectedDays.contains(2) &&
             selectedDays.contains(3) &&
             selectedDays.contains(4) &&
             selectedDays.contains(5)) {
-          return 'Mon - Fri';
+          return l10n.tr('mon_fri');
         }
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        final dayNames = l10n.isIndonesian
+            ? const ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
+            : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final sorted = selectedDays.toList()..sort();
         return sorted.map((d) => dayNames[d - 1]).join(', ');
     }

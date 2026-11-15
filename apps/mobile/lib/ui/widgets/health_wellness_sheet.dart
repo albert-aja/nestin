@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/sleep_log.dart';
 import '../../data/models/vital_log.dart';
@@ -74,29 +75,80 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     super.dispose();
   }
 
-  List<({String label, int seconds, double scale})> get _currentPattern {
+  String _localizeSleepFactor(BuildContext context, String factor) {
+    final l10n = context.l10n;
+    switch (factor) {
+      case 'Wind-Down Audio':
+        return l10n.tr('wind_down_audio');
+      case 'Low Screen':
+        return l10n.tr('low_screen');
+      case 'No Late Caffeine':
+        return l10n.tr('no_late_caffeine');
+      case 'Evening Walk':
+        return l10n.tr('evening_walk');
+      case 'Restless':
+        return l10n.tr('restless');
+      case 'Stress':
+        return l10n.tr('stress');
+      default:
+        return factor;
+    }
+  }
+
+  List<({String label, int seconds, double scale})> _patternFor(
+      BuildContext context) {
+    final l10n = context.l10n;
     if (_useBoxBreathing) {
-      return const [
-        (label: 'Inhale Gently', seconds: 4, scale: 1.25),
-        (label: 'Hold Softly', seconds: 4, scale: 1.25),
-        (label: 'Exhale Slowly', seconds: 4, scale: 0.80),
-        (label: 'Rest Calmly', seconds: 4, scale: 0.80),
+      return [
+        (
+          label: l10n.tr('inhale_gently'),
+          seconds: 4,
+          scale: 1.25,
+        ),
+        (
+          label: l10n.tr('hold_softly'),
+          seconds: 4,
+          scale: 1.25,
+        ),
+        (
+          label: l10n.tr('exhale_slowly'),
+          seconds: 4,
+          scale: 0.80,
+        ),
+        (
+          label: l10n.tr('rest_calmly'),
+          seconds: 4,
+          scale: 0.80,
+        ),
       ];
     }
-    return const [
-      (label: 'Inhale Nose', seconds: 4, scale: 1.25),
-      (label: 'Hold Breath', seconds: 7, scale: 1.25),
-      (label: 'Exhale Mouth', seconds: 8, scale: 0.80),
+    return [
+      (
+        label: l10n.tr('inhale_nose'),
+        seconds: 4,
+        scale: 1.25,
+      ),
+      (
+        label: l10n.tr('hold_breath'),
+        seconds: 7,
+        scale: 1.25,
+      ),
+      (
+        label: l10n.tr('exhale_mouth'),
+        seconds: 8,
+        scale: 0.80,
+      ),
     ];
   }
 
   void _startBreathingSession() {
     _breathingTimer?.cancel();
     HapticFeedback.mediumImpact();
+    final initialPattern = _patternFor(context);
     setState(() {
       _isBreathingActive = true;
       _phaseIndex = 0;
-      _phaseSecondsRemaining = _currentPattern[0].seconds;
+      _phaseSecondsRemaining = initialPattern[0].seconds;
       _totalBreathingSeconds = 0;
       _completedCycles = 0;
     });
@@ -108,7 +160,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         if (_phaseSecondsRemaining > 1) {
           _phaseSecondsRemaining--;
         } else {
-          final pattern = _currentPattern;
+          final pattern = _patternFor(context);
           _phaseIndex = (_phaseIndex + 1) % pattern.length;
           if (_phaseIndex == 0) {
             _completedCycles++;
@@ -121,14 +173,16 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
   }
 
   Future<void> _stopBreathingSession(HealthWellnessProvider provider) async {
+    final l10n = context.l10n;
     _breathingTimer?.cancel();
     _breathingTimer = null;
 
     final elapsed = _totalBreathingSeconds;
+    final pattern = _patternFor(context);
     setState(() {
       _isBreathingActive = false;
       _phaseIndex = 0;
-      _phaseSecondsRemaining = _currentPattern[0].seconds;
+      _phaseSecondsRemaining = pattern[0].seconds;
     });
 
     if (elapsed >= 20) {
@@ -138,7 +192,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '🌿 Seren logged $loggedMinutes mindful minute${loggedMinutes > 1 ? 's' : ''} ($_completedCycles cycles)!',
+              l10n.tr('seren_logged_mindful_minute_cycles', {'loggedMinutes': loggedMinutes, 'loggedMinutes_s': loggedMinutes > 1 ? 's' : '', '_completedCycles': _completedCycles}),
             ),
             behavior: SnackBarBehavior.floating,
           ),
@@ -149,6 +203,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
 
   Future<void> _syncWearableIfAvailable(
       BuildContext context, HealthWellnessProvider healthProvider) async {
+    final l10n = context.l10n;
     WearableProvider? wearable;
     try {
       wearable = Provider.of<WearableProvider>(context, listen: false);
@@ -159,7 +214,11 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     if (wearable == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Wearable sync unavailable in test view.')),
+          SnackBar(
+            content: Text(
+              l10n.tr('wearable_sync_unavailable_in_test_view'),
+            ),
+          ),
         );
       }
       return;
@@ -178,7 +237,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '⌚ Synced ${record.stepCount ?? 0} steps, ${record.sleepDurationFormatted} sleep & ${record.restingHeartRate ?? "--"} bpm HR!',
+              l10n.tr('synced_steps_sleep_bpm_hr', {'record_0': record.stepCount ?? 0, 'record_sleepDurationFormatted': record.sleepDurationFormatted, 'record_restingHeartRate': record.restingHeartRate ?? "--"}),
             ),
             behavior: SnackBarBehavior.floating,
           ),
@@ -197,6 +256,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.92,
@@ -257,7 +317,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                         Row(
                           children: [
                             Text(
-                              'Seren Health Sanctuary',
+                              l10n.tr('seren_health_sanctuary'),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w800,
@@ -277,7 +337,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                                     color: _serenPurple.withValues(alpha: 0.4)),
                               ),
                               child: Text(
-                                'Score $wellnessScore',
+                                l10n.tr('score', {'wellnessScore': wellnessScore}),
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
@@ -288,7 +348,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                           ],
                         ),
                         Text(
-                          'Steps • Sleep Cycles • Vitals • Calm Breathing',
+                          l10n.tr('steps_sleep_cycles_vitals_calm_breathing'),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary(context),
@@ -300,7 +360,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   IconButton(
                     icon: Icon(Icons.watch_rounded,
                         color: serenAccent, size: 20),
-                    tooltip: 'Sync Wearable',
+                    tooltip: l10n.tr('sync_wearable'),
                     visualDensity: VisualDensity.compact,
                     onPressed: () =>
                         _syncWearableIfAvailable(context, provider),
@@ -308,7 +368,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   IconButton(
                     icon: Icon(Icons.tune_rounded,
                         color: AppColors.textSecondary(context), size: 20),
-                    tooltip: 'Health Goals',
+                    tooltip: l10n.tr('health_goals'),
                     visualDensity: VisualDensity.compact,
                     onPressed: () => _showGoalsDialog(context, provider),
                   ),
@@ -341,11 +401,11 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   unselectedLabelColor: AppColors.textSecondary(context),
                   labelStyle: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w700),
-                  tabs: const [
-                    Tab(text: 'Steps'),
-                    Tab(text: 'Sleep'),
-                    Tab(text: 'Vitals'),
-                    Tab(text: 'Breathe'),
+                  tabs: [
+                    Tab(text: l10n.tr('steps')),
+                    Tab(text: l10n.tr('sleep')),
+                    Tab(text: l10n.tr('vitals')),
+                    Tab(text: l10n.tr('breathe')),
                   ],
                 ),
               ),
@@ -375,6 +435,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
   // ===========================================================================
 
   Widget _buildStepsTab(BuildContext context, HealthWellnessProvider provider) {
+    final l10n = context.l10n;
     final today = provider.todayActivity;
     final goals = provider.goals;
     final weeklyActivities = provider.getWeeklyActivities();
@@ -394,6 +455,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         context, dark: _skyBlue, light: const Color(0xFF0284C7));
     final amberAccent = AppColors.adaptive(
         context, dark: _amber, light: const Color(0xFFB45309));
+    final daySuffix = l10n.tr('d');
 
     return ListView(
       children: [
@@ -470,8 +532,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                       children: [
                         Text(
                           today.isStepGoalMet
-                              ? 'Goal Reached! 🎉'
-                              : '${(today.stepProgress * 100).round()}% of Daily Goal',
+                              ? l10n.tr('goal_reached')
+                              : l10n.tr('of_daily_goal', {'today_round': (today.stepProgress * 100).round()}),
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
@@ -489,7 +551,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              '🔥 ${streak}d',
+                              '🔥 $streak$daySuffix',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
@@ -501,20 +563,20 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     ),
                     const SizedBox(height: 10),
                     _stepMetricRow(context, Icons.route_rounded, skyAccent,
-                        'Distance', '${distanceKm.toStringAsFixed(2)} km'),
+                        l10n.tr('distance'), '${distanceKm.toStringAsFixed(2)} km'),
                     const SizedBox(height: 6),
                     _stepMetricRow(
                         context,
                         Icons.local_fire_department_rounded,
                         amberAccent,
-                        'Active Burn',
+                        l10n.tr('active_burn'),
                         '${today.estimatedActiveCalories} kcal'),
                     const SizedBox(height: 6),
                     _stepMetricRow(
                         context,
                         Icons.timer_outlined,
                         emeraldAccent,
-                        'Active Time',
+                        l10n.tr('active_time'),
                         '${today.activeMinutes} / ${today.activeMinutesGoal}m'),
                   ],
                 ),
@@ -526,7 +588,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
 
         // Quick Step & Walk Logging Strip
         Text(
-          'QUICK LOG STEPS & MOVEMENT',
+          l10n.tr('quick_log_steps_movement'),
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
@@ -539,7 +601,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
           spacing: 8,
           runSpacing: 8,
           children: [
-            _quickActionChip(context, '+500 Steps', Icons.add_rounded, () {
+            _quickActionChip(
+                context, l10n.tr('k_500_steps'), Icons.add_rounded, () {
               provider.addSteps(500);
             }),
             _quickActionChip(context, '+1,000', Icons.directions_walk_rounded,
@@ -550,10 +613,12 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 () {
               provider.addSteps(2500);
             }),
-            _quickActionChip(context, '+15m Walk', Icons.park_rounded, () {
+            _quickActionChip(
+                context, l10n.tr('k_15m_walk'), Icons.park_rounded, () {
               provider.addSteps(1650, activeMinutesDelta: 15);
             }),
-            _quickActionChip(context, 'Custom Steps', Icons.edit_rounded, () {
+            _quickActionChip(
+                context, l10n.tr('custom_steps'), Icons.edit_rounded, () {
               _showCustomStepsDialog(context, provider);
             }, highlight: true),
           ],
@@ -575,7 +640,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '7-Day Step Trend',
+                    l10n.tr('k_7_day_step_trend'),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -583,7 +648,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     ),
                   ),
                   Text(
-                    'Avg ${NumberFormat('#,###').format(provider.weeklyAverageSteps)} / day',
+                    l10n.tr('avg_day', {'NumberFormat_weeklyAverageSteps': NumberFormat('#,###').format(provider.weeklyAverageSteps)}),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -648,7 +713,9 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              isToday ? 'Today' : DateFormat('E').format(dt),
+                              isToday
+                                  ? l10n.tr('today')
+                                  : l10n.formatDate(dt, 'E'),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight:
@@ -678,7 +745,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     final sel = weeklyActivities[_selectedStepDayIndex!];
                     final selDate = weeklyDates[_selectedStepDayIndex!];
                     return Text(
-                      '${DateFormat('EEE, MMM d').format(selDate)}: ${NumberFormat('#,###').format(sel.steps)} steps • ${sel.distanceKm.toStringAsFixed(2)} km • ${sel.isStepGoalMet ? "Goal Met ✓" : "${sel.remainingSteps} remaining"}',
+                      l10n.tr('steps_km', {'l10n_d': l10n.formatDate(selDate, 'EEE, MMM d'), 'NumberFormat_steps': NumberFormat('#,###').format(sel.steps), 'sel_2': sel.distanceKm.toStringAsFixed(2), 'sel_remaining': sel.isStepGoalMet ? "Goal Met ✓" : "${sel.remainingSteps} remaining", 'l10n_MMM': l10n.formatDate(selDate, 'EEE, d MMM'), 'sel_remainingSteps': sel.isStepGoalMet ? "Target Tercapai ✓" : "sisa ${sel.remainingSteps}"}),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textPrimary(context),
@@ -693,12 +760,12 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Weekly Total: ${NumberFormat('#,###').format(provider.weeklyTotalSteps)} steps',
+                    l10n.tr('weekly_total_steps', {'NumberFormat_weeklyTotalSteps': NumberFormat('#,###').format(provider.weeklyTotalSteps)}),
                     style: TextStyle(
                         fontSize: 11, color: AppColors.textSecondary(context)),
                   ),
                   Text(
-                    'Goals Met: ${provider.weeklyStepGoalsMetCount}/7d',
+                    l10n.tr('goals_met_7d', {'provider_weeklyStepGoalsMetCount': provider.weeklyStepGoalsMetCount}),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -778,13 +845,14 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
   // ===========================================================================
 
   Widget _buildSleepTab(BuildContext context, HealthWellnessProvider provider) {
+    final l10n = context.l10n;
     final latestSleep = provider.latestSleepLog;
     final goals = provider.goals;
     final weeklyLogs = provider.getWeeklySleepLogs();
     final weeklyDates = provider.getWeeklyDates();
     final avgMin = provider.weeklyAverageSleepMinutes;
     final avgHrsStr = avgMin > 0
-        ? '${avgMin ~/ 60}h ${(avgMin % 60).toString().padLeft(2, '0')}m'
+        ? '${avgMin ~/ 60}${l10n.tr('h')} ${(avgMin % 60).toString().padLeft(2, '0')}m'
         : '--';
     final debtMin = provider.weeklySleepDebtMinutes;
     final serenAccent =
@@ -805,9 +873,10 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
               child: ElevatedButton.icon(
                 onPressed: () => _showLogSleepDialog(context, provider),
                 icon: const Icon(Icons.nightlight_round, size: 17),
-                label: const Text(
-                  'Log Sleep',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                label: Text(
+                  context.l10n.tr('log_sleep'),
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w700),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _serenPurple,
@@ -824,7 +893,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 onPressed: () => SleepCycleSheet.show(context),
                 icon: Icon(Icons.waves_rounded, size: 17, color: skyAccent),
                 label: Text(
-                  'Cycles & Audio',
+                  context.l10n.tr('cycles_audio'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -862,7 +931,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Last Recorded Night (${latestSleep.dateKey})',
+                          context.l10n.tr('last_recorded_night', {'latestSleep_dateKey': latestSleep.dateKey}),
                           style: TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary(context)),
@@ -882,7 +951,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${latestSleep.completedCycles} REM cycles',
+                              context.l10n.tr('rem_cycles', {'latestSleep_completedCycles': latestSleep.completedCycles}),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -927,7 +996,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Bed ${DateFormat('HH:mm').format(latestSleep.bedtime)} → Wake ${DateFormat('HH:mm').format(latestSleep.wakeTime)} • ${latestSleep.sleepEfficiencyPercent}% efficiency',
+                  context.l10n.tr('bed_wake_efficiency', {'context_mm': context.l10n.formatDate(latestSleep.wakeTime, 'HH:mm'), 'latestSleep_sleepEfficiencyPercent': latestSleep.sleepEfficiencyPercent}),
                   style: TextStyle(
                       fontSize: 11, color: AppColors.textSecondary(context)),
                 ),
@@ -969,14 +1038,17 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   spacing: 12,
                   runSpacing: 4,
                   children: [
-                    _stageLegend(context, const Color(0xFF6366F1), 'Deep',
+                    _stageLegend(context, const Color(0xFF6366F1),
+                        context.l10n.tr('deep'),
                         '${latestSleep.deepMinutes}m'),
                     _stageLegend(context, _serenPurple, 'REM',
                         '${latestSleep.remMinutes}m'),
-                    _stageLegend(context, skyAccent, 'Light',
+                    _stageLegend(context, skyAccent,
+                        context.l10n.tr('light'),
                         '${latestSleep.lightMinutes}m'),
                     if (latestSleep.awakeMinutes > 0)
-                      _stageLegend(context, amberAccent, 'Awake',
+                      _stageLegend(context, amberAccent,
+                          context.l10n.tr('awake'),
                           '${latestSleep.awakeMinutes}m'),
                   ],
                 ),
@@ -994,7 +1066,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                f,
+                                _localizeSleepFactor(context, f),
                                 style: TextStyle(
                                     fontSize: 10,
                                     color: AppColors.textPrimary(context)),
@@ -1030,7 +1102,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 const Text('🌙', style: TextStyle(fontSize: 34)),
                 const SizedBox(height: 8),
                 Text(
-                  'No sleep sessions recorded yet',
+                  context.l10n.tr('no_sleep_sessions_recorded_yet'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -1039,7 +1111,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Tap "Log Sleep" or sync a wearable to track REM & Deep cycles.',
+                  context.l10n.tr('tap_log_sleep_or_sync_a'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 11, color: AppColors.textSecondary(context)),
@@ -1065,7 +1137,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '7-Day Sleep Duration',
+                    context.l10n.tr('k_7_day_sleep_duration'),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -1073,7 +1145,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     ),
                   ),
                   Text(
-                    'Target ${goals.formattedSleepTarget} • Avg $avgHrsStr',
+                    context.l10n.tr('target_avg', {'goals_formattedSleepTarget': goals.formattedSleepTarget, 'avgHrsStr': avgHrsStr}),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -1113,7 +1185,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                           children: [
                             Text(
                               mins > 0
-                                  ? '${(mins / 60).toStringAsFixed(1)}h'
+                                  ? '${(mins / 60).toStringAsFixed(1)}${l10n.tr('h')}'
                                   : '-',
                               style: TextStyle(
                                   fontSize: 9,
@@ -1136,7 +1208,9 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              isToday ? 'Today' : DateFormat('E').format(dt),
+                              isToday
+                                  ? l10n.tr('today_2')
+                                  : l10n.formatDate(dt, 'E'),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight:
@@ -1158,14 +1232,14 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Avg Score: ${provider.weeklyAverageSleepScore}/100',
+                    l10n.tr('avg_score_100', {'provider_weeklyAverageSleepScore': provider.weeklyAverageSleepScore}),
                     style: TextStyle(
                         fontSize: 11, color: AppColors.textSecondary(context)),
                   ),
                   Text(
                     debtMin > 0
-                        ? 'Weekly Sleep Debt: ${debtMin ~/ 60}h ${debtMin % 60}m'
-                        : 'Zero Sleep Debt 🌿',
+                        ? l10n.tr('weekly_sleep_debt_h_m', {'debtMin_60': debtMin % 60})
+                        : l10n.tr('zero_sleep_debt'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -1182,7 +1256,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         // Past Logs
         if (provider.sleepLogs.isNotEmpty) ...[
           Text(
-            'SLEEP HISTORY',
+            l10n.tr('sleep_history'),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -1204,7 +1278,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     style: const TextStyle(fontSize: 22),
                   ),
                   title: Text(
-                    '${log.formattedDuration} • Score ${log.qualityScore}',
+                    l10n.tr('score_2', {'log_formattedDuration': log.formattedDuration, 'log_qualityScore': log.qualityScore}),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -1212,7 +1286,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     ),
                   ),
                   subtitle: Text(
-                    '${log.dateKey} (${DateFormat('HH:mm').format(log.bedtime)}–${DateFormat('HH:mm').format(log.wakeTime)})',
+                    '${log.dateKey} (${l10n.formatDate(log.bedtime, 'HH:mm')}–${l10n.formatDate(log.wakeTime, 'HH:mm')})',
                     style: TextStyle(
                         fontSize: 11, color: AppColors.textSecondary(context)),
                   ),
@@ -1254,6 +1328,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
 
   Widget _buildVitalsTab(
       BuildContext context, HealthWellnessProvider provider) {
+    final l10n = context.l10n;
     final today = provider.todayActivity;
     final hr = provider.latestVitalOfType(VitalType.heartRate);
     final spo2 = provider.latestVitalOfType(VitalType.bloodOxygen);
@@ -1268,6 +1343,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         context, dark: _skyBlue, light: const Color(0xFF0284C7));
     final hrAccent = AppColors.adaptive(
         context, dark: const Color(0xFFEF4444), light: const Color(0xFFDC2626));
+    final noReading = l10n.tr('no_reading');
 
     return ListView(
       children: [
@@ -1282,7 +1358,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     (today.restingHeartRate != null
                         ? '${today.restingHeartRate} bpm'
                         : '-- bpm'),
-                hr?.statusLabel ?? 'No reading',
+                hr?.statusLabel ?? noReading,
                 hrAccent,
               ),
             ),
@@ -1292,7 +1368,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 context,
                 VitalType.bloodOxygen,
                 spo2?.formattedValue ?? '-- %',
-                spo2?.statusLabel ?? 'No reading',
+                spo2?.statusLabel ?? noReading,
                 skyAccent,
               ),
             ),
@@ -1306,7 +1382,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 context,
                 VitalType.bloodPressure,
                 bp?.formattedValue ?? '--/-- mmHg',
-                bp?.statusLabel ?? 'No reading',
+                bp?.statusLabel ?? noReading,
                 serenAccent,
               ),
             ),
@@ -1316,7 +1392,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                 context,
                 VitalType.bodyWeight,
                 weight?.formattedValue ?? '-- kg',
-                weight?.statusLabel ?? 'Check-in',
+                weight?.statusLabel ?? l10n.tr('check_in_2'),
                 emeraldAccent,
               ),
             ),
@@ -1336,7 +1412,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'DAILY ENERGY LEVEL',
+                l10n.tr('daily_energy_level'),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -1348,11 +1424,11 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  (1, '🪫 Low'),
-                  (2, '🥱 Mild'),
-                  (3, '🙂 Steady'),
-                  (4, '⚡ Good'),
-                  (5, '✨ Peak'),
+                  (1, l10n.tr('low_3')),
+                  (2, l10n.tr('mild')),
+                  (3, l10n.tr('steady')),
+                  (4, l10n.tr('good_2')),
+                  (5, l10n.tr('peak')),
                 ].map((opt) {
                   final selected = today.energyScore == opt.$1;
                   return InkWell(
@@ -1396,9 +1472,9 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         ElevatedButton.icon(
           onPressed: () => _showLogVitalDialog(context, provider),
           icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-          label: const Text(
-            'Record Vital Reading',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          label: Text(
+            l10n.tr('record_vital_reading'),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: _serenPurple,
@@ -1413,7 +1489,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         // Vitals History
         if (provider.vitalLogs.isNotEmpty) ...[
           Text(
-            'RECENT READINGS',
+            l10n.tr('recent_readings'),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -1440,11 +1516,12 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     ),
                   ),
                   subtitle: Text(
-                    '${v.statusLabel} • ${DateFormat('MMM d, HH:mm').format(v.recordedAt)}${v.note != null ? ' • ${v.note}' : ''}',
+                    '${v.statusLabel} • ${l10n.formatDate(v.recordedAt, 'MMM d, HH:mm')}${v.note != null ? ' • ${v.note}' : ''}',
                     style: TextStyle(
                         fontSize: 11, color: AppColors.textSecondary(context)),
                   ),
                   trailing: IconButton(
+                    tooltip: l10n.tr('delete_reading'),
                     icon: Icon(Icons.delete_outline_rounded,
                         size: 18, color: AppColors.textSecondary(context)),
                     onPressed: () => provider.deleteVitalLog(v.id),
@@ -1508,8 +1585,9 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
 
   Widget _buildBreatheTab(
       BuildContext context, HealthWellnessProvider provider) {
+    final l10n = context.l10n;
     final today = provider.todayActivity;
-    final pattern = _currentPattern;
+    final pattern = _patternFor(context);
     final currentPhase = pattern[_phaseIndex % pattern.length];
     final isDark = AppColors.isDark(context);
     final serenAccent =
@@ -1527,7 +1605,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
           children: [
             Expanded(
               child: ChoiceChip(
-                label: const Text('4-7-8 Calm Sleep'),
+                label: Text(
+                    l10n.tr('k_4_7_8_calm_sleep')),
                 selected: !_useBoxBreathing,
                 selectedColor:
                     _serenPurple.withValues(alpha: isDark ? 0.3 : 0.14),
@@ -1551,7 +1630,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
             const SizedBox(width: 8),
             Expanded(
               child: ChoiceChip(
-                label: const Text('Box Focus (4-4-4-4)'),
+                label: Text(
+                    l10n.tr('box_focus_4_4_4_4')),
                 selected: _useBoxBreathing,
                 selectedColor:
                     _serenPurple.withValues(alpha: isDark ? 0.3 : 0.14),
@@ -1628,7 +1708,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                       Text(
                         _isBreathingActive
                             ? currentPhase.label
-                            : 'Ready to Breathe',
+                            : l10n.tr('ready_to_breathe'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 11,
@@ -1647,15 +1727,15 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
               const SizedBox(height: 28),
               if (_isBreathingActive)
                 Text(
-                  'Cycle ${_completedCycles + 1} • ${_totalBreathingSeconds}s elapsed',
+                  l10n.tr('cycle_s_elapsed', {'completedCycles_1': _completedCycles + 1, 'totalBreathingSeconds': _totalBreathingSeconds}),
                   style: TextStyle(
                       fontSize: 12, color: AppColors.textSecondary(context)),
                 )
               else
                 Text(
                   _useBoxBreathing
-                      ? 'Inhale 4s • Hold 4s • Exhale 4s • Rest 4s'
-                      : 'Inhale 4s • Hold 7s • Exhale 8s for deep relaxation',
+                      ? l10n.tr('inhale_4s_hold_4s_exhale_4s')
+                      : l10n.tr('inhale_4s_hold_7s_exhale_8s'),
                   style: TextStyle(
                       fontSize: 11, color: AppColors.textSecondary(context)),
                 ),
@@ -1675,8 +1755,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                       : Icons.play_arrow_rounded),
                   label: Text(
                     _isBreathingActive
-                        ? 'Stop & Save Mindful Minutes'
-                        : 'Start Guided Breathing',
+                        ? l10n.tr('stop_save_mindful_minutes')
+                        : l10n.tr('start_guided_breathing'),
                     style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w800),
                   ),
@@ -1710,7 +1790,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mindful Minutes: ${today.mindfulMinutes} / ${today.mindfulMinutesGoal}m',
+                      l10n.tr('mindful_minutes_m', {'today_mindfulMinutes': today.mindfulMinutes, 'today_mindfulMinutesGoal': today.mindfulMinutesGoal}),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -1739,7 +1819,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   foregroundColor: serenAccent,
                   side: BorderSide(color: _serenPurple.withValues(alpha: 0.5)),
                 ),
-                child: const Text('+5m Calm'),
+                child: Text(l10n.tr('k_5m_calm')),
               ),
             ],
           ),
@@ -1760,54 +1840,64 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.adaptive(
-          ctx,
-          dark: const Color(0xFF1E2028),
-          light: Colors.white,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Update Today Steps',
+      builder: (ctx) {
+        final l10n = ctx.l10n;
+        return AlertDialog(
+          backgroundColor: AppColors.adaptive(
+            ctx,
+            dark: const Color(0xFF1E2028),
+            light: Colors.white,
+          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            l10n.tr('update_today_steps'),
             style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary(ctx))),
-        content: TextField(
-          controller: stepsCtrl,
-          keyboardType: TextInputType.number,
-          style: TextStyle(color: AppColors.textPrimary(ctx)),
-          decoration: InputDecoration(
-            labelText: 'Total Steps Today',
-            filled: true,
-            fillColor: AppColors.adaptive(
-              ctx,
-              dark: const Color(0xFF16171D),
-              light: const Color(0xFFF1F4F8),
+                color: AppColors.textPrimary(ctx)),
+          ),
+          content: TextField(
+            controller: stepsCtrl,
+            keyboardType: TextInputType.number,
+            style: TextStyle(color: AppColors.textPrimary(ctx)),
+            decoration: InputDecoration(
+              labelText:
+                  l10n.tr('total_steps_today'),
+              filled: true,
+              fillColor: AppColors.adaptive(
+                ctx,
+                dark: const Color(0xFF16171D),
+                light: const Color(0xFFF1F4F8),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.tr('cancel')),
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final val = int.tryParse(stepsCtrl.text.trim());
-              if (val != null && val >= 0) {
-                provider.setStepsForDate(val);
-              }
-              Navigator.of(ctx).pop();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: _serenPurple),
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              onPressed: () {
+                final val = int.tryParse(stepsCtrl.text.trim());
+                if (val != null && val >= 0) {
+                  provider.setStepsForDate(val);
+                }
+                Navigator.of(ctx).pop();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: _serenPurple),
+              child: Text(
+                l10n.tr('save'),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1833,6 +1923,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
+          final l10n = ctx.l10n;
           final wakeDt =
               DateTime(now.year, now.month, now.day, wakeTime.hour, wakeTime.minute);
           var bedDt = DateTime(
@@ -1841,7 +1932,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
             bedDt = bedDt.subtract(const Duration(days: 1));
           }
           final mins = wakeDt.difference(bedDt).inMinutes.clamp(1, 1440);
-          final previewDur = '${mins ~/ 60}h ${mins % 60}m';
+          final previewDur =
+              '${mins ~/ 60}${l10n.tr('h')} ${mins % 60}m';
           final isDark = AppColors.isDark(ctx);
           final fieldFill = AppColors.adaptive(
             ctx,
@@ -1863,11 +1955,13 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
               children: [
                 const Text('🌙', style: TextStyle(fontSize: 22)),
                 const SizedBox(width: 8),
-                Text('Log Sleep Session',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary(ctx))),
+                Text(
+                  l10n.tr('log_sleep_session'),
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary(ctx)),
+                ),
               ],
             ),
             content: SingleChildScrollView(
@@ -1889,7 +1983,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                             }
                           },
                           child: Text(
-                            'Bed ${bedtime.format(ctx)}',
+                            l10n.tr('bed', {'bedtime_ctx': bedtime.format(ctx)}),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ),
@@ -1907,7 +2001,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                             }
                           },
                           child: Text(
-                            'Wake ${wakeTime.format(ctx)}',
+                            l10n.tr('wake', {'wakeTime_ctx': wakeTime.format(ctx)}),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ),
@@ -1917,7 +2011,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      'Total Sleep Duration: $previewDur',
+                      l10n.tr('total_sleep_duration', {'previewDur': previewDur}),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -1927,7 +2021,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'SLEEP QUALITY',
+                    l10n.tr('sleep_quality'),
                     style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -1959,7 +2053,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'SLEEP FACTORS',
+                    l10n.tr('sleep_factors'),
                     style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -1973,7 +2067,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                       final isSel = selectedFactors.contains(f);
                       return FilterChip(
                         label: Text(
-                          f,
+                          _localizeSleepFactor(ctx, f),
                           style: TextStyle(
                             fontSize: 10,
                             color: isSel
@@ -2005,7 +2099,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     style: TextStyle(
                         color: AppColors.textPrimary(ctx), fontSize: 12),
                     decoration: InputDecoration(
-                      hintText: 'Optional sleep or dream notes...',
+                      hintText: l10n.tr('optional_sleep_or_dream_notes'),
                       hintStyle: TextStyle(color: AppColors.textMuted(ctx)),
                       filled: true,
                       fillColor: fieldFill,
@@ -2021,7 +2115,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel'),
+                child: Text(l10n.tr('cancel')),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -2035,8 +2129,10 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   if (ctx.mounted) Navigator.of(ctx).pop();
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: _serenPurple),
-                child: const Text('Save Sleep',
-                    style: TextStyle(color: Colors.white)),
+                child: Text(
+                  l10n.tr('save_sleep'),
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ],
           );
@@ -2056,6 +2152,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
+          final l10n = ctx.l10n;
           final isDark = AppColors.isDark(ctx);
           final fieldFill = AppColors.adaptive(
             ctx,
@@ -2070,11 +2167,13 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
             ),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Text('Record Body Vital',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary(ctx))),
+            title: Text(
+              l10n.tr('record_body_vital'),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary(ctx)),
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -2128,7 +2227,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     style: TextStyle(color: AppColors.textPrimary(ctx)),
                     decoration: InputDecoration(
                       labelText: selectedType == VitalType.bloodPressure
-                          ? 'Systolic (mmHg)'
+                          ? l10n.tr('systolic_mmhg')
                           : '${selectedType.label} (${selectedType.unit})',
                       filled: true,
                       fillColor: fieldFill,
@@ -2145,7 +2244,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                       keyboardType: TextInputType.number,
                       style: TextStyle(color: AppColors.textPrimary(ctx)),
                       decoration: InputDecoration(
-                        labelText: 'Diastolic (mmHg)',
+                        labelText:
+                            l10n.tr('diastolic_mmhg'),
                         filled: true,
                         fillColor: fieldFill,
                         border: OutlineInputBorder(
@@ -2161,7 +2261,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                     style: TextStyle(
                         color: AppColors.textPrimary(ctx), fontSize: 12),
                     decoration: InputDecoration(
-                      hintText: 'Context note (e.g. Morning resting)',
+                      hintText: l10n.tr('context_note_e_g_morning_resting'),
                       hintStyle: TextStyle(color: AppColors.textMuted(ctx)),
                       filled: true,
                       fillColor: fieldFill,
@@ -2177,7 +2277,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel'),
+                child: Text(l10n.tr('cancel')),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -2196,8 +2296,10 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   if (ctx.mounted) Navigator.of(ctx).pop();
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: _serenPurple),
-                child:
-                    const Text('Record', style: TextStyle(color: Colors.white)),
+                child: Text(
+                  l10n.tr('record'),
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ],
           );
@@ -2213,108 +2315,119 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.adaptive(
-            ctx,
-            dark: const Color(0xFF1E2028),
-            light: Colors.white,
-          ),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text('Seren Wellness Goals',
+        builder: (ctx, setDialogState) {
+          final l10n = ctx.l10n;
+          return AlertDialog(
+            backgroundColor: AppColors.adaptive(
+              ctx,
+              dark: const Color(0xFF1E2028),
+              light: Colors.white,
+            ),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(
+              l10n.tr('seren_wellness_goals'),
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary(ctx))),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Daily Step Goal: ${NumberFormat('#,###').format(draft.dailyStepGoal)} steps',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(ctx)),
-                ),
-                Slider(
-                  value: draft.dailyStepGoal.toDouble(),
-                  min: 3000,
-                  max: 20000,
-                  divisions: 17,
-                  activeColor: _serenPurple,
-                  onChanged: (v) => setDialogState(() {
-                    draft = draft.copyWith(dailyStepGoal: v.round());
-                  }),
-                ),
-                Text(
-                  'Sleep Target: ${draft.formattedSleepTarget}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(ctx)),
-                ),
-                Slider(
-                  value: draft.sleepTargetMinutes.toDouble(),
-                  min: 360,
-                  max: 570,
-                  divisions: 7,
-                  activeColor: _serenPurple,
-                  onChanged: (v) => setDialogState(() {
-                    draft = draft.copyWith(sleepTargetMinutes: v.round());
-                  }),
-                ),
-                Text(
-                  'Active Minutes Goal: ${draft.dailyActiveMinutesGoal} mins',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(ctx)),
-                ),
-                Slider(
-                  value: draft.dailyActiveMinutesGoal.toDouble(),
-                  min: 15,
-                  max: 90,
-                  divisions: 5,
-                  activeColor: _emerald,
-                  onChanged: (v) => setDialogState(() {
-                    draft = draft.copyWith(dailyActiveMinutesGoal: v.round());
-                  }),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text('Afternoon Move Nudge',
+                  color: AppColors.textPrimary(ctx)),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.tr('daily_step_goal_steps', {'NumberFormat_dailyStepGoal': NumberFormat('#,###').format(draft.dailyStepGoal)}),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(ctx)),
+                  ),
+                  Slider(
+                    value: draft.dailyStepGoal.toDouble(),
+                    min: 3000,
+                    max: 20000,
+                    divisions: 17,
+                    activeColor: _serenPurple,
+                    onChanged: (v) => setDialogState(() {
+                      draft = draft.copyWith(dailyStepGoal: v.round());
+                    }),
+                  ),
+                  Text(
+                    l10n.tr('sleep_target', {'draft_formattedSleepTarget': draft.formattedSleepTarget}),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(ctx)),
+                  ),
+                  Slider(
+                    value: draft.sleepTargetMinutes.toDouble(),
+                    min: 360,
+                    max: 570,
+                    divisions: 7,
+                    activeColor: _serenPurple,
+                    onChanged: (v) => setDialogState(() {
+                      draft = draft.copyWith(sleepTargetMinutes: v.round());
+                    }),
+                  ),
+                  Text(
+                    l10n.tr('active_minutes_goal_mins', {'draft_dailyActiveMinutesGoal': draft.dailyActiveMinutesGoal}),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(ctx)),
+                  ),
+                  Slider(
+                    value: draft.dailyActiveMinutesGoal.toDouble(),
+                    min: 15,
+                    max: 90,
+                    divisions: 5,
+                    activeColor: _emerald,
+                    onChanged: (v) => setDialogState(() {
+                      draft = draft.copyWith(dailyActiveMinutesGoal: v.round());
+                    }),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      l10n.tr('afternoon_move_nudge'),
                       style: TextStyle(
-                          fontSize: 13, color: AppColors.textPrimary(ctx))),
-                  subtitle: Text('Gentle 15:00 movement reminder',
+                          fontSize: 13, color: AppColors.textPrimary(ctx)),
+                    ),
+                    subtitle: Text(
+                      l10n.tr('gentle_15_00_movement_reminder'),
                       style: TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary(ctx))),
-                  value: draft.moveReminderEnabled,
-                  activeThumbColor: _serenPurple,
-                  onChanged: (v) => setDialogState(() {
-                    draft = draft.copyWith(moveReminderEnabled: v);
-                  }),
+                          fontSize: 11, color: AppColors.textSecondary(ctx)),
+                    ),
+                    value: draft.moveReminderEnabled,
+                    activeThumbColor: _serenPurple,
+                    onChanged: (v) => setDialogState(() {
+                      draft = draft.copyWith(moveReminderEnabled: v);
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l10n.tr('cancel')),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await provider.updateGoals(draft);
+                  if (ctx.mounted) Navigator.of(ctx).pop();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: _serenPurple),
+                child: Text(
+                  l10n.tr('apply_goals'),
+                  style: const TextStyle(color: Colors.white),
                 ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await provider.updateGoals(draft);
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: _serenPurple),
-              child: const Text('Apply Goals',
-                  style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

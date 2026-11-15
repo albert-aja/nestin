@@ -30,6 +30,17 @@ class HabitChecklistWidgetProvider : AppWidgetProvider() {
         const val KEY_STREAK = "habits_streak"
         const val KEY_PROGRESS = "habits_progress"
         const val KEY_STEP_PREFIX = "habits_step_"
+        const val KEY_MASCOT_POSE = "habits_mascot_pose"
+
+        fun resolveMascotDrawable(poseKey: String): Int {
+            return when (poseKey) {
+                "roo_habit_done" -> R.drawable.mascot_widget_roo_habit_done
+                "roo_on_fire" -> R.drawable.mascot_widget_roo_on_fire
+                "roo_momentum" -> R.drawable.mascot_widget_roo_momentum
+                "roo_quiet" -> R.drawable.mascot_widget_roo_quiet
+                else -> R.drawable.mascot_widget_roo_planning
+            }
+        }
 
         fun updateAppWidget(
             context: Context,
@@ -40,11 +51,20 @@ class HabitChecklistWidgetProvider : AppWidgetProvider() {
             val title = prefs.getString(KEY_TITLE, "Daily Habits & Routines") ?: "Daily Habits & Routines"
             val streak = prefs.getString(KEY_STREAK, "🔥 3d") ?: "🔥 3d"
             val progress = prefs.getString(KEY_PROGRESS, "0/0") ?: "0/0"
+            val mascotPose = prefs.getString(KEY_MASCOT_POSE, "roo_momentum") ?: "roo_momentum"
+            val showMascots = prefs.getBoolean(NextAlarmWidgetProvider.KEY_SHOW_MASCOTS, true)
 
             val views = RemoteViews(context.packageName, R.layout.widget_habit_checklist)
             views.setTextViewText(R.id.tv_habit_title, title)
             views.setTextViewText(R.id.tv_habit_streak, streak)
             views.setTextViewText(R.id.tv_habit_progress, progress)
+
+            if (showMascots) {
+                views.setViewVisibility(R.id.layout_habit_mascot_badge, View.VISIBLE)
+                views.setImageViewResource(R.id.iv_habit_mascot, resolveMascotDrawable(mascotPose))
+            } else {
+                views.setViewVisibility(R.id.layout_habit_mascot_badge, View.GONE)
+            }
 
             val stepLayoutIds = intArrayOf(
                 R.id.layout_step_1,

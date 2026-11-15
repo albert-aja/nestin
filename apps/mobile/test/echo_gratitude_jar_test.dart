@@ -218,19 +218,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Pick Another Pebble'), findsOneWidget);
-      final firstVisibleFreshAir =
-          find.textContaining('Grateful for crisp fresh air').evaluate().isNotEmpty;
-      final firstVisibleSunlight =
-          find.textContaining('Golden sunlight').evaluate().isNotEmpty;
-      expect(firstVisibleFreshAir || firstVisibleSunlight, isTrue);
+      final sheetFinder = find.byType(GratitudeJarSheet);
+      final sheetFreshAirFinder = find.descendant(
+        of: sheetFinder,
+        matching: find.textContaining('Grateful for crisp fresh air'),
+      );
+      final sheetSunlightFinder = find.descendant(
+        of: sheetFinder,
+        matching: find.textContaining('Golden sunlight'),
+      );
+      final firstVisibleFreshAir = sheetFreshAirFinder.evaluate().isNotEmpty;
+      final firstVisibleSunlight = sheetSunlightFinder.evaluate().isNotEmpty;
+      expect(firstVisibleFreshAir ^ firstVisibleSunlight, isTrue);
 
+      await tester.ensureVisible(find.text('Pick Another Pebble'));
       await tester.tap(find.text('Pick Another Pebble'));
       await tester.pumpAndSettle();
 
       if (firstVisibleFreshAir) {
-        expect(find.textContaining('Golden sunlight'), findsOneWidget);
+        expect(sheetSunlightFinder, findsOneWidget);
+        expect(sheetFreshAirFinder, findsNothing);
       } else {
-        expect(find.textContaining('Grateful for crisp fresh air'), findsOneWidget);
+        expect(sheetFreshAirFinder, findsOneWidget);
+        expect(sheetSunlightFinder, findsNothing);
       }
     });
 

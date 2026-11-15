@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
+import '../core/l10n/app_localizations.dart';
+import '../data/models/app_restriction.dart';
 import '../data/models/device_capability.dart';
 import '../data/models/digital_wellbeing.dart';
 import '../data/models/phone_mode.dart';
 import '../data/services/device_control_service.dart';
 import '../data/services/notification_service.dart';
 import '../data/services/storage_service.dart';
+import '../domain/wellbeing/focus_lock_bridge.dart';
+import '../domain/wellbeing/restriction_engine.dart';
 
-class DeviceControlProvider extends ChangeNotifier {
+class DeviceControlProvider extends ChangeNotifier
+    implements FocusLockCoordinator {
   final StorageService _storage;
   final DeviceControlServiceInterface _service;
   final NotificationService? notifications;
@@ -14,6 +19,7 @@ class DeviceControlProvider extends ChangeNotifier {
   bool _disposed = false;
   bool _isRefreshing = false;
 
+  final RestrictionEngine _engine = const RestrictionEngine();
   late DeviceCapabilityRegistry _registry;
   List<TrackedAppRule> _appRules = [];
   WellbeingDailySnapshot _usageSnapshot = const WellbeingDailySnapshot(
@@ -26,6 +32,16 @@ class DeviceControlProvider extends ChangeNotifier {
   String? _activePhoneModeId;
   StateRestorationSnapshot? _activeSnapshot;
   StateRestorationSnapshot? _lastRestorationSummary;
+
+  // Roo Digital Discipline & App Control state backed by the Shared Restriction Engine
+  List<AppFastCommitment> _appFastCommitments = [];
+  FocusLockConfig _focusLockConfig = const FocusLockConfig();
+  FocusLockSession? _activeFocusSession;
+  List<RestrictionAuditLog> _restrictionAuditLogs = [];
+  List<InstalledAppInfo> _discoveredApps = [];
+  List<RestrictionRule> _extraRestrictionRules = [];
+  final Map<String, DateTime> _reminderGraceUntil = {};
+  bool _hasCompletedDiscovery = false;
 
   DeviceControlProvider(
     this._storage, {
@@ -78,6 +94,59 @@ class DeviceControlProvider extends ChangeNotifier {
   StateRestorationSnapshot? get lastRestorationSummary =>
       _lastRestorationSummary;
 
+  List<AppFastCommitment> get appFastCommitments =>
+      List.unmodifiable(_appFastCommitments);
+  FocusLockConfig get focusLockConfig => _focusLockConfig;
+  FocusLockSession? get activeFocusSession => _activeFocusSession;
+  List<RestrictionAuditLog> get restrictionAuditLogs =>
+      List.unmodifiable(_restrictionAuditLogs);
+  List<InstalledAppInfo> get discoveredApps =>
+      List.unmodifiable(_discoveredApps);
+  List<RestrictionRule> get extraRestrictionRules =>
+      List.unmodifiable(_extraRestrictionRules);
+  bool get hasCompletedAppDiscovery => _hasCompletedDiscovery;
+
+  bool isPackageInstalled(String packageName) {
+    if (!_hasCompletedDiscovery || _discoveredApps.isEmpty) return true;
+    if (RestrictionEngine.isEssentialSystemPackage(packageName)) return true;
+    return _discoveredApps.any((a) => a.packageName == packageName);
+  }
+
+  PlatformSupportLevel supportLevelForStrength(RestrictionStrength strength) =>
+      _engine.resolvePlatformSupport(_registry, strength: strength);
+
+  List<AppFastCommitment> appFastByStatus(
+    AppFastStatus status, {
+    DateTime? now,
+  }) {
+    final checkNow = now ?? DateTime.now();
+    return _appFastCommitments
+        .where((c) => c.resolvedStatusAt(checkNow) == status)
+        .toList();
+  }
+
+  Map<String, String> get _knownAppNames {
+    final map = <String, String>{};
+    for (final a in _discoveredApps) {
+      map[a.packageName] = a.appName;
+    }
+    for (final r in _appRules) {
+      map.putIfAbsent(r.packageName, () => r.displayName);
+    }
+    for (final c in _appFastCommitments) {
+      for (final e in c.targetAppNames.entries) {
+        map.putIfAbsent(e.key, () => e.value);
+      }
+    }
+    for (final e in _focusLockConfig.restrictedAppNames.entries) {
+      map.putIfAbsent(e.key, () => e.value);
+    }
+    return map;
+  }
+
+  String displayNameForPackage(String packageName) =>
+      _knownAppNames[packageName] ?? packageName;
+
   PhoneModeProfile? get activePhoneMode {
     if (_activePhoneModeId == null) return null;
     for (final mode in _phoneModes) {
@@ -105,6 +174,12 @@ class DeviceControlProvider extends ChangeNotifier {
 
     _activePhoneModeId = _storage.loadActivePhoneModeId();
     _activeSnapshot = _storage.loadStateRestorationSnapshot();
+    _appFastCommitments = _storage.loadAppFastCommitments();
+    _focusLockConfig = _storage.loadFocusLockConfig();
+    _activeFocusSession = _storage.loadActiveFocusLockSession();
+    _restrictionAuditLogs = _storage.loadRestrictionAuditLogs();
+    _discoveredApps = _storage.loadInstalledAppsCache();
+    _extraRestrictionRules = _storage.loadExtraRestrictionRules();
 
     final savedHistory = _storage.loadPermissionHistory();
     if (savedHistory.isNotEmpty) {
@@ -123,7 +198,9 @@ class DeviceControlProvider extends ChangeNotifier {
     try {
       await refreshCapabilities();
       await recoverExpiredOrInterruptedModeIfNeeded(now: now);
+      await reconcileRestrictions(now: now, notify: false);
       await refreshAppUsage(now: now);
+      await syncNativeRestrictionPolicy(now: now);
     } finally {
       _isRefreshing = false;
       _safeNotify();
@@ -199,7 +276,50 @@ class DeviceControlProvider extends ChangeNotifier {
     DateTime? now,
   }) async {
     final checkNow = now ?? DateTime.now();
-    _usageSnapshot = await _service.fetchAppUsageToday(rules: _appRules);
+    final primaryResetRule = _appRules.isNotEmpty ? _appRules.first : null;
+    final activeFastPackages = _appFastCommitments
+        .where((c) => c.isActiveAt(checkNow))
+        .expand((c) => c.targetPackages)
+        .toList();
+
+    _usageSnapshot = await _service.fetchAppUsageToday(
+      rules: _appRules,
+      additionalPackages: activeFastPackages,
+      resetHour: primaryResetRule?.dailyResetHour ?? 0,
+      resetMinute: primaryResetRule?.dailyResetMinute ?? 0,
+    );
+
+    // Auto-mark App Fast as failed if lock was bypassed natively via App Shield grace
+    for (final pkg in _usageSnapshot.bypassedPackages) {
+      _failActiveAppFastsForPackageSync(
+        pkg,
+        reason: 'lock_bypassed_shield_grace',
+        now: checkNow,
+      );
+    }
+
+    // Auto-mark App Fast as failed if app usage is detected during the active fast window
+    for (final c in _appFastCommitments) {
+      if (c.resolvedStatusAt(checkNow) != AppFastStatus.active) continue;
+      for (final pkg in c.targetPackages) {
+        final record = _usageSnapshot.recordForPackage(pkg);
+        if (record == null) continue;
+        final usedAfterStart = record.lastUsedAt != null &&
+            (record.lastUsedAt!.isAfter(c.startAt) ||
+                record.lastUsedAt!.isAtSameMomentAs(c.startAt));
+        final usedMinutesIncreased = c.initialUsedMinutes.containsKey(pkg) &&
+            record.usedMinutesToday > (c.initialUsedMinutes[pkg] ?? 0);
+        if (usedAfterStart || usedMinutesIncreased) {
+          _failActiveAppFastsForPackageSync(
+            pkg,
+            reason: 'usage_detected_during_fast',
+            now: checkNow,
+          );
+          break;
+        }
+      }
+    }
+
     final newLogs = <AppInterventionLog>[];
     final todayKey = _dateKey(checkNow);
 
@@ -209,6 +329,9 @@ class DeviceControlProvider extends ChangeNotifier {
       final record = _usageSnapshot.recordForPackage(rule.packageName);
       final usedMinutes = record?.usedMinutesToday ?? 0;
       final inBlockedSchedule = rule.isWithinBlockedWindow(checkNow);
+      final effectiveLimit = rule.effectiveLimitMinutesFor(checkNow);
+      final warningLimit = rule.warningMinutesFor(checkNow);
+      final ruleWindowKey = rule.currentResetWindowKey(checkNow);
 
       String? reason;
       String? outcome;
@@ -222,12 +345,12 @@ class DeviceControlProvider extends ChangeNotifier {
                   WellbeingInterventionLevel.timedSoftPause)) {
         reason = 'scheduled_block';
       } else if (_usageSnapshot.permissionGranted &&
-          rule.dailyLimitMinutes > 0 &&
-          usedMinutes >= rule.dailyLimitMinutes) {
+          effectiveLimit > 0 &&
+          usedMinutes >= effectiveLimit) {
         reason = 'limit_reached';
       } else if (_usageSnapshot.permissionGranted &&
-          rule.dailyLimitMinutes > 0 &&
-          usedMinutes >= rule.warningMinutes &&
+          effectiveLimit > 0 &&
+          usedMinutes >= warningLimit &&
           rule.interventionLevel != WellbeingInterventionLevel.trackOnly) {
         reason = 'pre_limit_warning';
       }
@@ -238,7 +361,9 @@ class DeviceControlProvider extends ChangeNotifier {
         (log) =>
             log.ruleId == rule.id &&
             log.reason == reason &&
-            _dateKey(log.timestamp) == todayKey,
+            (_dateKey(log.timestamp) == todayKey ||
+                ruleWindowKey.startsWith(_dateKey(log.timestamp)) &&
+                    _dateKey(log.timestamp) == todayKey),
       );
       if (alreadyLoggedToday) continue;
 
@@ -291,14 +416,15 @@ class DeviceControlProvider extends ChangeNotifier {
       newLogs.add(log);
 
       if (dispatchNotifications && notifications != null) {
+        final l10n = AppLocalizations.current;
         final msg = reason == 'pre_limit_warning'
-            ? '${rule.displayName} reached $usedMinutes/${rule.dailyLimitMinutes} min (${rule.warningThresholdPercent}% warning).'
+            ? l10n.tr('reached_min_warning', {'rule_displayName': rule.displayName, 'usedMinutes': usedMinutes, 'effectiveLimit': effectiveLimit, 'rule_warningThresholdPercent': rule.warningThresholdPercent})
             : reason == 'limit_reached'
-                ? '${rule.displayName} reached your daily limit ($usedMinutes min).'
-                : '${rule.displayName} is inside your scheduled focus/bedtime window.';
+                ? l10n.tr('reached_your_daily_limit_min', {'rule_displayName': rule.displayName, 'usedMinutes': usedMinutes, 'effectiveLimit': effectiveLimit})
+                : l10n.tr('is_inside_your_scheduled_focus_bedtime', {'rule_displayName': rule.displayName});
         await notifications!.showWellbeingNotification(
           id: rule.id.hashCode.abs() % 100000 + 800000,
-          title: 'Scout Wellbeing · ${rule.displayName}',
+          title: l10n.tr('roo_discipline', {'rule_displayName': rule.displayName}),
           body: msg,
           payload: 'nestin://wellbeing',
         );
@@ -340,12 +466,14 @@ class DeviceControlProvider extends ChangeNotifier {
       _appRules = [..._appRules, rule];
     }
     await _storage.saveTrackedAppRules(_appRules);
+    await syncNativeRestrictionPolicy();
     _safeNotify();
   }
 
   Future<void> deleteAppRule(String ruleId) async {
     _appRules = _appRules.where((r) => r.id != ruleId).toList();
     await _storage.saveTrackedAppRules(_appRules);
+    await syncNativeRestrictionPolicy();
     _safeNotify();
   }
 
@@ -543,6 +671,614 @@ class DeviceControlProvider extends ChangeNotifier {
 
   Future<bool> openSystemModesOrWellbeing() =>
       _service.openSystemModesOrWellbeing();
+
+  Future<bool> requestFamilyControlsAuthorization() async {
+    final granted = await _service.requestFamilyControlsAuthorization();
+    await refreshCapabilities();
+    return granted;
+  }
+
+  // --- Phase 1: Native App Discovery ---
+
+  Future<List<InstalledAppInfo>> discoverInstalledApps({
+    bool includeSystemApps = false,
+  }) async {
+    final found = await _service.discoverInstalledApps(
+      includeSystemApps: includeSystemApps,
+    );
+    _hasCompletedDiscovery = true;
+    if (found.isNotEmpty) {
+      _discoveredApps = found;
+      await _storage.saveInstalledAppsCache(_discoveredApps);
+    }
+    _safeNotify();
+    return _discoveredApps;
+  }
+
+  // --- Phase 2: App Fast Commitments ---
+
+  Future<void> createAppFastCommitment(
+    AppFastCommitment commitment, {
+    DateTime? now,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    final initialUsage = <String, int>{};
+    for (final pkg in commitment.targetPackages) {
+      final rec = _usageSnapshot.recordForPackage(pkg);
+      initialUsage[pkg] = rec?.usedMinutesToday ?? 0;
+    }
+    final normalized = commitment.copyWith(
+      initialUsedMinutes: commitment.initialUsedMinutes.isNotEmpty
+          ? commitment.initialUsedMinutes
+          : initialUsage,
+      status: commitment.resolvedStatusAt(checkNow),
+      updatedAt: checkNow,
+    );
+    _appFastCommitments = [normalized, ..._appFastCommitments];
+    await _storage.saveAppFastCommitments(_appFastCommitments);
+    await _appendAuditForTargets(
+      normalized.targetPackages,
+      now: checkNow,
+      detailOverride: 'Created App Fast "${normalized.title}" (${normalized.mode.label}).',
+    );
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> updateAppFastCommitment(
+    AppFastCommitment commitment, {
+    DateTime? now,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    final idx = _appFastCommitments.indexWhere((c) => c.id == commitment.id);
+    if (idx < 0) return;
+    _appFastCommitments = [..._appFastCommitments]
+      ..[idx] = commitment.copyWith(
+        status: commitment.resolvedStatusAt(checkNow),
+        updatedAt: checkNow,
+      );
+    await _storage.saveAppFastCommitments(_appFastCommitments);
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> failAppFastCommitment(
+    String id, {
+    required String reason,
+    DateTime? now,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    final idx = _appFastCommitments.indexWhere((c) => c.id == id);
+    if (idx < 0) return;
+    final current = _appFastCommitments[idx];
+    if (current.status == AppFastStatus.failed ||
+        current.status == AppFastStatus.cancelled ||
+        current.status == AppFastStatus.completed) {
+      return;
+    }
+    _appFastCommitments = [..._appFastCommitments]
+      ..[idx] = current.copyWith(
+        status: AppFastStatus.failed,
+        failedAt: checkNow,
+        failureReason: reason,
+        updatedAt: checkNow,
+      );
+    await _storage.saveAppFastCommitments(_appFastCommitments);
+    await _appendAuditForTargets(
+      current.targetPackages,
+      now: checkNow,
+      detailOverride: 'App Fast "${current.title}" marked as FAILED ($reason).',
+    );
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  void _failActiveAppFastsForPackageSync(
+    String packageName, {
+    required String reason,
+    DateTime? now,
+  }) {
+    final checkNow = now ?? DateTime.now();
+    var changed = false;
+    final updated = <AppFastCommitment>[];
+    final failedCommitmentTitles = <String>[];
+    for (final c in _appFastCommitments) {
+      if (c.isActiveAt(checkNow) && c.targetPackages.contains(packageName)) {
+        changed = true;
+        failedCommitmentTitles.add(c.title);
+        updated.add(c.copyWith(
+          status: AppFastStatus.failed,
+          failedAt: checkNow,
+          failureReason: reason,
+          updatedAt: checkNow,
+        ));
+      } else {
+        updated.add(c);
+      }
+    }
+    if (changed) {
+      _appFastCommitments = updated;
+      _storage.saveAppFastCommitments(_appFastCommitments);
+      for (final title in failedCommitmentTitles) {
+        _appendAuditForTargets(
+          [packageName],
+          now: checkNow,
+          detailOverride:
+              'App Fast "$title" marked as FAILED ($reason) due to activity on $packageName.',
+        );
+      }
+      syncNativeRestrictionPolicy(now: checkNow);
+      _safeNotify();
+    }
+  }
+
+  Future<void> cancelAppFastCommitment(String id, {DateTime? now}) async {
+    final checkNow = now ?? DateTime.now();
+    final idx = _appFastCommitments.indexWhere((c) => c.id == id);
+    if (idx < 0) return;
+    final current = _appFastCommitments[idx];
+    _appFastCommitments = [..._appFastCommitments]
+      ..[idx] = current.copyWith(
+        status: AppFastStatus.cancelled,
+        cancelledAt: checkNow,
+        updatedAt: checkNow,
+      );
+    await _storage.saveAppFastCommitments(_appFastCommitments);
+    await _appendAuditForTargets(
+      current.targetPackages,
+      now: checkNow,
+      detailOverride: 'Cancelled App Fast "${current.title}".',
+    );
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> deleteAppFastCommitment(String id, {DateTime? now}) async {
+    _appFastCommitments =
+        _appFastCommitments.where((c) => c.id != id).toList();
+    await _storage.saveAppFastCommitments(_appFastCommitments);
+    await syncNativeRestrictionPolicy(now: now);
+    _safeNotify();
+  }
+
+  // --- Phase 3: Focus Lock Integration (Roo Pomodoro & Digital Discipline) ---
+
+  Future<void> updateFocusLockConfig(FocusLockConfig config) async {
+    _focusLockConfig = config;
+    await _storage.saveFocusLockConfig(_focusLockConfig);
+    await syncNativeRestrictionPolicy();
+    _safeNotify();
+  }
+
+  /// Single clean interface for Roo Pomodoro (or Roo Digital Discipline) to
+  /// activate temporary Focus Lock restrictions via the Shared Restriction Engine.
+  Future<FocusLockSession?> activateFocusLockSession({
+    required String source,
+    required String taskLabel,
+    required Duration duration,
+    String phase = 'work',
+    List<String>? overrideRestrictedPackages,
+    List<String>? overrideAllowedPackages,
+    bool? overrideRestrictDuringBreaks,
+    bool? overrideAllowManualEnd,
+    RestrictionEnforcementMode? overrideMode,
+    DateTime? now,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    if (!_focusLockConfig.enabled && source == 'roo_pomodoro') {
+      return null;
+    }
+
+    final restricted = (overrideRestrictedPackages ??
+            _focusLockConfig.restrictedPackages)
+        .where((p) => !RestrictionEngine.isEssentialSystemPackage(p))
+        .toList();
+    if (restricted.isEmpty) {
+      return null;
+    }
+
+    final safeDuration = duration.inSeconds > 0
+        ? duration
+        : const Duration(minutes: 25);
+
+    final session = FocusLockSession(
+      source: source,
+      taskLabel: taskLabel,
+      phase: phase,
+      restrictedPackages: restricted,
+      allowedPackages: overrideAllowedPackages ?? _focusLockConfig.allowedPackages,
+      restrictDuringBreaks:
+          overrideRestrictDuringBreaks ?? _focusLockConfig.restrictDuringBreaks,
+      allowManualEnd: overrideAllowManualEnd ?? _focusLockConfig.allowManualEnd,
+      enforcementMode: overrideMode ?? _focusLockConfig.enforcementMode,
+      customMessage: _focusLockConfig.customMessage,
+      startedAt: checkNow,
+      expectedEndAt: checkNow.add(safeDuration),
+    );
+
+    _activeFocusSession = session;
+    await _storage.saveActiveFocusLockSession(_activeFocusSession);
+    await _appendAuditForTargets(
+      session.restrictedPackages,
+      now: checkNow,
+      detailOverride:
+          'Activated Focus Lock ($source · ${session.taskLabel}) for ${safeDuration.inMinutes}m.',
+    );
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+    return session;
+  }
+
+  Future<void> updateFocusLockPhase({
+    required String phase,
+    required Duration duration,
+    bool isPaused = false,
+    DateTime? now,
+  }) async {
+    final current = _activeFocusSession;
+    if (current == null) return;
+    final checkNow = now ?? DateTime.now();
+    final safeDuration = duration.inSeconds > 0
+        ? duration
+        : const Duration(minutes: 5);
+
+    _activeFocusSession = current.copyWith(
+      phase: phase,
+      expectedEndAt: checkNow.add(safeDuration),
+      isPaused: isPaused,
+      pausedAt: isPaused ? checkNow : null,
+      clearPausedAt: !isPaused,
+    );
+    await _storage.saveActiveFocusLockSession(_activeFocusSession);
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> pauseFocusLock({DateTime? now}) async {
+    final current = _activeFocusSession;
+    if (current == null || current.isPaused) return;
+    final checkNow = now ?? DateTime.now();
+    _activeFocusSession = current.copyWith(
+      isPaused: true,
+      pausedAt: checkNow,
+    );
+    await _storage.saveActiveFocusLockSession(_activeFocusSession);
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> resumeFocusLock({
+    Duration? remainingDuration,
+    DateTime? now,
+  }) async {
+    final current = _activeFocusSession;
+    if (current == null || !current.isPaused) return;
+    final checkNow = now ?? DateTime.now();
+    final rem = remainingDuration ??
+        (current.pausedAt != null
+            ? current.expectedEndAt.difference(current.pausedAt!)
+            : const Duration(minutes: 15));
+    _activeFocusSession = current.copyWith(
+      isPaused: false,
+      clearPausedAt: true,
+      expectedEndAt: checkNow.add(rem.isNegative ? Duration.zero : rem),
+    );
+    await _storage.saveActiveFocusLockSession(_activeFocusSession);
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  /// Releases only the temporary Focus Lock session; App Fast commitments and
+  /// Daily Usage Limits remain untouched cleanly in [RestrictionEngine].
+  Future<bool> endFocusLockSession({
+    String reason = 'ended',
+    bool force = false,
+    DateTime? now,
+  }) async {
+    final current = _activeFocusSession;
+    if (current == null) return true;
+    if (!force && reason == 'manual_end' && !current.allowManualEnd) {
+      return false;
+    }
+
+    final checkNow = now ?? DateTime.now();
+    _activeFocusSession = null;
+    await _storage.saveActiveFocusLockSession(null);
+    await _appendAuditForTargets(
+      current.restrictedPackages,
+      now: checkNow,
+      detailOverride: 'Released Focus Lock (${current.taskLabel} · $reason).',
+    );
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+    return true;
+  }
+
+  // --- Phase 4 & 5: Shared Restriction Engine Evaluation, Reconciliation & Audit ---
+
+  RestrictionDecision evaluateApp(
+    String packageName, {
+    String? appName,
+    DateTime? now,
+  }) {
+    final checkNow = now ?? DateTime.now();
+    return _engine.evaluateApp(
+      packageName: packageName,
+      appName: appName ?? displayNameForPackage(packageName),
+      now: checkNow,
+      registry: _registry,
+      appFastCommitments: _appFastCommitments,
+      activeFocusSession: _activeFocusSession,
+      usageRules: _appRules,
+      usageSnapshot: _usageSnapshot,
+      extraRules: _extraRestrictionRules,
+    );
+  }
+
+  Map<String, RestrictionDecision> evaluateAllTracked({DateTime? now}) {
+    final checkNow = now ?? DateTime.now();
+    final packages = <String>{
+      for (final r in _appRules) r.packageName,
+      for (final c in _appFastCommitments) ...c.targetPackages,
+      if (_activeFocusSession != null) ..._activeFocusSession!.restrictedPackages,
+      for (final e in _extraRestrictionRules) e.packageName,
+    };
+    return {
+      for (final pkg in packages) pkg: evaluateApp(pkg, now: checkNow),
+    };
+  }
+
+  bool isInReminderGrace(String packageName, {DateTime? now}) {
+    final checkNow = now ?? DateTime.now();
+    final until = _reminderGraceUntil[packageName];
+    if (until == null) return false;
+    if (!checkNow.isBefore(until)) {
+      _reminderGraceUntil.remove(packageName);
+      return false;
+    }
+    return true;
+  }
+
+  void recordReminderContinueAnyway(
+    String packageName, {
+    Duration grace = const Duration(minutes: 5),
+    DateTime? now,
+  }) {
+    final checkNow = now ?? DateTime.now();
+    _reminderGraceUntil[packageName] = checkNow.add(grace);
+    _failActiveAppFastsForPackageSync(
+      packageName,
+      reason: 'lock_bypassed_continue_anyway',
+      now: checkNow,
+    );
+    final decision = evaluateApp(packageName, now: checkNow);
+    final log = RestrictionAuditLog(
+      packageName: packageName,
+      appName: decision.appName,
+      effectiveStrength: decision.effectiveStrength,
+      winningSource: decision.winningRule?.sourceType,
+      coexistingSources: decision.activeRules.map((e) => e.sourceType).toList(),
+      outcome: RestrictionExecutionOutcome.userContinuedInReminder,
+      platformSupport: decision.platformSupport,
+      detail: 'User acknowledged Reminder Mode intervention & continued for ${grace.inMinutes}m.',
+      timestamp: checkNow,
+    );
+    _restrictionAuditLogs = [log, ..._restrictionAuditLogs].take(200).toList();
+    _storage.saveRestrictionAuditLogs(_restrictionAuditLogs);
+    _safeNotify();
+  }
+
+  Future<RestrictionDecision> evaluateAndRecordLaunchAttempt(
+    String packageName, {
+    String? appName,
+    DateTime? now,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    await reconcileRestrictions(now: checkNow, notify: false);
+    final decision = evaluateApp(packageName, appName: appName, now: checkNow);
+
+    if (decision.isRestricted) {
+      final log = RestrictionAuditLog(
+        packageName: packageName,
+        appName: decision.appName,
+        effectiveStrength: decision.effectiveStrength,
+        winningSource: decision.winningRule?.sourceType,
+        coexistingSources:
+            decision.activeRules.map((e) => e.sourceType).toList(),
+        outcome: decision.outcome,
+        platformSupport: decision.platformSupport,
+        detail: decision.explanation,
+        timestamp: checkNow,
+      );
+      _restrictionAuditLogs = [log, ..._restrictionAuditLogs].take(200).toList();
+      await _storage.saveRestrictionAuditLogs(_restrictionAuditLogs);
+      _safeNotify();
+    }
+    return decision;
+  }
+
+  /// Reconciles time-based lifecycle transitions (App Fast activation/expiry,
+  /// expired/orphaned Focus Lock recovery across restarts/timezone changes,
+  /// expired extra automation rules) without mutating unrelated active rules.
+  Future<void> reconcileRestrictions({
+    DateTime? now,
+    bool notify = true,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    var appFastChanged = false;
+    final updatedCommitments = <AppFastCommitment>[];
+
+    for (final c in _appFastCommitments) {
+      final resolved = c.resolvedStatusAt(checkNow);
+      if (resolved != c.status) {
+        appFastChanged = true;
+        updatedCommitments.add(
+          c.copyWith(status: resolved, updatedAt: checkNow),
+        );
+      } else {
+        updatedCommitments.add(c);
+      }
+    }
+
+    if (appFastChanged) {
+      _appFastCommitments = updatedCommitments;
+      await _storage.saveAppFastCommitments(_appFastCommitments);
+    }
+
+    if (_activeFocusSession != null &&
+        _activeFocusSession!.isExpiredAt(checkNow)) {
+      final expired = _activeFocusSession!;
+      _activeFocusSession = null;
+      await _storage.saveActiveFocusLockSession(null);
+      await _appendAuditForTargets(
+        expired.restrictedPackages,
+        now: checkNow,
+        detailOverride:
+            'Auto-released expired Focus Lock (${expired.taskLabel}) safely.',
+      );
+    }
+
+    final activeExtras =
+        _extraRestrictionRules.where((e) => e.isActiveAt(checkNow)).toList();
+    if (activeExtras.length != _extraRestrictionRules.length) {
+      _extraRestrictionRules = activeExtras;
+      await _storage.saveExtraRestrictionRules(_extraRestrictionRules);
+    }
+
+    _reminderGraceUntil.removeWhere((_, until) => !checkNow.isBefore(until));
+
+    if (notify) {
+      _safeNotify();
+    }
+  }
+
+  Future<void> syncNativeRestrictionPolicy({DateTime? now}) async {
+    final checkNow = now ?? DateTime.now();
+    final policies = _engine.buildNativePolicyEntries(
+      now: checkNow,
+      registry: _registry,
+      appFastCommitments: _appFastCommitments,
+      activeFocusSession: _activeFocusSession,
+      usageRules: _appRules,
+      usageSnapshot: _usageSnapshot,
+      extraRules: _extraRestrictionRules,
+    );
+    await _service.syncRestrictionPolicy(
+      policies,
+      focusExpiresAt: _activeFocusSession?.expectedEndAt,
+    );
+  }
+
+  Future<void> registerExtraRestrictionRule(
+    RestrictionRule rule, {
+    DateTime? now,
+  }) async {
+    final checkNow = now ?? DateTime.now();
+    final idx = _extraRestrictionRules.indexWhere((r) => r.id == rule.id);
+    if (idx >= 0) {
+      _extraRestrictionRules = [..._extraRestrictionRules]..[idx] = rule;
+    } else {
+      _extraRestrictionRules = [..._extraRestrictionRules, rule];
+    }
+    await _storage.saveExtraRestrictionRules(_extraRestrictionRules);
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> unregisterExtraRestrictionRule(
+    String id, {
+    DateTime? now,
+  }) async {
+    _extraRestrictionRules =
+        _extraRestrictionRules.where((r) => r.id != id).toList();
+    await _storage.saveExtraRestrictionRules(_extraRestrictionRules);
+    await syncNativeRestrictionPolicy(now: now);
+    _safeNotify();
+  }
+
+  Future<void> handleDayOrTimezoneChange({DateTime? now}) async {
+    final checkNow = now ?? DateTime.now();
+    await reconcileRestrictions(now: checkNow, notify: false);
+    await refreshAppUsage(now: checkNow, dispatchNotifications: false);
+    await syncNativeRestrictionPolicy(now: checkNow);
+    _safeNotify();
+  }
+
+  Future<void> clearRestrictionAuditLogs() async {
+    _restrictionAuditLogs = [];
+    await _storage.saveRestrictionAuditLogs(_restrictionAuditLogs);
+    _safeNotify();
+  }
+
+  Future<void> _appendAuditForTargets(
+    List<String> packages, {
+    required DateTime now,
+    required String detailOverride,
+  }) async {
+    if (packages.isEmpty) return;
+    final primaryPkg = packages.first;
+    final decision = evaluateApp(primaryPkg, now: now);
+    final log = RestrictionAuditLog(
+      packageName: packages.join(','),
+      appName: packages.length == 1
+          ? displayNameForPackage(primaryPkg)
+          : '${packages.length} apps (${displayNameForPackage(primaryPkg)}, ...)',
+      effectiveStrength: decision.effectiveStrength,
+      winningSource: decision.winningRule?.sourceType,
+      coexistingSources: decision.activeRules.map((e) => e.sourceType).toList(),
+      outcome: decision.outcome,
+      platformSupport: decision.platformSupport,
+      detail: detailOverride,
+      timestamp: now,
+    );
+    _restrictionAuditLogs = [log, ..._restrictionAuditLogs].take(200).toList();
+    await _storage.saveRestrictionAuditLogs(_restrictionAuditLogs);
+  }
+
+  @override
+  Future<void> onPomodoroFocusStarted({
+    required String taskLabel,
+    required String phase,
+    required Duration remaining,
+  }) async {
+    await activateFocusLockSession(
+      source: 'roo_pomodoro',
+      taskLabel: taskLabel,
+      phase: phase,
+      duration: remaining,
+    );
+  }
+
+  @override
+  Future<void> onPomodoroFocusPhaseChanged({
+    required String phase,
+    required Duration remaining,
+    required bool isPaused,
+  }) async {
+    if (_activeFocusSession == null) return;
+    await updateFocusLockPhase(
+      phase: phase,
+      duration: remaining,
+      isPaused: isPaused,
+    );
+  }
+
+  @override
+  Future<void> onPomodoroFocusPaused() async {
+    await pauseFocusLock();
+  }
+
+  @override
+  Future<void> onPomodoroFocusResumed({
+    required Duration remaining,
+  }) async {
+    await resumeFocusLock(remainingDuration: remaining);
+  }
+
+  @override
+  Future<void> onPomodoroFocusEnded({required String reason}) async {
+    await endFocusLockSession(reason: reason, force: true);
+  }
 
   String _dateKey(DateTime dt) {
     final m = dt.month.toString().padLeft(2, '0');

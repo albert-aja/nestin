@@ -7,9 +7,9 @@
   - Established all 6 bird families (**Roo**, **Echo**, **Seren**, **Pippin**, **Twill**, **Scout**), adaptive Light/Dark Material 3 theme engine, offline EN/ID localization, and unified `SwipeActionCard` undo workflows.
 - **Phase 2–3 (Connected Personal Domains):**
   - Built Calendar/Tasks/Reminders/Routines + NLP date parser, Echo Diary/Memories/Timeline + PIN lock, Seren Dose Medications/Hydration/Sleep/Caffeine/Vitals, Pippin Hobbies/Reading, Twill Markdown Notes/Collections/Wishlist/Basic Money Management, and Scout BeforeYouGo + Native Geofencing.
-- **Phase 4–5 (Shared Automation, Cross-Module Linking, Digital Wellbeing, Phone Modes & Permission Center):**
+- **Phase 4–5 (Shared Automation, Cross-Module Linking, Digital Discipline, Phone Modes & Permission Center):**
   - Implemented `DeviceCapabilityRegistry` & `PermissionCenterScreen` with 4-way classification & revoked-permission detection.
-  - Implemented `DigitalWellbeingScreen`, 5-level App Restriction Manager, Phone Mode Orchestrator (`Sleep`, `Work`, `Study`, `Relax`, `Custom`) with Safe State Restoration preserving manual mid-session user edits, and Android `DeviceControlPlugin.kt` + iOS `DeviceControlManager`.
+  - Implemented Roo's `DigitalDisciplineScreen` (5 tabs: Overview, App Fast, Focus Lock, Usage Limits, Application Usage), Shared `RestrictionEngine` + `FocusLockCoordinator`, Scout's `PhoneModesScreen` (`Sleep`, `Work`, `Study`, `Relax`, `Custom`) with Safe State Restoration preserving manual mid-session user edits, and Android `DeviceControlPlugin.kt` + iOS `DeviceControlManager`.
   - Implemented `AutomationProvider` & `AutomationHubScreen` (triggers, conditions, confirmation queue, `SharedSettingOwnership` conflict locking, retries, rollback) and `CrossModuleLinkProvider` + `LinkedEntitiesSection` across Tasks, Calendar, Notes, and Universal Search.
 
 ---

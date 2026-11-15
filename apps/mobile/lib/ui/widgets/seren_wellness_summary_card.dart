@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../providers/health_wellness_provider.dart';
 import '../../providers/hydration_provider.dart';
+import '../screens/seren/seren_relaxation_screen.dart';
 import 'health_wellness_sheet.dart';
 
 class SerenWellnessSummaryCard extends StatelessWidget {
@@ -88,10 +89,7 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            l10n.pick(
-                              'Seren Health & Activity',
-                              'Kesehatan & Aktivitas Seren',
-                            ),
+                            l10n.tr('seren_health_activity'),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -99,10 +97,7 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            l10n.pick(
-                              'Steps • Sleep Cycles • Vitals • Breathing',
-                              'Langkah • Siklus Tidur • Vital • Pernapasan',
-                            ),
+                            l10n.tr('steps_sleep_cycles_vitals_breathing'),
                             style: TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary(context),
@@ -307,6 +302,28 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.tonalIcon(
+                  key: const Key('seren_summary_open_relaxation_btn'),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SerenRelaxationScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.surround_sound_rounded, size: 16),
+                  label: Text(
+                    l10n.tr('seren_open_relaxation_sanctuary'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

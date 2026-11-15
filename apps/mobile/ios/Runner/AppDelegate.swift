@@ -2,11 +2,13 @@ import Flutter
 import UIKit
 import CoreLocation
 import UserNotifications
+import AVFoundation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var geofenceManager: GeofenceManager?
   private var deviceControlManager: DeviceControlManager?
+  private let speechSynthesizer = AVSpeechSynthesizer()
 
   override func application(
     _ application: UIApplication,
@@ -28,10 +30,43 @@ import UserNotifications
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     deviceControlManager = DeviceControlManager(channel: deviceControlChannel)
+    let ttsChannel = FlutterMethodChannel(
+      name: "com.nestin.app/tts",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    ttsChannel.setMethodCallHandler { [weak self] call, result in
+      guard let self = self else {
+        result(FlutterError(code: "DEALLOCATED", message: nil, details: nil))
+        return
+      }
+      switch call.method {
+      case "speak":
+        let args = call.arguments as? [String: Any]
+        let textToSpeak = args?["text"] as? String ?? ""
+        let lang = args?["language"] as? String ?? "en-US"
+        let rate = Float(args?["rate"] as? Double ?? 0.85)
+        let volume = Float(args?["volume"] as? Double ?? 0.90)
+        if self.speechSynthesizer.isSpeaking {
+          self.speechSynthesizer.stopSpeaking(at: .immediate)
+        }
+        let utterance = AVSpeechUtterance(string: textToSpeak)
+        let voice = AVSpeechSynthesisVoice(language: lang)
+        utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = min(max(AVSpeechUtteranceDefaultSpeechRate * rate, AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate)
+        utterance.volume = min(max(volume, 0.0), 1.0)
+        self.speechSynthesizer.speak(utterance)
+        result(["started": true, "languageSupported": voice != nil])
+      case "stop":
+        self.speechSynthesizer.stopSpeaking(at: .immediate)
+        result(true)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 }
 
-/// Honest iOS platform capability bridge for Nestin Scout Digital Wellbeing & Phone Modes.
+/// Honest iOS platform capability bridge for Nestin Shared Device Integration (Roo Digital Discipline & Scout Phone Modes).
 /// Never fakes cross-app Screen Time or system DND when Apple FamilyControls entitlements are absent.
 final class DeviceControlManager: NSObject {
   private let channel: FlutterMethodChannel
@@ -131,6 +166,20 @@ final class DeviceControlManager: NSObject {
         "succeeded": false,
         "message": "iOS restricts system Auto-Lock duration to iOS Display & Brightness settings."
       ])
+    case "getInstalledApps":
+      // iOS privacy sandbox prohibits enumerating third-party installed apps without
+      // Apple FamilyControls / FamilyActivityPicker entitlement; return empty list honestly.
+      result([])
+    case "syncRestrictionPolicy":
+      if !hasFamilyControls {
+        result(false)
+      } else {
+        result(true)
+      }
+    case "getCurrentForegroundApp":
+      result(nil)
+    case "requestFamilyControlsAuthorization":
+      result(hasFamilyControls)
     case "openPermissionSettings", "openSystemModesOrWellbeing":
       result(openAppSettings())
     default:

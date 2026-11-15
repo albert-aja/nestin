@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/inspiration_models.dart';
 import '../data/services/backend_gateway_service.dart';
 import '../data/services/inspiration_service.dart';
@@ -342,13 +343,20 @@ class InspirationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> rescheduleNotificationsIfEnabled() async {
+    if (_notificationPreferences.dailyEnabled) {
+      await _scheduleDailyLocalNotification();
+    }
+  }
+
   Future<void> _scheduleDailyLocalNotification() async {
     if (_notifications == null || !_notificationPreferences.dailyEnabled) return;
     final quote = _pickQuoteForPreferences(_notificationPreferences);
+    final l10n = AppLocalizations.current;
     await _notifications.scheduleDailyInspirationNotification(
       hour: _notificationPreferences.preferredHour,
       minute: _notificationPreferences.preferredMinute,
-      title: 'A little inspiration for today',
+      title: l10n.tr('a_little_inspiration_for_today'),
       body: '"${quote.quoteText}" — ${quote.author}',
       frequency: _notificationPreferences.frequency.toApi(),
       quoteId: quote.id,
@@ -375,8 +383,9 @@ class InspirationProvider extends ChangeNotifier {
 
   Future<void> sendPreviewNotification() async {
     final quote = featuredQuote;
+    final l10n = AppLocalizations.current;
     await _notifications?.showInspirationPreviewNotification(
-      title: 'Nestin Inspiration',
+      title: l10n.tr('nestin_inspiration'),
       body: '"${quote.quoteText}" — ${quote.author}',
       quoteId: quote.id,
     );

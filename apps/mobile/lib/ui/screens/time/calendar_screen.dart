@@ -492,10 +492,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     Text(
-                      context.l10n.pick(
-                        '${dayEvents.length} scheduled ${dayEvents.length == 1 ? 'event' : 'events'}',
-                        '${dayEvents.length} acara terjadwal',
-                      ),
+                      context.l10n.tr('scheduled_2', {'dayEvents_length': dayEvents.length, 'dayEvents_events': dayEvents.length == 1 ? 'event' : 'events'}),
                       style: TextStyle(fontSize: 12, color: AppColors.textSecondary(context)),
                     ),
                   ],
@@ -518,18 +515,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         Icon(Icons.event_available_rounded, size: 48, color: AppColors.textSecondary(context)),
                         const SizedBox(height: 12),
                         Text(
-                          context.l10n.pick(
-                            'No events for this date',
-                            'Tidak ada acara pada tanggal ini',
-                          ),
+                          context.l10n.tr('no_events_for_this_date'),
                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          context.l10n.pick(
-                            'Tap + to schedule a meeting, activity or plan',
-                            'Ketuk + untuk menjadwalkan rapat, aktivitas, atau rencana',
-                          ),
+                          context.l10n.tr('tap_to_schedule_a_meeting_activity'),
                           style: TextStyle(fontSize: 12, color: AppColors.textSecondary(context)),
                         ),
                       ],

@@ -882,7 +882,9 @@ class MoneyProvider extends ChangeNotifier {
       }
       if (q.isNotEmpty) {
         final descMatch = tx.description.toLowerCase().contains(q);
-        final catName = findCategoryById(tx.categoryId)?.name.toLowerCase() ?? '';
+        final cat = findCategoryById(tx.categoryId);
+        final catName = cat?.name.toLowerCase() ?? '';
+        final catDisplay = cat?.displayName.toLowerCase() ?? '';
         final srcName = findAccountById(tx.accountId)?.name.toLowerCase() ?? '';
         final dstName =
             tx.toAccountId != null
@@ -890,6 +892,7 @@ class MoneyProvider extends ChangeNotifier {
                 : '';
         if (!descMatch &&
             !catName.contains(q) &&
+            !catDisplay.contains(q) &&
             !srcName.contains(q) &&
             !dstName.contains(q)) {
           return false;

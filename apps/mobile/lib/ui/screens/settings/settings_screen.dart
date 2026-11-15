@@ -5,7 +5,19 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_preferences.dart';
 import '../../../data/models/challenge_profile.dart';
+import '../../../data/services/widget_sync_service.dart';
+import '../../../providers/alarm_provider.dart';
+import '../../../providers/before_you_go_provider.dart';
+import '../../../providers/caffeine_provider.dart';
+import '../../../providers/health_wellness_provider.dart';
+import '../../../providers/hydration_provider.dart';
+import '../../../providers/inspiration_provider.dart';
+import '../../../providers/medication_provider.dart';
+import '../../../providers/reading_provider.dart';
+import '../../../providers/reminder_provider.dart';
+import '../../../providers/routine_provider.dart';
 import '../../../providers/settings_provider.dart';
+import '../../../providers/sleep_wellness_provider.dart';
 import '../../../providers/sound_provider.dart';
 import '../../../data/models/wearable_source.dart';
 import '../../../providers/wearable_provider.dart';
@@ -14,6 +26,7 @@ import '../../../providers/geofence_provider.dart';
 import '../../../providers/money_provider.dart';
 import '../../../providers/device_control_provider.dart';
 import '../../../data/models/location_reminder.dart';
+import '../../../data/models/mascot_companion.dart';
 import '../../widgets/wearable_sync_sheet.dart';
 import '../../widgets/oem_hardening_sheet.dart';
 import '../../widgets/location_reminders_sheet.dart';
@@ -22,12 +35,33 @@ import '../../widgets/nestin_brand_header.dart';
 import '../../widgets/security_pin_gate_sheet.dart';
 import '../../widgets/nestin_account_sheet.dart';
 import '../alarms/sound_picker_sheet.dart';
-import '../scout/digital_wellbeing_screen.dart';
+import '../discipline/digital_discipline_screen.dart';
+import '../scout/phone_modes_screen.dart';
 import '../automation/automation_hub_screen.dart';
 import 'permission_center_screen.dart';
+import '../onboarding/mascot_onboarding_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  void _tryRescheduleNotificationsForLanguage(BuildContext context) {
+    void tryRun<T>(void Function(T) action) {
+      try {
+        action(context.read<T>());
+      } on ProviderNotFoundException catch (_) {}
+    }
+
+    tryRun<AlarmProvider>((p) => p.rescheduleNotifications());
+    tryRun<ReminderProvider>((p) => p.rescheduleNotifications());
+    tryRun<MedicationProvider>((p) => p.rescheduleNotifications());
+    tryRun<SleepWellnessProvider>((p) => p.syncWindDownSchedule());
+    tryRun<HydrationProvider>((p) => p.refreshReminders());
+    tryRun<CaffeineProvider>((p) => p.syncCurfewNotification());
+    tryRun<HealthWellnessProvider>((p) => p.refreshMoveReminder());
+    tryRun<ReadingProvider>((p) => p.syncEveningReminder());
+    tryRun<BeforeYouGoProvider>((p) => p.rescheduleAllNotifications());
+    tryRun<InspirationProvider>((p) => p.rescheduleNotificationsIfEnabled());
+  }
 
   void _showGlobalChallengeEditor(
       BuildContext context, SettingsProvider provider) {
@@ -160,10 +194,7 @@ class SettingsScreen extends StatelessWidget {
                           return DropdownMenuItem(
                             value: cnt,
                             child: Text(
-                              l10n.pick(
-                                '$cnt ${cnt == 1 ? 'Round' : 'Rounds'}',
-                                '$cnt Ronde',
-                              ),
+                              l10n.tr('msg', {'cnt': cnt, 'cnt_Rounds': cnt == 1 ? 'Round' : 'Rounds'}),
                             ),
                           );
                         }).toList(),
@@ -298,10 +329,7 @@ class SettingsScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               globalProfile.isEnabled
-                                  ? l10n.pick(
-                                      '${globalProfile.typeLabel} • ${globalProfile.difficultyLabel} (${globalProfile.questionsCount} rounds)',
-                                      '${globalProfile.typeLabel} • ${globalProfile.difficultyLabel} (${globalProfile.questionsCount} ronde)',
-                                    )
+                                  ? l10n.tr('rounds', {'globalProfile_typeLabel': globalProfile.typeLabel, 'globalProfile_difficultyLabel': globalProfile.difficultyLabel, 'globalProfile_questionsCount': globalProfile.questionsCount})
                                   : l10n.tr('disabled_by_default'),
                               style: TextStyle(
                                 fontSize: 13,
@@ -405,8 +433,15 @@ class SettingsScreen extends StatelessWidget {
                                   ? AppColors.accent
                                   : Colors.transparent,
                             ),
-                            onSelected: (val) {
-                              if (val) provider.setLanguage(lang);
+                            onSelected: (val) async {
+                              if (val) {
+                                await provider.setLanguage(lang);
+                                if (context.mounted) {
+                                  _tryRescheduleNotificationsForLanguage(
+                                    context,
+                                  );
+                                }
+                              }
                             },
                           );
                         }).toList(),
@@ -450,6 +485,105 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.widgets_rounded),
+                  title: Text(
+                    l10n.tr('glance_widget_mascots'),
+                  ),
+                  subtitle: Text(
+                    l10n.tr('show_mini_bird_companions_on_alarms'),
+                  ),
+                  value: prefs.showWidgetMascots,
+                  onChanged: (val) async {
+                    await provider.toggleWidgetMascots(val);
+                    if (!context.mounted) return;
+                    try {
+                      await WidgetSyncService.instance
+                          .syncQuickCapture(showMascots: val);
+                    } catch (_) {}
+                    if (!context.mounted) return;
+                    try {
+                      final alarm = context
+                          .read<AlarmProvider>()
+                          .nextUpcomingAlarm;
+                      await WidgetSyncService.instance
+                          .syncNextAlarm(alarm, showMascots: val);
+                    } catch (_) {}
+                    if (!context.mounted) return;
+                    try {
+                      final routines = context.read<RoutineProvider>().routines;
+                      await WidgetSyncService.instance
+                          .syncHabits(routines, showMascots: val);
+                    } catch (_) {}
+                    if (!context.mounted) return;
+                    try {
+                      final hydration = context.read<HydrationProvider>().data;
+                      await WidgetSyncService.instance
+                          .syncHydration(hydration, showMascots: val);
+                    } catch (_) {}
+                  },
+                ),
+                if (prefs.showWidgetMascots)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.elevatedSurface(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.border(context),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _widgetMascotPreviewChip(
+                                context,
+                                assetPath:
+                                    'assets/mascots/sprites/roo/alarm.png',
+                                label: l10n.tr('alarms_roo'),
+                                accent: const Color(0xFFE04A3A),
+                              ),
+                              _widgetMascotPreviewChip(
+                                context,
+                                assetPath:
+                                    'assets/mascots/sprites/roo/momentum.png',
+                                label: l10n.tr('habits_roo'),
+                                accent: const Color(0xFF10B981),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _widgetMascotPreviewChip(
+                                context,
+                                assetPath:
+                                    'assets/mascots/sprites/seren/hydrate.png',
+                                label: l10n.tr('hydration_seren'),
+                                accent: const Color(0xFF38BDF8),
+                              ),
+                              _widgetMascotPreviewChip(
+                                context,
+                                assetPath:
+                                    'assets/mascots/sprites/scout/captured.png',
+                                label: l10n.tr('capture_flock'),
+                                accent: const Color(0xFF3B82F6),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.snooze_rounded),
                   title: Text(l10n.tr('default_snooze')),
@@ -460,7 +594,7 @@ class SettingsScreen extends StatelessWidget {
                       return DropdownMenuItem(
                         value: m,
                         child: Text(
-                          l10n.pick('$m mins', '$m menit'),
+                          l10n.tr('mins', {'m': m}),
                         ),
                       );
                     }).toList(),
@@ -569,10 +703,7 @@ class SettingsScreen extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  l10n.pick(
-                                    '${customSounds.length} custom ${customSounds.length == 1 ? 'sound' : 'sounds'} in library',
-                                    '${customSounds.length} suara kustom di pustaka',
-                                  ),
+                                  l10n.tr('custom_in_library', {'customSounds_length': customSounds.length, 'customSounds_sounds': customSounds.length == 1 ? 'sound' : 'sounds'}),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textSecondary(context),
@@ -711,14 +842,8 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     title: Text(
                       provider.hasPin
-                          ? l10n.pick(
-                              'Change Security PIN (4–8 digits)',
-                              'Ubah PIN Keamanan (4–8 digit)',
-                            )
-                          : l10n.pick(
-                              'Set Security PIN (4–8 digits)',
-                              'Atur PIN Keamanan (4–8 digit)',
-                            ),
+                          ? l10n.tr('change_security_pin_4_8_digits')
+                          : l10n.tr('set_security_pin_4_8_digits'),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -727,18 +852,9 @@ class SettingsScreen extends StatelessWidget {
                     subtitle: Text(
                       provider.hasPin
                           ? (provider.hasPinHint
-                              ? l10n.pick(
-                                  'PIN & clue configured',
-                                  'PIN & petunjuk sudah diatur',
-                                )
-                              : l10n.pick(
-                                  'PIN configured • tap to change or add clue',
-                                  'PIN aktif • ketuk untuk ubah atau tambah petunjuk',
-                                ))
-                          : l10n.pick(
-                              'Not configured yet',
-                              'Belum diatur',
-                            ),
+                              ? l10n.tr('pin_clue_configured')
+                              : l10n.tr('pin_configured_tap_to_change_or'))
+                          : l10n.tr('not_configured_yet'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -1059,10 +1175,7 @@ class SettingsScreen extends StatelessWidget {
                                     Text(
                                       isProt
                                           ? l10n.tr('protected_bg_kill')
-                                          : l10n.pick(
-                                              '${status.riskLabel} • Tap to configure',
-                                              '${status.riskLabel} • Ketuk untuk atur',
-                                            ),
+                                          : l10n.tr('tap_to_configure', {'status_riskLabel': status.riskLabel}),
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: isProt
@@ -1119,6 +1232,97 @@ class SettingsScreen extends StatelessWidget {
                         activeColor: AppColors.accent,
                         onChanged: (val) => oem.toggleKeepAliveService(val),
                       ),
+                      if (oem.quickSettingsTileStatus.supported) ...[
+                        const Divider(height: 16),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.dashboard_customize_rounded,
+                              size: 18,
+                              color: AppColors.textSecondary(context),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.tr('quick_settings_tile_nestin_guard'),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    oem.quickSettingsTileStatus.isTileAdded
+                                        ? l10n.tr('pinned_to_notification_shade')
+                                        : oem.quickSettingsTileStatus
+                                                .canRequestAdd
+                                            ? l10n.tr('toggle_guard_from_android_quick_settings')
+                                            : l10n.tr('pull_down_shade_edit_add_nestin'),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (oem.quickSettingsTileStatus.isTileAdded)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.success
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  l10n.tr('added'),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.success,
+                                  ),
+                                ),
+                              )
+                            else if (oem.quickSettingsTileStatus.canRequestAdd)
+                              OutlinedButton(
+                                onPressed: () async {
+                                  final outcome =
+                                      await oem.pinQuickSettingsTile();
+                                  if (!context.mounted) return;
+                                  if (outcome == 'added' ||
+                                      outcome == 'already_added') {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.tr('nestin_guard_tile_ready_in_quick'),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  minimumSize: const Size(0, 30),
+                                ),
+                                child: Text(
+                                  l10n.tr('pin_tile'),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                       const Divider(height: 20),
                       _statusRow(
                         icon: Icons.notifications_active_outlined,
@@ -1160,10 +1364,7 @@ class SettingsScreen extends StatelessWidget {
                                   child: _statusRow(
                                     icon: Icons.location_on_rounded,
                                     label: l10n.tr('scout_native_geofencing'),
-                                    value: l10n.pick(
-                                      '${geo.armedCount} Armed • ${geo.permissionState.label}',
-                                      '${geo.armedCount} Aktif • ${geo.permissionState.label}',
-                                    ),
+                                    value: l10n.tr('armed', {'geo_armedCount': geo.armedCount, 'geo_label': geo.permissionState.label}),
                                     color: geo.permissionState
                                             .isReadyForBackground
                                         ? AppColors.success
@@ -1195,10 +1396,7 @@ class SettingsScreen extends StatelessWidget {
                                   child: _statusRow(
                                     icon: Icons.account_balance_wallet_rounded,
                                     label: l10n.tr('twill_money_preferences'),
-                                    value: l10n.pick(
-                                      '${money.currency.symbol} (${money.currency.code}) • ${money.activeAccounts.length} Accounts',
-                                      '${money.currency.symbol} (${money.currency.code}) • ${money.activeAccounts.length} Akun',
-                                    ),
+                                    value: l10n.tr('accounts', {'money_symbol': money.currency.symbol, 'money_code': money.currency.code, 'money_length': money.activeAccounts.length}),
                                     color: kTwillAmber,
                                   ),
                                 ),
@@ -1236,18 +1434,12 @@ class SettingsScreen extends StatelessWidget {
                                       const EdgeInsets.symmetric(vertical: 4),
                                   child: _statusRow(
                                     icon: Icons.verified_user_rounded,
-                                    label: l10n.pick(
-                                      'Permission & Capability Center',
-                                      'Pusat Izin & Kapabilitas',
-                                    ),
+                                    label: l10n.tr('permission_capability_center'),
                                     value: revokedCount > 0
                                         ? '$revokedCount Revoked'
                                         : (missingReq > 0
                                             ? '$missingReq Required Missing'
-                                            : l10n.pick(
-                                                '${dc.registry.platform.toUpperCase()} Inspected',
-                                                '${dc.registry.platform.toUpperCase()} Terperiksa',
-                                              )),
+                                            : l10n.tr('inspected', {'dc_toUpperCase': dc.registry.platform.toUpperCase()})),
                                     color: revokedCount > 0
                                         ? AppColors.error
                                         : (missingReq > 0
@@ -1262,7 +1454,7 @@ class SettingsScreen extends StatelessWidget {
                                   Navigator.of(ctx).push(
                                     MaterialPageRoute(
                                       builder: (_) =>
-                                          const DigitalWellbeingScreen(),
+                                          const DigitalDisciplineScreen(),
                                     ),
                                   );
                                 },
@@ -1272,13 +1464,33 @@ class SettingsScreen extends StatelessWidget {
                                       const EdgeInsets.symmetric(vertical: 4),
                                   child: _statusRow(
                                     icon: Icons.phonelink_lock_rounded,
-                                    label: l10n.pick(
-                                      'Digital Wellbeing & Phone Modes',
-                                      'Kesejahteraan Digital & Mode Ponsel',
+                                    label: l10n.tr('roo_digital_discipline'),
+                                    value:
+                                        '${dc.appRules.where((r) => r.isEnabled).length} App Rules',
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                              const Divider(height: 20),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.of(ctx).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const PhoneModesScreen(),
                                     ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  child: _statusRow(
+                                    icon: Icons.shield_moon_rounded,
+                                    label:
+                                        l10n.tr('scout_phone_modes_utilities'),
                                     value: dc.activePhoneMode != null
                                         ? '${dc.activePhoneMode!.name} Active'
-                                        : '${dc.appRules.where((r) => r.isEnabled).length} App Rules',
+                                        : l10n.tr('configure'),
                                     color: AppColors.info,
                                   ),
                                 ),
@@ -1299,11 +1511,8 @@ class SettingsScreen extends StatelessWidget {
                                       const EdgeInsets.symmetric(vertical: 4),
                                   child: _statusRow(
                                     icon: Icons.auto_awesome_rounded,
-                                    label: l10n.pick(
-                                      'Nestin Automation Engine',
-                                      'Mesin Otomasi Nestin',
-                                    ),
-                                    value: l10n.pick('Configure', 'Atur'),
+                                    label: l10n.tr('nestin_automation_engine'),
+                                    value: l10n.tr('configure'),
                                     color: AppColors.accent,
                                   ),
                                 ),
@@ -1322,11 +1531,142 @@ class SettingsScreen extends StatelessWidget {
 
           // Optional Account & Guest Migration
           Text(
-            l10n.pick('Optional Cloud Identity', 'Identitas Cloud Opsional'),
+            l10n.tr('optional_cloud_identity'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
           const NestinAccountSettingsTile(),
+          const SizedBox(height: 20),
+
+          // Companion Guide & Onboarding Tour
+          Text(
+            l10n.tr('companion_flock_guide'),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.groups_2_rounded,
+                          color: AppColors.primary,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.tr('meet_the_6_bird_companions'),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              l10n.tr('explore_roo_scout_seren_pippin_twill'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: NestinFlock.companions
+                        .map(
+                          (bird) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: bird.accentColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: bird.accentColor.withValues(alpha: 0.32),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.asset(
+                                  bird.primarySpriteAsset,
+                                  width: 20,
+                                  height: 20,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, _, _) => Icon(
+                                    bird.fallbackIcon,
+                                    size: 16,
+                                    color: bird.accentColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  bird.name,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.adaptive(
+                                      context,
+                                      dark: bird.accentColor,
+                                      light: bird.lightInkColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('settings_replay_mascot_tour_button'),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const MascotOnboardingScreen(isReplay: true),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.replay_circle_filled_rounded,
+                        size: 18),
+                    label: Text(
+                      l10n.tr('replay_onboarding_tour'),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary(context),
+                      side: BorderSide(color: AppColors.border(context)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
 
           // About Nestin Card
@@ -1415,6 +1755,54 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _widgetMascotPreviewChip(
+    BuildContext context, {
+    required String assetPath,
+    required String label,
+    required Color accent,
+  }) {
+    return Expanded(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent.withValues(alpha: 0.14),
+              border: Border.all(color: accent.withValues(alpha: 0.42)),
+            ),
+            child: Image.asset(
+              assetPath,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => Icon(
+                Icons.flutter_dash_rounded,
+                size: 14,
+                color: accent,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary(context),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

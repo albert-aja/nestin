@@ -12,12 +12,16 @@ class InspirationExploreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Consumer<InspirationProvider>(
-      builder: (context, provider, _) {
-        final quote = provider.featuredQuote;
-        final isFav = provider.isFavorite(quote.id);
+    InspirationProvider provider;
+    try {
+      provider = Provider.of<InspirationProvider>(context);
+    } on ProviderNotFoundException {
+      return const SizedBox.shrink();
+    }
+    final quote = provider.featuredQuote;
+    final isFav = provider.isFavorite(quote.id);
 
-        return InkWell(
+    return InkWell(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const InspirationScreen()),
           ),
@@ -61,7 +65,7 @@ class InspirationExploreCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            l10n.pick('DAILY INSPIRATION', 'INSPIRASI HARIAN'),
+                            l10n.tr('daily_inspiration'),
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
@@ -75,7 +79,7 @@ class InspirationExploreCard extends StatelessWidget {
                     const Spacer(),
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: l10n.pick('Save Favorite', 'Simpan Favorit'),
+                      tooltip: l10n.tr('save_favorite'),
                       icon: Icon(
                         isFav
                             ? Icons.bookmark_rounded
@@ -89,7 +93,7 @@ class InspirationExploreCard extends StatelessWidget {
                     ),
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: l10n.pick('Create Quote Card', 'Buat Kartu Kutipan'),
+                      tooltip: l10n.tr('create_quote_card'),
                       icon: const Icon(
                         Icons.palette_outlined,
                         color: AppColors.primary,
@@ -131,7 +135,7 @@ class InspirationExploreCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      l10n.pick('Open Library', 'Buka Pustaka'),
+                      l10n.tr('open_library'),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -150,7 +154,5 @@ class InspirationExploreCard extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
   }
 }

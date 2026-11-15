@@ -28,6 +28,7 @@ import 'providers/medication_provider.dart';
 import 'providers/hobby_provider.dart';
 import 'providers/health_wellness_provider.dart';
 import 'providers/reading_provider.dart';
+import 'providers/bucket_list_provider.dart';
 import 'providers/geofence_provider.dart';
 import 'providers/before_you_go_provider.dart';
 import 'providers/money_provider.dart';
@@ -37,10 +38,14 @@ import 'providers/automation_provider.dart';
 import 'providers/cross_module_link_provider.dart';
 import 'providers/account_provider.dart';
 import 'providers/inspiration_provider.dart';
+import 'providers/seren_relaxation_provider.dart';
+import 'providers/interactive_experience_provider.dart';
 import 'data/services/backend_gateway_service.dart';
 import 'data/services/inspiration_service.dart';
 import 'data/services/oem_hardening_service.dart';
 import 'ui/screens/main_navigation_screen.dart';
+import 'ui/screens/onboarding/mascot_onboarding_screen.dart';
+import 'ui/screens/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,9 +59,14 @@ void main() async {
   final storageService = await StorageService.init();
   await storageService.migrateMoneySchemaIfNeeded();
   await AppLocalizations.ensureDateFormatting();
+  AppLocalizations.currentLanguage = storageService.loadPreferences().language;
   final audioService = AudioService();
   final notificationService = NotificationService();
+  final localWeatherService = LocalWeatherService();
   await notificationService.init();
+  WidgetSyncService.instance.setShowMascotsEnabled(
+    storageService.loadPreferences().showWidgetMascots,
+  );
   WidgetSyncService.instance.initialize();
 
   runApp(
@@ -64,24 +74,54 @@ void main() async {
       storageService: storageService,
       audioService: audioService,
       notificationService: notificationService,
+      weatherService: localWeatherService,
     ),
   );
 }
 
-class NestinApp extends StatelessWidget {
+class NestinApp extends StatefulWidget {
   final StorageService storageService;
   final AudioService audioService;
   final NotificationService notificationService;
+  final LocalWeatherService? weatherService;
+  final bool showSplash;
 
   const NestinApp({
     super.key,
     required this.storageService,
     required this.audioService,
     required this.notificationService,
+    this.weatherService,
+    this.showSplash = true,
   });
 
   @override
+  State<NestinApp> createState() => _NestinAppState();
+}
+
+class _NestinAppState extends State<NestinApp> {
+  late bool _splashFinished;
+
+  @override
+  void initState() {
+    super.initState();
+    _splashFinished = !widget.showSplash;
+  }
+
+  void _onSplashFinish() {
+    if (mounted) {
+      setState(() {
+        _splashFinished = true;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final storageService = widget.storageService;
+    final audioService = widget.audioService;
+    final notificationService = widget.notificationService;
+    final localWeatherService = widget.weatherService ?? LocalWeatherService();
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -104,10 +144,18 @@ class NestinApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => TimerProvider(
+          create: (_) => DeviceControlProvider(
+            storageService,
+            notifications: notificationService,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => TimerProvider(
             storageService,
             notificationService,
             audioService,
+            null,
+            ctx.read<DeviceControlProvider>(),
           ),
         ),
         // Nestin Everyday Space expansion providers
@@ -160,23 +208,23 @@ class NestinApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
+          create: (_) => BucketListProvider(storageService),
+        ),
+        ChangeNotifierProvider(
           create: (_) => GeofenceProvider(storageService, notificationService),
         ),
         ChangeNotifierProvider(
-          create: (_) =>
-              BeforeYouGoProvider(storageService, notificationService),
+          create: (_) => BeforeYouGoProvider(
+            storageService,
+            notificationService,
+            weatherService: localWeatherService,
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => MoneyProvider(storageService),
         ),
         ChangeNotifierProvider(
           create: (_) => CaffeineProvider(storageService, notificationService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => DeviceControlProvider(
-            storageService,
-            notifications: notificationService,
-          ),
         ),
         ChangeNotifierProvider(
           create: (ctx) => AutomationProvider(
@@ -203,8 +251,17 @@ class NestinApp extends StatelessWidget {
             notificationService: notificationService,
           ),
         ),
-        Provider<WeatherProviderInterface>(
-          create: (_) => LocalWeatherService(),
+        ChangeNotifierProvider(
+          create: (_) => SerenRelaxationProvider(
+            storageService,
+            notificationService: notificationService,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => InteractiveExperienceProvider(storageService),
+        ),
+        Provider<WeatherProviderInterface>.value(
+          value: localWeatherService,
         ),
         Provider<NotificationService>.value(
           value: notificationService,
@@ -212,6 +269,21 @@ class NestinApp extends StatelessWidget {
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
+          final Widget homeWidget;
+          if (!_splashFinished) {
+            homeWidget = SplashScreen(
+              key: const ValueKey('splash_screen'),
+              onFinish: _onSplashFinish,
+            );
+          } else if (settings.hasCompletedOnboarding) {
+            homeWidget =
+                const MainNavigationScreen(key: ValueKey('main_nav'));
+          } else {
+            homeWidget = const MascotOnboardingScreen(
+              key: ValueKey('mascot_onboarding'),
+            );
+          }
+
           return MaterialApp(
             title: 'Nestin',
             debugShowCheckedModeBanner: false,
@@ -221,7 +293,10 @@ class NestinApp extends StatelessWidget {
             locale: settings.locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
-            home: const MainNavigationScreen(),
+            home: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 280),
+              child: homeWidget,
+            ),
           );
         },
       ),

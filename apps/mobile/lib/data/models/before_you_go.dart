@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_language.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/utils/deterministic_hash.dart';
+import '../services/weather_service.dart';
 
 class DepartureChecklistItem {
   final String id;
@@ -103,10 +106,13 @@ class DeparturePreset {
 
   /// Formats a concise reminder summary highlighting essential/unchecked items.
   String buildReminderHighlight({int maxItems = 3}) {
-    if (items.isEmpty) return 'Check your essentials before heading out!';
+    final l10n = AppLocalizations.current;
+    if (items.isEmpty) {
+      return l10n.tr('check_your_essentials_before_heading_out');
+    }
     final remaining = uncheckedItems;
     if (remaining.isEmpty) {
-      return 'All ${items.length} $name items checked & ready!';
+      return l10n.tr('all_items_checked_ready', {'items_length': items.length, 'name': name});
     }
     final prioritized = [
       ...remaining.where((i) => i.isEssential),
@@ -115,9 +121,9 @@ class DeparturePreset {
     final preview = prioritized.take(maxItems).map((i) => i.label).join(', ');
     final extra = prioritized.length - maxItems;
     if (extra > 0) {
-      return 'Check $preview (+$extra more)';
+      return l10n.tr('check_more', {'preview': preview, 'extra': extra});
     }
-    return 'Check $preview';
+    return l10n.tr('check', {'preview': preview});
   }
 
   DeparturePreset copyWith({
@@ -317,14 +323,17 @@ class DeparturePreset {
 }
 
 enum DepartureRecurrenceType {
-  oneTime('One-time'),
-  daily('Every day'),
-  weekdays('Mon–Fri'),
-  weekends('Weekends'),
-  customDays('Custom days');
+  oneTime('departure_rec_onetime'),
+  daily('departure_rec_daily'),
+  weekdays('departure_rec_weekdays'),
+  weekends('departure_rec_weekends'),
+  customDays('departure_rec_customdays');
 
-  final String label;
-  const DepartureRecurrenceType(this.label);
+  final String translationKey;
+
+  String get label => AppLocalizations.current.tr(translationKey);
+
+  const DepartureRecurrenceType(this.translationKey);
 
   static DepartureRecurrenceType fromName(String? raw) {
     return DepartureRecurrenceType.values.firstWhere(
@@ -706,14 +715,24 @@ class DepartureSnooze {
   static ({String title, String body}) buildHeadsUpContent({
     required DepartureEvent event,
     required DeparturePreset preset,
+    List<WeatherSuggestedItem> weatherSuggestions = const [],
   }) {
+    final l10n = AppLocalizations.current;
     final leadText = event.clampedLeadMinutes == 0
-        ? 'Time to leave'
-        : 'in ${event.clampedLeadMinutes}m (${event.formattedDepartureTime})';
+        ? l10n.tr('time_to_leave')
+        : l10n.tr('in_m', {'event_clampedLeadMinutes': event.clampedLeadMinutes, 'event_formattedDepartureTime': event.formattedDepartureTime});
     final title = '🧭 Scout BeforeYouGo: ${event.title} $leadText';
-    final body =
-        '${preset.name} Checklist: ${preset.buildReminderHighlight(maxItems: 4)}';
-    return (title: title, body: body);
+    final baseBody = l10n.tr('checklist', {'preset_name': preset.name, 'preset_4': preset.buildReminderHighlight(maxItems: 4)});
+    if (weatherSuggestions.isEmpty) {
+      return (title: title, body: baseBody);
+    }
+    final gearNames = weatherSuggestions
+        .map((s) => s.localizedLabel(l10n.language.code))
+        .join(', ');
+    return (
+      title: title,
+      body: l10n.tr('weather_tip_pack', {'baseBody': baseBody, 'gearNames': gearNames}),
+    );
   }
 
   static ({String title, String body}) buildSnoozedContent({
@@ -721,9 +740,9 @@ class DepartureSnooze {
     required DeparturePreset preset,
     Duration duration = defaultSnoozeDuration,
   }) {
-    final title = '🧭 Scout (Snoozed +${duration.inMinutes}m): $titleLabel';
-    final body =
-        '${preset.name} Checklist (${preset.checkedCount}/${preset.totalCount}): ${preset.buildReminderHighlight(maxItems: 4)}';
+    final l10n = AppLocalizations.current;
+    final title = l10n.tr('scout_snoozed_m', {'duration_inMinutes': duration.inMinutes, 'titleLabel': titleLabel});
+    final body = l10n.tr('checklist_2', {'preset_name': preset.name, 'preset_checkedCount': preset.checkedCount, 'preset_totalCount': preset.totalCount, 'preset_4': preset.buildReminderHighlight(maxItems: 4)});
     return (title: title, body: body);
   }
 
@@ -933,5 +952,184 @@ class DepartureSnooze {
           : DateTime.now(),
       snoozeCount: (json['snoozeCount'] as num?)?.toInt() ?? 1,
     );
+  }
+}
+
+/// Weather trigger category explaining why Scout suggests a seasonal checklist item.
+enum WeatherSuggestionReason {
+  rain,
+  heavyRain,
+  cool,
+  cold,
+}
+
+/// Seasonal item prompt recommended by Scout when [LocalWeatherService] detects
+/// rain or cool temperatures missing from an active [DeparturePreset].
+class WeatherSuggestedItem {
+  static const String umbrellaKey = 'umbrella';
+  static const String raincoatKey = 'raincoat';
+  static const String lightJacketKey = 'light_jacket';
+  static const String warmLayerKey = 'warm_layer';
+
+  final String key;
+  final String label;
+  final String labelId;
+  final WeatherSuggestionReason reason;
+  final String triggerDetail;
+  final String triggerDetailId;
+  final bool suggestEssential;
+  final IconData icon;
+  final List<String> keywords;
+
+  const WeatherSuggestedItem({
+    required this.key,
+    required this.label,
+    required this.labelId,
+    required this.reason,
+    required this.triggerDetail,
+    required this.triggerDetailId,
+    required this.suggestEssential,
+    required this.icon,
+    required this.keywords,
+  });
+
+  String localizedLabel(String languageCode) =>
+      languageCode.toLowerCase().startsWith('id') ? labelId : label;
+
+  String localizedTriggerDetail(String languageCode) =>
+      languageCode.toLowerCase().startsWith('id')
+          ? triggerDetailId
+          : triggerDetail;
+
+  /// Returns true if an existing checklist item label already covers this gear.
+  bool matchesChecklistLabel(String itemLabel) {
+    final normalized = itemLabel.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    if (normalized == label.toLowerCase() ||
+        normalized == labelId.toLowerCase()) {
+      return true;
+    }
+    for (final keyword in keywords) {
+      final pattern = RegExp(
+        '(?<![a-z0-9])${RegExp.escape(keyword)}(?![a-z0-9])',
+        caseSensitive: false,
+      );
+      if (pattern.hasMatch(normalized)) return true;
+    }
+    return false;
+  }
+
+  bool isCoveredByPreset(DeparturePreset preset) =>
+      preset.items.any((item) => matchesChecklistLabel(item.label));
+
+  /// Computes weather-appropriate gear prompts missing from [preset] and not dismissed.
+  static List<WeatherSuggestedItem> evaluateForPreset({
+    required WeatherInfo weather,
+    required DeparturePreset preset,
+    Set<String> dismissedKeys = const <String>{},
+  }) {
+    final candidates = <WeatherSuggestedItem>[];
+
+    if (weather.isRainy) {
+      candidates.add(
+        WeatherSuggestedItem(
+          key: umbrellaKey,
+          label: 'Umbrella',
+          labelId: 'Payung',
+          reason: weather.isHeavyRain
+              ? WeatherSuggestionReason.heavyRain
+              : WeatherSuggestionReason.rain,
+          triggerDetail: '${weather.rainChancePercent}% rain',
+          triggerDetailId: '${weather.rainChancePercent}% hujan',
+          suggestEssential: true,
+          icon: Icons.umbrella_rounded,
+          keywords: const ['umbrella', 'payung', 'parasol'],
+        ),
+      );
+      if (weather.isHeavyRain) {
+        candidates.add(
+          WeatherSuggestedItem(
+            key: raincoatKey,
+            label: 'Raincoat / Waterproof Cover',
+            labelId: 'Jas Hujan / Pelindung Tas',
+            reason: WeatherSuggestionReason.heavyRain,
+            triggerDetail: 'Heavy ${weather.rainChancePercent}% rain',
+            triggerDetailId: 'Hujan deras ${weather.rainChancePercent}%',
+            suggestEssential: false,
+            icon: Icons.water_drop_rounded,
+            keywords: const [
+              'raincoat',
+              'rain coat',
+              'poncho',
+              'jas hujan',
+              'waterproof',
+              'rain jacket',
+            ],
+          ),
+        );
+      }
+    }
+
+    if (weather.isCool) {
+      candidates.add(
+        WeatherSuggestedItem(
+          key: lightJacketKey,
+          label: 'Light Jacket',
+          labelId: 'Jaket Tipis',
+          reason: weather.isCold
+              ? WeatherSuggestionReason.cold
+              : WeatherSuggestionReason.cool,
+          triggerDetail:
+              '${weather.temperatureCelsius.round()}°C (low ${weather.lowTemp.round()}°C)',
+          triggerDetailId:
+              '${weather.temperatureCelsius.round()}°C (min ${weather.lowTemp.round()}°C)',
+          suggestEssential: weather.isCold,
+          icon: Icons.checkroom_rounded,
+          keywords: const [
+            'jacket',
+            'jaket',
+            'hoodie',
+            'sweater',
+            'cardigan',
+            'windbreaker',
+            'blazer',
+            'coat',
+            'outer',
+          ],
+        ),
+      );
+      if (weather.isCold) {
+        candidates.add(
+          WeatherSuggestedItem(
+            key: warmLayerKey,
+            label: 'Warm Layer / Scarf',
+            labelId: 'Jaket Hangat / Syal',
+            reason: WeatherSuggestionReason.cold,
+            triggerDetail: 'Chilly ${weather.temperatureCelsius.round()}°C',
+            triggerDetailId: 'Dingin ${weather.temperatureCelsius.round()}°C',
+            suggestEssential: true,
+            icon: Icons.ac_unit_rounded,
+            keywords: const [
+              'scarf',
+              'syal',
+              'gloves',
+              'sarung tangan',
+              'beanie',
+              'thermal',
+              'jaket tebal',
+              'warm layer',
+            ],
+          ),
+        );
+      }
+    }
+
+    return candidates
+        .where(
+          (candidate) =>
+              !dismissedKeys.contains(candidate.key) &&
+              !candidate.isCoveredByPreset(preset),
+        )
+        .toList();
   }
 }

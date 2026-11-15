@@ -10,6 +10,7 @@ import '../../../data/services/audio_service.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../providers/sound_provider.dart';
+import '../../widgets/alarm_next_ring_snackbar.dart';
 import 'sound_picker_sheet.dart';
 
 class AlarmEditScreen extends StatefulWidget {
@@ -159,6 +160,12 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       alarmProvider.updateAlarm(alarm);
     }
 
+    if (alarm.isEnabled) {
+      showAlarmNextRingSnackBar(context, alarm);
+    } else {
+      ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
+    }
+
     Navigator.of(context).pop();
   }
 
@@ -295,16 +302,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+            Material(
+              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+                side: BorderSide(
                   color: isDark ? const Color(0xFF2C2F3A) : const Color(0xFFE9ECEF),
                 ),
               ),
-              child: Column(
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                 children: [
                   DropdownButtonFormField<ScheduleType>(
                     value: _scheduleType,
@@ -345,6 +354,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ),
                   ],
                 ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -355,16 +365,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+            Material(
+              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+                side: BorderSide(
                   color: isDark ? const Color(0xFF2C2F3A) : const Color(0xFFE9ECEF),
                 ),
               ),
-              child: Column(
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Sound Picker Interactive Card
@@ -515,6 +527,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   ),
                 ],
               ),
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -524,16 +537,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+            Material(
+              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+                side: BorderSide(
                   color: isDark ? const Color(0xFF2C2F3A) : const Color(0xFFE9ECEF),
                 ),
               ),
-              child: Column(
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                 children: [
                   Row(
                     children: [
@@ -575,22 +590,25 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ],
                   ),
                 ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
 
             // Wake-Up Challenge Section & Inheritance Engine
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+            Material(
+              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.4),
+                side: BorderSide(
+                  color: AppColors.accent.withValues(alpha: 0.4),
                   width: 1.2,
                 ),
               ),
-              child: Column(
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -735,6 +753,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ),
                   ],
                 ],
+                ),
               ),
             ),
             const SizedBox(height: 40),

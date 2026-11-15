@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_localizations.dart';
 import 'money_account.dart';
 
 enum MoneyTransactionType {
-  income('Income', Icons.south_west_rounded, Color(0xFF10B981)),
-  expense('Expense', Icons.north_east_rounded, Color(0xFFEF4444)),
-  transfer('Transfer', Icons.swap_horiz_rounded, Color(0xFF3B82F6));
+  income('money_income', Icons.south_west_rounded, Color(0xFF10B981)),
+  expense('money_expense', Icons.north_east_rounded, Color(0xFFEF4444)),
+  transfer('money_transfer', Icons.swap_horiz_rounded, Color(0xFF3B82F6));
 
-  final String label;
+  final String translationKey;
   final IconData icon;
   final Color color;
 
-  const MoneyTransactionType(this.label, this.icon, this.color);
+  String get label => AppLocalizations.current.tr(translationKey);
+
+  const MoneyTransactionType(
+    this.translationKey,
+    this.icon,
+    this.color,
+  );
 
   static MoneyTransactionType fromName(String? name) {
     return MoneyTransactionType.values.firstWhere(

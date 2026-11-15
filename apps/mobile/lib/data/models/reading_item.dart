@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum ReadingStatus {
   wantToRead,
   currentlyReading,
@@ -6,13 +8,14 @@ enum ReadingStatus {
 
 extension ReadingStatusExt on ReadingStatus {
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case ReadingStatus.wantToRead:
-        return 'Want to Read';
+        return l10n.tr('want_to_read');
       case ReadingStatus.currentlyReading:
-        return 'Reading';
+        return l10n.tr('reading');
       case ReadingStatus.finished:
-        return 'Finished';
+        return l10n.tr('finished');
     }
   }
 
@@ -48,15 +51,16 @@ enum ReadingFormat {
 
 extension ReadingFormatExt on ReadingFormat {
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case ReadingFormat.book:
-        return 'Book';
+        return l10n.tr('book');
       case ReadingFormat.ebook:
-        return 'E-Book';
+        return l10n.tr('e_book');
       case ReadingFormat.article:
-        return 'Article';
+        return l10n.tr('article');
       case ReadingFormat.study:
-        return 'Study';
+        return l10n.tr('study');
     }
   }
 
@@ -131,8 +135,7 @@ class ReadingItem {
       status == ReadingStatus.finished ||
       (totalPages > 0 && currentPage >= totalPages);
 
-  String get formattedProgress =>
-      '$safeCurrentPage / $totalPages pages ($percentageCompletion%)';
+  String get formattedProgress => AppLocalizations.current.tr('pages', {'safeCurrentPage': safeCurrentPage, 'totalPages': totalPages, 'percentageCompletion': percentageCompletion});
 
   ReadingItem copyWith({
     String? id,

@@ -7,5 +7,17 @@
     <string name="widget_habit_checklist_desc">Glanceable daily habit routine checklist and streak.</string>
     <string name="widget_quick_capture_name">Nestin: Quick Capture</string>
     <string name="widget_quick_capture_desc">1-tap shortcuts to capture Notes, Tasks, Alarms, and Journal entries.</string>
+    <string name="widget_hydration_name">Nestin: Seren Hydration</string>
+    <string name="widget_hydration_desc">Track daily water intake and log +1 glass straight from your home or lock screen.</string>
+    <string name="widget_hydration_add_glass">+1 Glass</string>
+    <string name="widget_mascot_roo_desc">Roo companion avatar</string>
+    <string name="widget_mascot_seren_desc">Seren hydration companion avatar</string>
+    <string name="widget_mascot_scout_desc">Scout quick capture companion avatar</string>
+    <string name="widget_mascot_twill_desc">Twill notes companion avatar</string>
+    <string name="widget_mascot_echo_desc">Echo journal companion avatar</string>
+    <string name="nestin_shield_service_description">Optional Roo Digital Discipline helper detecting launches of user-restricted apps during App Fast, Focus Lock, or Daily Limit commitments. Reads only foreground package transitions and never reads screen text, keystrokes, or passwords.</string>
+    <string name="qs_keep_alive_tile_label">Nestin Guard</string>
+    <string name="qs_keep_alive_state_active">Protected</string>
+    <string name="qs_keep_alive_state_inactive">Off</string>
 </resources>
 

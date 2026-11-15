@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/sleep/sleep_cycle_calculator.dart';
 import '../../data/services/ambient_sound_service.dart';
+import '../../data/models/seren_relaxation_models.dart';
 import '../../providers/sleep_wellness_provider.dart';
+import '../screens/seren/seren_relaxation_screen.dart';
 import '../../providers/alarm_provider.dart';
 import 'caffeine_summary_card.dart';
 
@@ -28,6 +31,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Consumer2<SleepWellnessProvider, AlarmProvider>(
       builder: (context, sleepWellness, alarmProvider, _) {
         final now = DateTime.now();
@@ -106,7 +110,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Seren Sleep & Wind-Down',
+                            l10n.tr('seren_sleep_wind_down'),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -114,7 +118,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                             ),
                           ),
                           Text(
-                            'Restorative 90-minute REM cycles & alerts',
+                            l10n.tr('restorative_90_minute_rem_cycles_alerts'),
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary(context),
@@ -157,7 +161,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Bedtime Wind-Down Alert',
+                                  l10n.tr('bedtime_wind_down_alert'),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
@@ -166,7 +170,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Push notification 30m before target bedtime',
+                                  l10n.tr('push_notification_30m_before_target_bedtime'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary(context),
@@ -204,7 +208,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                       color: Color(0xFF8B5CF6), size: 16),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Alert at $alertHourStr:$alertMinStr',
+                                    l10n.tr('alert_at', {'alertHourStr': alertHourStr, 'alertMinStr': alertMinStr}),
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -213,7 +217,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    '${sleepWellness.windDownLeadMinutes}m lead time',
+                                    l10n.tr('m_lead_time', {'sleepWellness_windDownLeadMinutes': sleepWellness.windDownLeadMinutes}),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.textSecondary(context),
@@ -235,7 +239,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Target bedtime: $bedHourStr:$bedMinStr',
+                                    l10n.tr('target_bedtime', {'bedHourStr': bedHourStr, 'bedMinStr': bedMinStr}),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textPrimary(context),
@@ -243,7 +247,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    'Wake up: $wakeHourStr:$wakeMinStr',
+                                    l10n.tr('wake_up', {'wakeHourStr': wakeHourStr, 'wakeMinStr': wakeMinStr}),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.textSecondary(context),
@@ -260,7 +264,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                         Row(
                           children: [
                             Text(
-                              'Wake Source:',
+                              l10n.tr('wake_source'),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary(context),
@@ -270,8 +274,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                             ChoiceChip(
                               label: Text(
                                 nextAlarm != null
-                                    ? 'Next Alarm ($wakeHourStr:$wakeMinStr)'
-                                    : 'Next Alarm (None)',
+                                    ? l10n.tr('next_alarm', {'wakeHourStr': wakeHourStr, 'wakeMinStr': wakeMinStr})
+                                    : l10n.tr('next_alarm_none'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: sleepWellness.syncWithNextAlarm
@@ -293,7 +297,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                             const SizedBox(width: 6),
                             ChoiceChip(
                               label: Text(
-                                'Fixed 07:00',
+                                l10n.tr('fixed_07_00'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: !sleepWellness.syncWithNextAlarm
@@ -320,7 +324,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                         Row(
                           children: [
                             Text(
-                              'Sleep Cycles:',
+                              l10n.tr('sleep_cycles_2'),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary(context),
@@ -334,7 +338,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 padding: const EdgeInsets.only(right: 6),
                                 child: ChoiceChip(
                                   label: Text(
-                                    '$cycles (${cycles * 1.5}h)${cycles == 5 ? ' ★' : ''}',
+                                    '$cycles (${cycles * 1.5}${l10n.tr('h')})${cycles == 5 ? ' ★' : ''}',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: isSel
@@ -401,7 +405,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 Row(
                                   children: [
                                     Text(
-                                      'Wind-Down Ambient Audio',
+                                      l10n.tr('wind_down_ambient_audio'),
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
@@ -419,7 +423,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
-                                          'Playing • ${sleepWellness.formattedRemainingTime}',
+                                          l10n.tr('playing', {'sleepWellness_formattedRemainingTime': sleepWellness.formattedRemainingTime}),
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
@@ -435,7 +439,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '1-tap soothing audio for 30 minutes to relax into sleep',
+                                  l10n.tr('k_1_tap_soothing_audio_for_30'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary(context),
@@ -483,7 +487,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      'Rainfall',
+                                      l10n.tr('rainfall'),
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w700,
@@ -530,7 +534,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      'Forest Breeze',
+                                      l10n.tr('forest_breeze'),
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w700,
@@ -605,8 +609,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                           ),
                           label: Text(
                             sleepWellness.isWindDownAudioPlaying
-                                ? 'Stop Wind-Down Audio (${sleepWellness.formattedRemainingTime})'
-                                : '1-Tap: Start 30m ${sleepWellness.activeAmbientSound == AmbientSoundType.rain ? 'Rainfall' : 'Forest Breeze'}',
+                                ? l10n.tr('stop_wind_down_audio', {'sleepWellness_formattedRemainingTime': sleepWellness.formattedRemainingTime})
+                                : l10n.tr('k_1_tap_start_30m', {'sleepWellness_Breeze': sleepWellness.activeAmbientSound == AmbientSoundType.rain ? 'Rainfall' : 'Forest Breeze', 'sleepWellness_Hutan': sleepWellness.activeAmbientSound == AmbientSoundType.rain ? 'Hujan' : 'Angin Hutan'}),
                             style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -618,6 +622,28 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          key: const Key('sleep_sheet_open_seren_mixer_btn'),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const SerenRelaxationScreen(
+                                  initialTimeOfDayMode:
+                                      RelaxationTimeOfDayMode.evening,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.surround_sound_rounded,
+                            size: 16,
+                          ),
+                          label: Text(l10n.tr('seren_open_evening_mixer')),
                         ),
                       ),
                     ],
@@ -649,7 +675,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                             ),
                             child: Center(
                               child: Text(
-                                'Bedtimes for $wakeHourStr:$wakeMinStr Wake',
+                                l10n.tr('bedtimes_for_wake', {'wakeHourStr': wakeHourStr, 'wakeMinStr': wakeMinStr}),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: _selectedTab == 0
@@ -677,7 +703,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                             ),
                             child: Center(
                               child: Text(
-                                'If You Sleep Right Now',
+                                l10n.tr('if_you_sleep_right_now'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: _selectedTab == 1
@@ -740,7 +766,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ),
                               ),
                               Text(
-                                opt.label,
+                                opt.localizedLabel,
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textSecondary(context),
@@ -759,7 +785,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'Recommended',
+                                l10n.tr('recommended'),
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
@@ -817,7 +843,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ),
                               ),
                               Text(
-                                opt.label,
+                                opt.localizedLabel,
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textSecondary(context),
@@ -836,7 +862,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'Sweet Spot',
+                                l10n.tr('sweet_spot'),
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
@@ -869,9 +895,9 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                         ),
                         icon: const Icon(Icons.notifications_active_rounded,
                             color: Color(0xFF8B5CF6), size: 18),
-                        label: const Text(
-                          'Test Wind-Down Nudge',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.tr('test_wind_down_nudge'),
+                          style: const TextStyle(
                               color: Color(0xFF8B5CF6), fontSize: 13),
                         ),
                         onPressed: () async {
@@ -879,10 +905,11 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                               nextAlarmTime: nextAlarmTime);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                    '🌙 Seren wind-down alert triggered!'),
-                                duration: Duration(seconds: 2),
+                                  l10n.tr('seren_wind_down_alert_triggered'),
+                                ),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           }
@@ -901,8 +928,10 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Done',
-                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        child: Text(
+                          l10n.tr('done'),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ),
                   ],

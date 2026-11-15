@@ -112,21 +112,26 @@ class CollectionProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleEntryCheck(String collectionId, String entryId) async {
+  /// Toggles the check state of [entryId] in [collectionId].
+  /// Returns `true` when checking the entry completes 100% of the list.
+  Future<bool> toggleEntryCheck(String collectionId, String entryId) async {
     final index = _collections.indexWhere((c) => c.id == collectionId);
-    if (index != -1) {
-      final col = _collections[index];
-      final updated = col.entries.map((e) {
-        if (e.id == entryId) {
-          return e.copyWith(isChecked: !e.isChecked);
-        }
-        return e;
-      }).toList();
+    if (index == -1) return false;
 
-      _collections[index] = col.copyWith(entries: updated);
-      await _storageService.saveCollections(_collections);
-      notifyListeners();
-    }
+    final col = _collections[index];
+    final wasAllChecked = col.isAllChecked;
+    final updated = col.entries.map((e) {
+      if (e.id == entryId) {
+        return e.copyWith(isChecked: !e.isChecked);
+      }
+      return e;
+    }).toList();
+
+    final nextCol = col.copyWith(entries: updated);
+    _collections[index] = nextCol;
+    await _storageService.saveCollections(_collections);
+    notifyListeners();
+    return !wasAllChecked && nextCol.isAllChecked;
   }
 
   Future<void> addEntryToCollection(

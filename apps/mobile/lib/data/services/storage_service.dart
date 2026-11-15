@@ -30,6 +30,7 @@ import '../models/daily_health_activity.dart';
 import '../models/vital_log.dart';
 import '../models/reading_item.dart';
 import '../models/reading_goal_data.dart';
+import '../models/bucket_list_item.dart';
 import '../models/saved_place.dart';
 import '../models/location_reminder.dart';
 import '../models/before_you_go.dart';
@@ -42,9 +43,12 @@ import '../models/money_settings.dart';
 import '../models/caffeine_data.dart';
 import '../models/device_capability.dart';
 import '../models/digital_wellbeing.dart';
+import '../models/app_restriction.dart';
 import '../models/phone_mode.dart';
 import '../models/automation_rule.dart';
 import '../models/entity_link.dart';
+import '../models/seren_relaxation_models.dart';
+import 'weather_service.dart';
 
 class StorageService {
   static const String _legacyKeyPrefix = 'roodoo_';
@@ -86,6 +90,7 @@ class StorageService {
   static const String _keyHealthGoals = 'nestin_health_goals_v1';
   static const String _keyReadingItems = 'nestin_reading_items_v1';
   static const String _keyReadingGoalData = 'nestin_reading_goal_v1';
+  static const String _keyBucketListItems = 'nestin_bucket_list_items_v1';
   static const String _keySavedPlaces = 'nestin_saved_places_v1';
   static const String _keyLocationReminders = 'nestin_location_reminders_v1';
   static const String _keyGeofenceLogs = 'nestin_geofence_logs_v1';
@@ -96,6 +101,8 @@ class StorageService {
   static const String _keyDepartureSnoozes = 'nestin_departure_snoozes_v1';
   static const String _keyDepartureActivePreset =
       'nestin_departure_active_preset_v1';
+  static const String _keyLocalWeatherScenario =
+      'nestin_local_weather_scenario_v1';
 
   // Twill Money Management Keys & Schema Migration Version
   static const String _keyMoneySchemaVersion = 'nestin_money_schema_v';
@@ -108,6 +115,17 @@ class StorageService {
   static const String _keyTrackedAppRules = 'nestin_tracked_app_rules_v1';
   static const String _keyAppInterventionLogs =
       'nestin_app_intervention_logs_v1';
+  static const String _keyAppFastCommitments =
+      'nestin_app_fast_commitments_v1';
+  static const String _keyFocusLockConfig = 'nestin_focus_lock_config_v1';
+  static const String _keyActiveFocusLockSession =
+      'nestin_active_focus_lock_session_v1';
+  static const String _keyRestrictionAuditLogs =
+      'nestin_restriction_audit_logs_v1';
+  static const String _keyInstalledAppsCache =
+      'nestin_installed_apps_cache_v1';
+  static const String _keyExtraRestrictionRules =
+      'nestin_extra_restriction_rules_v1';
   static const String _keyPhoneModeProfiles = 'nestin_phone_mode_profiles_v1';
   static const String _keyActivePhoneModeId = 'nestin_active_phone_mode_id_v1';
   static const String _keyStateRestorationSnapshot =
@@ -116,6 +134,8 @@ class StorageService {
   static const String _keyAutomationRules = 'nestin_automation_rules_v1';
   static const String _keyAutomationLogs = 'nestin_automation_logs_v1';
   static const String _keyEntityLinks = 'nestin_entity_links_v1';
+  static const String _keySerenRelaxationPrefs =
+      'nestin_seren_relaxation_prefs_v1';
 
   final SharedPreferences _prefs;
 
@@ -754,6 +774,16 @@ class StorageService {
     }
   }
 
+  // --- Pippin Life Bucket List & Places to Visit ---
+
+  bool hasSavedBucketListItems() => _prefs.containsKey(_keyBucketListItems);
+
+  Future<void> saveBucketListItems(List<BucketListItem> items) =>
+      _saveJsonList(_keyBucketListItems, items, (e) => e.toJson());
+
+  List<BucketListItem> loadBucketListItems() =>
+      _loadJsonList(_keyBucketListItems, BucketListItem.fromJson);
+
   // --- Scout Location-Based Reminders & Geofences ---
 
   Future<void> saveSavedPlaces(List<SavedPlace> places) =>
@@ -800,6 +830,13 @@ class StorageService {
 
   String? loadActiveDeparturePresetId() =>
       _prefs.getString(_keyDepartureActivePreset);
+
+  Future<void> saveWeatherScenario(LocalWeatherScenario scenario) async {
+    await _prefs.setString(_keyLocalWeatherScenario, scenario.id);
+  }
+
+  LocalWeatherScenario loadWeatherScenario() =>
+      LocalWeatherScenarioExt.fromId(_prefs.getString(_keyLocalWeatherScenario));
 
   // --- Twill Money Management & Schema Migration ---
 
@@ -894,7 +931,7 @@ class StorageService {
     }
   }
 
-  // Scout Digital Wellbeing, Phone Modes & Permission Center
+  // Roo Digital Discipline, Scout Phone Modes & Permission Center
   bool hasSavedTrackedAppRules() => _prefs.containsKey(_keyTrackedAppRules);
 
   Future<void> saveTrackedAppRules(List<TrackedAppRule> items) =>
@@ -957,6 +994,65 @@ class StorageService {
 
   List<PermissionEntry> loadPermissionHistory() =>
       _loadJsonList(_keyPermissionHistory, PermissionEntry.fromJson);
+
+  Future<void> saveAppFastCommitments(List<AppFastCommitment> items) =>
+      _saveJsonList(_keyAppFastCommitments, items, (e) => e.toJson());
+
+  List<AppFastCommitment> loadAppFastCommitments() =>
+      _loadJsonList(_keyAppFastCommitments, AppFastCommitment.fromJson);
+
+  Future<void> saveFocusLockConfig(FocusLockConfig config) async {
+    await _prefs.setString(_keyFocusLockConfig, jsonEncode(config.toJson()));
+  }
+
+  FocusLockConfig loadFocusLockConfig() {
+    final raw = _prefs.getString(_keyFocusLockConfig);
+    if (raw == null || raw.isEmpty) return const FocusLockConfig();
+    try {
+      return FocusLockConfig.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return const FocusLockConfig();
+    }
+  }
+
+  Future<void> saveActiveFocusLockSession(FocusLockSession? session) async {
+    if (session == null) {
+      await _prefs.remove(_keyActiveFocusLockSession);
+    } else {
+      await _prefs.setString(
+        _keyActiveFocusLockSession,
+        jsonEncode(session.toJson()),
+      );
+    }
+  }
+
+  FocusLockSession? loadActiveFocusLockSession() {
+    final raw = _prefs.getString(_keyActiveFocusLockSession);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return FocusLockSession.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveRestrictionAuditLogs(List<RestrictionAuditLog> items) =>
+      _saveJsonList(_keyRestrictionAuditLogs, items, (e) => e.toJson());
+
+  List<RestrictionAuditLog> loadRestrictionAuditLogs() =>
+      _loadJsonList(_keyRestrictionAuditLogs, RestrictionAuditLog.fromJson);
+
+  Future<void> saveInstalledAppsCache(List<InstalledAppInfo> items) =>
+      _saveJsonList(_keyInstalledAppsCache, items, (e) => e.toJson());
+
+  List<InstalledAppInfo> loadInstalledAppsCache() =>
+      _loadJsonList(_keyInstalledAppsCache, InstalledAppInfo.fromJson);
+
+  Future<void> saveExtraRestrictionRules(List<RestrictionRule> items) =>
+      _saveJsonList(_keyExtraRestrictionRules, items, (e) => e.toJson());
+
+  List<RestrictionRule> loadExtraRestrictionRules() =>
+      _loadJsonList(_keyExtraRestrictionRules, RestrictionRule.fromJson);
 
   // Shared Automation Engine
   bool hasSavedAutomationRules() => _prefs.containsKey(_keyAutomationRules);
@@ -1058,6 +1154,7 @@ class StorageService {
       'healthGoals': loadHealthGoals().toJson(),
       'readingItems': loadReadingItems().map((e) => e.toJson()).toList(),
       'readingGoalData': loadReadingGoalData().toJson(),
+      'bucketListItems': loadBucketListItems().map((e) => e.toJson()).toList(),
       'savedPlaces': loadSavedPlaces().map((e) => e.toJson()).toList(),
       'locationReminders': loadLocationReminders().map((e) => e.toJson()).toList(),
       'geofenceLogs': loadGeofenceLogs().map((e) => e.toJson()).toList(),
@@ -1076,6 +1173,14 @@ class StorageService {
       'trackedAppRules': loadTrackedAppRules().map((e) => e.toJson()).toList(),
       'appInterventionLogs':
           loadAppInterventionLogs().map((e) => e.toJson()).toList(),
+      'appFastCommitments':
+          loadAppFastCommitments().map((e) => e.toJson()).toList(),
+      'focusLockConfig': loadFocusLockConfig().toJson(),
+      'activeFocusLockSession': loadActiveFocusLockSession()?.toJson(),
+      'restrictionAuditLogs':
+          loadRestrictionAuditLogs().map((e) => e.toJson()).toList(),
+      'extraRestrictionRules':
+          loadExtraRestrictionRules().map((e) => e.toJson()).toList(),
       'phoneModeProfiles':
           loadPhoneModeProfiles().map((e) => e.toJson()).toList(),
       'activePhoneModeId': loadActivePhoneModeId(),
@@ -1085,8 +1190,100 @@ class StorageService {
       'automationRules': loadAutomationRules().map((e) => e.toJson()).toList(),
       'automationLogs': loadAutomationLogs().map((e) => e.toJson()).toList(),
       'entityLinks': loadEntityLinks().map((e) => e.toJson()).toList(),
+      'serenRelaxationPrefs': loadSerenRelaxationPreferences().toJson(),
+      'experienceDrafts': loadExperienceDrafts().map(
+        (key, value) => MapEntry(key, value.toJson()),
+      ),
+      'experienceResults':
+          loadExperienceResults().map((e) => e.toJson()).toList(),
+      'disabledExperienceIds': loadDisabledExperienceIds(),
     };
     return jsonEncode(backup);
+  }
+
+  static const String _keyExperienceDrafts = 'nestin_experience_drafts_v1';
+  static const String _keyExperienceResults = 'nestin_experience_results_v1';
+  static const String _keyDisabledExperienceIds =
+      'nestin_disabled_experience_ids_v1';
+
+  Map<String, ExperienceSessionDraft> loadExperienceDrafts() {
+    final raw = _prefs.getString(_keyExperienceDrafts);
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map(
+        (key, value) => MapEntry(
+          key,
+          ExperienceSessionDraft.fromJson(
+            Map<String, dynamic>.from(value as Map),
+          ),
+        ),
+      );
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> saveExperienceDrafts(
+    Map<String, ExperienceSessionDraft> drafts,
+  ) async {
+    final payload = drafts.map((key, value) => MapEntry(key, value.toJson()));
+    await _prefs.setString(_keyExperienceDrafts, jsonEncode(payload));
+  }
+
+  List<ExperienceResultRecord> loadExperienceResults() {
+    final raw = _prefs.getString(_keyExperienceResults);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list
+          .map(
+            (item) => ExperienceResultRecord.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveExperienceResults(
+    List<ExperienceResultRecord> results,
+  ) async {
+    final payload = results.map((r) => r.toJson()).toList();
+    await _prefs.setString(_keyExperienceResults, jsonEncode(payload));
+  }
+
+  List<String> loadDisabledExperienceIds() {
+    return _prefs.getStringList(_keyDisabledExperienceIds) ?? const [];
+  }
+
+  Future<void> saveDisabledExperienceIds(List<String> ids) async {
+    await _prefs.setStringList(_keyDisabledExperienceIds, ids);
+  }
+
+  SerenRelaxationPreferences loadSerenRelaxationPreferences() {
+    final raw = _prefs.getString(_keySerenRelaxationPrefs);
+    if (raw == null || raw.isEmpty) {
+      return const SerenRelaxationPreferences();
+    }
+    try {
+      return SerenRelaxationPreferences.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
+    } catch (_) {
+      return const SerenRelaxationPreferences();
+    }
+  }
+
+  Future<void> saveSerenRelaxationPreferences(
+    SerenRelaxationPreferences prefs,
+  ) async {
+    await _prefs.setString(
+      _keySerenRelaxationPrefs,
+      jsonEncode(prefs.toJson()),
+    );
   }
 
   Future<bool> restoreFullBackupJson(String rawJson) async {
@@ -1278,6 +1475,12 @@ class StorageService {
         await saveReadingGoalData(ReadingGoalData.fromJson(
             map['readingGoalData'] as Map<String, dynamic>));
       }
+      if (map['bucketListItems'] != null) {
+        final list = (map['bucketListItems'] as List)
+            .map((i) => BucketListItem.fromJson(i as Map<String, dynamic>))
+            .toList();
+        await saveBucketListItems(list);
+      }
       if (map['savedPlaces'] != null) {
         final list = (map['savedPlaces'] as List)
             .map((i) => SavedPlace.fromJson(i as Map<String, dynamic>))
@@ -1351,6 +1554,64 @@ class StorageService {
             .map((i) => RecurringTransaction.fromJson(i as Map<String, dynamic>))
             .toList();
         await saveMoneyRecurring(list);
+      }
+      if (map['trackedAppRules'] != null) {
+        final list = (map['trackedAppRules'] as List)
+            .map((i) => TrackedAppRule.fromJson(i as Map<String, dynamic>))
+            .toList();
+        await saveTrackedAppRules(list);
+      }
+      if (map['appFastCommitments'] != null) {
+        final list = (map['appFastCommitments'] as List)
+            .map((i) => AppFastCommitment.fromJson(i as Map<String, dynamic>))
+            .toList();
+        await saveAppFastCommitments(list);
+      }
+      if (map['focusLockConfig'] != null) {
+        await saveFocusLockConfig(
+          FocusLockConfig.fromJson(
+            map['focusLockConfig'] as Map<String, dynamic>,
+          ),
+        );
+      }
+      if (map['extraRestrictionRules'] != null) {
+        final list = (map['extraRestrictionRules'] as List)
+            .map((i) => RestrictionRule.fromJson(i as Map<String, dynamic>))
+            .toList();
+        await saveExtraRestrictionRules(list);
+      }
+      if (map['serenRelaxationPrefs'] != null) {
+        await saveSerenRelaxationPreferences(
+          SerenRelaxationPreferences.fromJson(
+            map['serenRelaxationPrefs'] as Map<String, dynamic>,
+          ),
+        );
+      }
+      if (map['experienceDrafts'] is Map) {
+        final rawMap = map['experienceDrafts'] as Map<String, dynamic>;
+        final drafts = rawMap.map(
+          (k, v) => MapEntry(
+            k,
+            ExperienceSessionDraft.fromJson(Map<String, dynamic>.from(v as Map)),
+          ),
+        );
+        await saveExperienceDrafts(drafts);
+      }
+      if (map['experienceResults'] is List) {
+        final list = (map['experienceResults'] as List)
+            .map(
+              (i) => ExperienceResultRecord.fromJson(
+                Map<String, dynamic>.from(i as Map),
+              ),
+            )
+            .toList();
+        await saveExperienceResults(list);
+      }
+      if (map['disabledExperienceIds'] is List) {
+        final ids = (map['disabledExperienceIds'] as List)
+            .map((e) => e.toString())
+            .toList();
+        await saveDisabledExperienceIds(ids);
       }
       return true;
     } catch (_) {

@@ -11,7 +11,7 @@ Implemented in `lib/data/models/automation_rule.dart`, `lib/providers/automation
 - `alarmDismissed` — Post-wake-up routine handoff from Roo
 - `geofenceEnter` / `geofenceExit` — Place transitions from Scout (`SavedPlace`)
 - `calendarEventUpcoming` — Pre-event preparation from Roo Calendar
-- `appUsageThreshold` — Digital Wellbeing threshold crossings from Scout
+- `appUsageThreshold` — Digital discipline threshold crossings from Roo (`RestrictionEngine`)
 - `manual` — Direct one-tap execution
 
 ### Conditions (`AutomationConditionType`)

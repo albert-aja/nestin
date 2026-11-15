@@ -362,10 +362,7 @@ class GratitudeJarCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          l10n.pick(
-                            'ECHO GRATITUDE JAR',
-                            'TOPLES SYUKUR ECHO',
-                          ),
+                          l10n.tr('echo_gratitude_jar'),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -383,10 +380,7 @@ class GratitudeJarCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            l10n.pick(
-                              '${pebbles.length} ${pebbles.length == 1 ? 'pebble' : 'pebbles'}',
-                              '${pebbles.length} kerikil',
-                            ),
+                            l10n.tr('msg_2', {'pebbles_length': pebbles.length, 'pebbles_pebbles': pebbles.length == 1 ? 'pebble' : 'pebbles'}),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -399,14 +393,8 @@ class GratitudeJarCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       pebbles.isEmpty
-                          ? l10n.pick(
-                              'Drop your first gratitude note to fill Echo’s jar.',
-                              'Tambahkan catatan syukur pertama untuk mengisi toples Echo.',
-                            )
-                          : l10n.pick(
-                              'Tap to shake & pick a bright gratitude memory.',
-                              'Ketuk untuk mengocok & menarik satu kenangan syukur.',
-                            ),
+                          ? l10n.tr('drop_your_first_gratitude_note_to')
+                          : l10n.tr('tap_to_shake_pick_a_bright'),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -449,7 +437,7 @@ class GratitudeJarCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      l10n.pick('Shake', 'Kocok'),
+                      l10n.tr('shake'),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -620,10 +608,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        l10n.pick(
-                          'Echo Tough-Day Pebble Picker',
-                          'Pemilih Kerikil Syukur Echo',
-                        ),
+                        l10n.tr('echo_tough_day_pebble_picker'),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -634,10 +619,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                   ),
                 ),
               Text(
-                l10n.pick(
-                  'Echo’s Gratitude Jar',
-                  'Toples Syukur Echo',
-                ),
+                l10n.tr('echo_s_gratitude_jar'),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -647,14 +629,8 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
               const SizedBox(height: 6),
               Text(
                 isToughTrigger
-                    ? l10n.pick(
-                        'Having a heavy moment? Tap the jar to shake loose a gentle reminder of something you were grateful for.',
-                        'Sedang melewati momen berat? Ketuk toples untuk menarik pengingat hangat dari rasa syukurmu dulu.',
-                      )
-                    : l10n.pick(
-                        'Every gratitude note adds a bright pebble. Tap the jar to shake & revisit a warm memory.',
-                        'Setiap catatan syukur menjadi kerikil hangat. Ketuk toples untuk mengocok & mengenangnya lagi.',
-                      ),
+                    ? l10n.tr('having_a_heavy_moment_tap_the')
+                    : l10n.tr('every_gratitude_note_adds_a_bright'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -665,10 +641,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
               const SizedBox(height: 18),
               Semantics(
                 button: true,
-                label: l10n.pick(
-                  'Tap to shake gratitude jar',
-                  'Ketuk untuk mengocok toples syukur',
-                ),
+                label: l10n.tr('tap_to_shake_gratitude_jar'),
                 child: GestureDetector(
                   key: const Key('echo_gratitude_jar_tap_target'),
                   onTap: () => _shakeAndPick(),
@@ -708,14 +681,8 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                           ),
                           child: Text(
                             pebbles.isEmpty
-                                ? l10n.pick(
-                                    '0 pebbles collected yet',
-                                    'Belum ada kerikil terkumpul',
-                                  )
-                                : l10n.pick(
-                                    '${pebbles.length} ${pebbles.length == 1 ? 'pebble' : 'pebbles'} • Tap jar to shake',
-                                    '${pebbles.length} kerikil • Ketuk toples untuk kocok',
-                                  ),
+                                ? l10n.tr('k_0_pebbles_collected_yet')
+                                : l10n.tr('tap_jar_to_shake', {'pebbles_length': pebbles.length, 'pebbles_pebbles': pebbles.length == 1 ? 'pebble' : 'pebbles'}),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -747,10 +714,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        l10n.pick(
-                          'Your jar is waiting for its first pebble',
-                          'Toplesmu menunggu kerikil pertamanya',
-                        ),
+                        l10n.tr('your_jar_is_waiting_for_its'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -760,10 +724,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        l10n.pick(
-                          'Write a Gratitude Note inside any unlocked Echo diary entry to drop a keepsake pebble here.',
-                          'Tulis Catatan Syukur di entri diari Echo (non-privat) untuk menambahkan kerikil kenangan ke sini.',
-                        ),
+                        l10n.tr('write_a_gratitude_note_inside_any'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -784,10 +745,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                           ),
                           icon: const Icon(Icons.edit_rounded, size: 16),
                           label: Text(
-                            l10n.pick(
-                              'Add Gratitude Note',
-                              'Tambah Catatan Syukur',
-                            ),
+                            l10n.tr('add_gratitude_note'),
                           ),
                         ),
                       ],
@@ -809,10 +767,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                     ),
                     icon: const Icon(Icons.auto_awesome_rounded, size: 18),
                     label: Text(
-                      l10n.pick(
-                        'Shake & Pull a Pebble',
-                        'Kocok & Ambil Kerikil',
-                      ),
+                      l10n.tr('shake_pull_a_pebble'),
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -899,10 +854,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          l10n.pick(
-                            'From: ${_pickedPebble!.entryTitle}',
-                            'Dari: ${_pickedPebble!.entryTitle}',
-                          ),
+                          l10n.tr('from_2', {'pickedPebble_entryTitle': _pickedPebble!.entryTitle}),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -931,10 +883,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                                   size: 18,
                                 ),
                                 label: Text(
-                                  l10n.pick(
-                                    'Pick Another Pebble',
-                                    'Ambil Kerikil Lain',
-                                  ),
+                                  l10n.tr('pick_another_pebble'),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -959,7 +908,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
                                   ),
                                 ),
                                 child: Text(
-                                  l10n.pick('Open', 'Buka'),
+                                  l10n.tr('open'),
                                 ),
                               ),
                             ],

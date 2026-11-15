@@ -91,6 +91,18 @@
                 android:resource="@xml/widget_quick_capture_info" />
         </receiver>
 
+        <receiver
+            android:name=".widgets.HydrationWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.nestin.app.widgets.ACTION_HYDRATION_ADD_GLASS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_hydration_info" />
+        </receiver>
+
         <!-- Nestin Keep-Alive / Reliability Guard Foreground Service -->
         <service
             android:name=".services.NestinKeepAliveService"
@@ -100,6 +112,22 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Alarm and routine reliability guard against aggressive OEM task killers." />
+        </service>
+
+        <!-- Android 7.0+ Quick Settings Tile for Keep-Alive Guard -->
+        <service
+            android:name=".services.NestinKeepAliveTileService"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_keep_alive_guard"
+            android:label="@string/qs_keep_alive_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
         </service>
 
         <!-- Scout Native Geofence Receivers -->
@@ -117,6 +145,30 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Roo Digital Discipline Intervention Shield Activity -->
+        <activity
+            android:name=".NestinShieldActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/NormalTheme" />
+
+        <!-- Optional Play-Compliant App Shield Accessibility Service -->
+        <service
+            android:name=".NestinAppShieldService"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/nestin_app_shield_service" />
+        </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -132,6 +184,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
         </intent>
     </queries>
 </manifest>

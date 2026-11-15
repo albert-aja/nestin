@@ -6,10 +6,12 @@ import '../data/models/before_you_go.dart';
 import '../data/models/calendar_event.dart';
 import '../data/services/notification_service.dart';
 import '../data/services/storage_service.dart';
+import '../data/services/weather_service.dart';
 
 class BeforeYouGoProvider extends ChangeNotifier {
   final StorageService _storageService;
   final NotificationService _notificationService;
+  final WeatherProviderInterface _weatherService;
 
   static const int notificationBaseId = DepartureSnooze.notificationBaseId;
   static const int testNotificationId = 79501;
@@ -20,12 +22,23 @@ class BeforeYouGoProvider extends ChangeNotifier {
   List<DepartureSnooze> _snoozes = [];
   late String _activePresetId;
   int _lastScheduledCount = 0;
+  WeatherInfo? _currentWeather;
+  bool _isLoadingWeather = false;
+  bool _disposed = false;
+  bool _suppressWeatherListener = false;
+  final Map<String, Set<String>> _dismissedWeatherKeysByPreset = {};
   StreamSubscription<NotificationResponse>? _notifActionSub;
 
   BeforeYouGoProvider(
     this._storageService,
-    this._notificationService,
-  ) {
+    this._notificationService, {
+    WeatherProviderInterface? weatherService,
+  }) : _weatherService = weatherService ?? LocalWeatherService() {
+    _syncPersistedWeatherScenarioIfAuto();
+    final service = _weatherService;
+    if (service is LocalWeatherService) {
+      service.addWeatherListener(_onLocalWeatherChanged);
+    }
     _loadFromStorage();
     _notifActionSub =
         _notificationService.actionResponseStream.listen(_onNotificationAction);
@@ -33,6 +46,11 @@ class BeforeYouGoProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    final service = _weatherService;
+    if (service is LocalWeatherService) {
+      service.removeWeatherListener(_onLocalWeatherChanged);
+    }
     _notifActionSub?.cancel();
     super.dispose();
   }
@@ -178,6 +196,201 @@ class BeforeYouGoProvider extends ChangeNotifier {
     }
 
     unawaited(rescheduleAllNotifications());
+    unawaited(refreshWeatherPrompts(rescheduleNotifications: false));
+  }
+
+  void _syncPersistedWeatherScenarioIfAuto() {
+    final service = _weatherService;
+    if (service is! LocalWeatherService) return;
+    if (service.overrideWeather != null) return;
+    if (service.scenario != LocalWeatherScenario.auto) return;
+    final stored = _storageService.loadWeatherScenario();
+    if (stored != LocalWeatherScenario.auto) {
+      _suppressWeatherListener = true;
+      try {
+        service.setScenario(stored);
+      } finally {
+        _suppressWeatherListener = false;
+      }
+    }
+  }
+
+  void _onLocalWeatherChanged() {
+    if (_disposed || _suppressWeatherListener) return;
+    unawaited(refreshWeatherPrompts(forceResetDismissals: true));
+  }
+
+  // --- Weather-Aware Checklist Item Prompts ---
+
+  WeatherInfo? get currentWeather => _currentWeather;
+  bool get isLoadingWeather => _isLoadingWeather;
+  WeatherProviderInterface get weatherService => _weatherService;
+
+  LocalWeatherScenario get localWeatherScenario {
+    final service = _weatherService;
+    return service is LocalWeatherService
+        ? service.scenario
+        : LocalWeatherScenario.auto;
+  }
+
+  Set<String> dismissedWeatherKeysForPreset(String presetId) =>
+      Set.unmodifiable(_dismissedWeatherKeysByPreset[presetId] ?? const <String>{});
+
+  List<WeatherSuggestedItem> suggestedWeatherItemsForPreset(
+    DeparturePreset preset,
+  ) {
+    final weather = _currentWeather;
+    if (weather == null) return const [];
+    return WeatherSuggestedItem.evaluateForPreset(
+      weather: weather,
+      preset: preset,
+      dismissedKeys: _dismissedWeatherKeysByPreset[preset.id] ?? const <String>{},
+    );
+  }
+
+  List<WeatherSuggestedItem> get activeWeatherSuggestions =>
+      suggestedWeatherItemsForPreset(activePreset);
+
+  bool get hasActiveWeatherSuggestions => activeWeatherSuggestions.isNotEmpty;
+
+  /// Returns dismissed seasonal prompts for [preset] that are still relevant
+  /// and missing from its items, allowing quick restoration.
+  List<WeatherSuggestedItem> dismissedWeatherSuggestionsForPreset(
+    DeparturePreset preset,
+  ) {
+    final weather = _currentWeather;
+    final dismissed = _dismissedWeatherKeysByPreset[preset.id];
+    if (weather == null || dismissed == null || dismissed.isEmpty) {
+      return const [];
+    }
+    return WeatherSuggestedItem.evaluateForPreset(
+      weather: weather,
+      preset: preset,
+      dismissedKeys: const <String>{},
+    ).where((item) => dismissed.contains(item.key)).toList();
+  }
+
+  Future<WeatherInfo?> refreshWeatherPrompts({
+    WeatherInfo? weatherOverride,
+    bool forceResetDismissals = false,
+    bool rescheduleNotifications = true,
+  }) async {
+    _isLoadingWeather = true;
+    try {
+      final fetched =
+          weatherOverride ?? await _weatherService.getCurrentWeather();
+      if (_disposed) return _currentWeather;
+      if (forceResetDismissals) {
+        _dismissedWeatherKeysByPreset.clear();
+      }
+      _currentWeather = fetched;
+      _isLoadingWeather = false;
+      if (rescheduleNotifications && _events.isNotEmpty) {
+        await rescheduleAllNotifications();
+      }
+      if (!_disposed) {
+        notifyListeners();
+      }
+      return _currentWeather;
+    } catch (_) {
+      _isLoadingWeather = false;
+      if (!_disposed) notifyListeners();
+      return _currentWeather;
+    }
+  }
+
+  Future<void> setLocalWeatherScenario(LocalWeatherScenario scenario) async {
+    await _storageService.saveWeatherScenario(scenario);
+    final service = _weatherService;
+    if (service is LocalWeatherService) {
+      _suppressWeatherListener = true;
+      try {
+        service.setScenario(scenario);
+      } finally {
+        _suppressWeatherListener = false;
+      }
+    }
+    await refreshWeatherPrompts(forceResetDismissals: true);
+  }
+
+  Future<bool> addWeatherSuggestionToPreset(
+    String presetId,
+    WeatherSuggestedItem suggestion, {
+    bool? markEssential,
+    String? localizedLabelOverride,
+  }) async {
+    final preset = findPresetById(presetId);
+    if (preset == null) return false;
+    if (suggestion.isCoveredByPreset(preset)) {
+      _dismissedWeatherKeysByPreset[presetId]?.remove(suggestion.key);
+      notifyListeners();
+      return false;
+    }
+    final label = (localizedLabelOverride != null &&
+            localizedLabelOverride.trim().isNotEmpty)
+        ? localizedLabelOverride.trim()
+        : suggestion.label;
+    await addItem(
+      presetId,
+      label,
+      isEssential: markEssential ?? suggestion.suggestEssential,
+    );
+    return true;
+  }
+
+  Future<int> addAllWeatherSuggestionsToPreset(
+    String presetId, {
+    String languageCode = 'en',
+  }) async {
+    final pIdx = _presets.indexWhere((p) => p.id == presetId);
+    if (pIdx == -1) return 0;
+    final preset = _presets[pIdx];
+    final suggestions = suggestedWeatherItemsForPreset(preset);
+    if (suggestions.isEmpty) return 0;
+
+    final updatedItems = List<DepartureChecklistItem>.from(preset.items);
+    var addedCount = 0;
+    for (final suggestion in suggestions) {
+      if (updatedItems.any((i) => suggestion.matchesChecklistLabel(i.label))) {
+        continue;
+      }
+      updatedItems.add(
+        DepartureChecklistItem(
+          id: 'item_${const Uuid().v4().substring(0, 8)}',
+          label: suggestion.localizedLabel(languageCode),
+          isEssential: suggestion.suggestEssential,
+        ),
+      );
+      addedCount++;
+    }
+    if (addedCount == 0) return 0;
+
+    _presets[pIdx] = preset.copyWith(
+      items: updatedItems,
+      updatedAt: DateTime.now(),
+    );
+    await _storageService.saveDeparturePresets(_presets);
+    if (_events.isNotEmpty) {
+      await rescheduleAllNotifications();
+    }
+    notifyListeners();
+    return addedCount;
+  }
+
+  void dismissWeatherSuggestion(String presetId, String suggestionKey) {
+    _dismissedWeatherKeysByPreset
+        .putIfAbsent(presetId, () => <String>{})
+        .add(suggestionKey);
+    notifyListeners();
+  }
+
+  void restoreDismissedWeatherSuggestions([String? presetId]) {
+    if (presetId != null) {
+      _dismissedWeatherKeysByPreset.remove(presetId);
+    } else {
+      _dismissedWeatherKeysByPreset.clear();
+    }
+    notifyListeners();
   }
 
   void _onNotificationAction(NotificationResponse response) {
@@ -744,7 +957,11 @@ class BeforeYouGoProvider extends ChangeNotifier {
 
   ({String title, String body}) buildNotificationContent(DepartureEvent event) {
     final preset = findPresetById(event.presetId) ?? activePreset;
-    return DepartureSnooze.buildHeadsUpContent(event: event, preset: preset);
+    return DepartureSnooze.buildHeadsUpContent(
+      event: event,
+      preset: preset,
+      weatherSuggestions: suggestedWeatherItemsForPreset(preset),
+    );
   }
 
   Future<void> triggerTestNotification(String eventId) async {

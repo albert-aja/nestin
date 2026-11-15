@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/medication_item.dart';
 import '../data/models/medication_log.dart';
 import '../data/models/medication_snooze.dart';
@@ -487,8 +488,11 @@ class MedicationProvider extends ChangeNotifier {
 
   // --- Notification Scheduling ---
 
+  void rescheduleNotifications() => _scheduleUpcomingNotifications();
+
   void _scheduleUpcomingNotifications() {
     final now = DateTime.now();
+    final l10n = AppLocalizations.current;
 
     // Schedule notifications for today and tomorrow for active medications
     for (final med in activeMedications) {
@@ -524,8 +528,8 @@ class MedicationProvider extends ChangeNotifier {
 
             _notificationService.scheduleMedicationNotification(
               id: notificationId,
-              title: '💊 Seren: Time for ${med.name}',
-              body: 'Take ${med.dosageString}$mealAdvice. Stay consistent!',
+              title: l10n.tr('seren_time_for', {'med_name': med.name}),
+              body: l10n.tr('take_stay_consistent', {'med_dosageString': med.dosageString, 'mealAdvice': mealAdvice}),
               scheduledDate: doseTime,
               payload: MedicationSnooze.buildDosePayload(med.id, timeStr),
             );

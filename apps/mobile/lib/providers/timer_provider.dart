@@ -1,18 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/countdown_timer.dart';
 import '../data/models/focus_session_log.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/notification_service.dart';
 import '../data/services/audio_service.dart';
 import '../data/services/ambient_sound_service.dart';
+import '../domain/wellbeing/focus_lock_bridge.dart';
 
 class TimerProvider extends ChangeNotifier {
   final StorageService _storageService;
   final NotificationService _notificationService;
   final AudioService _audioService;
   final AmbientSoundService _ambientSoundService;
+  FocusLockCoordinator? _focusLockCoordinator;
 
   // Regular Countdown Timers
   List<CountdownTimer> _timers = [];
@@ -39,11 +42,17 @@ class TimerProvider extends ChangeNotifier {
     this._notificationService,
     this._audioService, [
     AmbientSoundService? ambientSoundService,
-  ]) : _ambientSoundService = ambientSoundService ?? AmbientSoundService() {
+    FocusLockCoordinator? focusLockCoordinator,
+  ])  : _ambientSoundService = ambientSoundService ?? AmbientSoundService(),
+        _focusLockCoordinator = focusLockCoordinator {
     _pomodoroRemainingSeconds = _pomodoroWorkDurationSeconds;
     _loadTimers();
     _loadFocusLogs();
     _startTicker();
+  }
+
+  void attachFocusLockCoordinator(FocusLockCoordinator? coordinator) {
+    _focusLockCoordinator = coordinator;
   }
 
   // --- Getters ---
@@ -205,10 +214,11 @@ class TimerProvider extends ChangeNotifier {
 
   void _onTimerFinished(CountdownTimer timer) {
     _audioService.previewTone('bell_chime', 1.0);
+    final l10n = AppLocalizations.current;
     _notificationService.showTimerCompleteNotification(
       id: timer.id.hashCode,
-      title: 'Timer Done: ${timer.label}',
-      body: 'Your countdown of ${timer.formattedTotal()} is complete!',
+      title: l10n.tr('timer_done', {'timer_label': timer.label}),
+      body: l10n.tr('your_countdown_of_is_complete', {'timer_formattedTotal': timer.formattedTotal()}),
     );
   }
 
@@ -216,6 +226,7 @@ class TimerProvider extends ChangeNotifier {
     // Play bell chime
     _audioService.previewTone('bell_chime', 1.0);
     await _ambientSoundService.stop();
+    final l10n = AppLocalizations.current;
 
     if (_pomodoroPhase == FocusPhase.work) {
       // Record completed work session to log
@@ -235,9 +246,8 @@ class TimerProvider extends ChangeNotifier {
 
       _notificationService.showTimerCompleteNotification(
         id: 7771,
-        title: 'Work Sprint Complete! 🎉',
-        body:
-            'Finished $durationMins min of $_pomodoroTaskLabel. Take a well-earned break!',
+        title: l10n.tr('work_sprint_complete'),
+        body: l10n.tr('finished_min_of_take_a_well', {'durationMins': durationMins, '_pomodoroTaskLabel': _pomodoroTaskLabel}),
       );
 
       // Advance to Break
@@ -253,8 +263,8 @@ class TimerProvider extends ChangeNotifier {
       // Break completed
       _notificationService.showTimerCompleteNotification(
         id: 7772,
-        title: 'Break Finished ⚡',
-        body: 'Ready for cycle $_pomodoroCycle focus session?',
+        title: l10n.tr('break_finished'),
+        body: l10n.tr('ready_for_cycle_focus_session', {'_pomodoroCycle': _pomodoroCycle}),
       );
 
       if (_pomodoroPhase == FocusPhase.shortBreak) {
@@ -266,6 +276,14 @@ class TimerProvider extends ChangeNotifier {
 
     _isPomodoroRunning = false;
     _isPomodoroPaused = false;
+    await _focusLockCoordinator?.onPomodoroFocusPhaseChanged(
+      phase: _pomodoroPhase.name,
+      remaining: Duration(seconds: _pomodoroRemainingSeconds),
+      isPaused: false,
+    );
+    if (_pomodoroPhase == FocusPhase.work) {
+      await _focusLockCoordinator?.onPomodoroFocusEnded(reason: 'cycle_finished');
+    }
     notifyListeners();
   }
 
@@ -278,12 +296,18 @@ class TimerProvider extends ChangeNotifier {
       await _ambientSoundService.play(_selectedAmbientSound,
           volume: _ambientVolume);
     }
+    await _focusLockCoordinator?.onPomodoroFocusStarted(
+      taskLabel: _pomodoroTaskLabel,
+      phase: _pomodoroPhase.name,
+      remaining: Duration(seconds: _pomodoroRemainingSeconds),
+    );
     notifyListeners();
   }
 
   Future<void> pausePomodoro() async {
     _isPomodoroPaused = true;
     await _ambientSoundService.pause();
+    await _focusLockCoordinator?.onPomodoroFocusPaused();
     notifyListeners();
   }
 
@@ -292,6 +316,9 @@ class TimerProvider extends ChangeNotifier {
     if (_selectedAmbientSound != AmbientSoundType.none) {
       await _ambientSoundService.resume();
     }
+    await _focusLockCoordinator?.onPomodoroFocusResumed(
+      remaining: Duration(seconds: _pomodoroRemainingSeconds),
+    );
     notifyListeners();
   }
 
@@ -300,6 +327,7 @@ class TimerProvider extends ChangeNotifier {
     _isPomodoroPaused = false;
     _pomodoroRemainingSeconds = pomodoroTotalSeconds;
     await _ambientSoundService.stop();
+    await _focusLockCoordinator?.onPomodoroFocusEnded(reason: 'reset');
     notifyListeners();
   }
 
@@ -323,6 +351,7 @@ class TimerProvider extends ChangeNotifier {
     }
     _isPomodoroRunning = false;
     _isPomodoroPaused = false;
+    await _focusLockCoordinator?.onPomodoroFocusEnded(reason: 'phase_skipped');
     notifyListeners();
   }
 

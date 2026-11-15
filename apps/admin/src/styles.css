@@ -344,3 +344,67 @@ td {
   font-size: 12px;
   opacity: 0.85;
 }
+
+.parity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.parity-header h3 {
+  margin: 0;
+}
+
+.parity-summary {
+  margin: 4px 0 0;
+}
+
+.parity-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.parity-bar-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #eaedf3;
+  overflow: hidden;
+}
+
+.parity-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #f59e0b;
+  transition: width 220ms ease;
+}
+
+.parity-bar-fill.complete {
+  background: #10b981;
+}
+
+.parity-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.row-missing-id {
+  background: #fffbeb;
+}
+
+.status-missing {
+  background: #fee2e2;
+  color: #991b1b;
+}

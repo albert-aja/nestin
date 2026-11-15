@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_localizations.dart';
 import 'alarm_category.dart';
 
 enum TaskPriority {
@@ -105,6 +106,20 @@ class TaskItem {
   }
 
   String get priorityLabel => priority.name.toUpperCase();
+
+  String get localizedPriorityLabel {
+    final l10n = AppLocalizations.current;
+    switch (priority) {
+      case TaskPriority.urgent:
+        return l10n.tr('urgent');
+      case TaskPriority.high:
+        return l10n.tr('high');
+      case TaskPriority.medium:
+        return l10n.tr('medium');
+      case TaskPriority.low:
+        return l10n.tr('low');
+    }
+  }
 
   TaskItem copyWith({
     String? id,

@@ -1,6 +1,6 @@
 import 'package:uuid/uuid.dart';
 
-/// Graduated intervention ladder for Scout Digital Wellbeing & Phone Control.
+/// Graduated intervention ladder for Roo Digital Discipline & App Control.
 /// Nestin never claims unbreakable OS-level locks when permissions are absent.
 enum WellbeingInterventionLevel {
   trackOnly,
@@ -42,6 +42,26 @@ extension WellbeingInterventionLevelExt on WellbeingInterventionLevel {
   }
 }
 
+/// Action applied once a daily usage allowance is reached.
+enum UsageLimitAction {
+  warningOnly,
+  reminderPause,
+  strictBlock,
+}
+
+extension UsageLimitActionExt on UsageLimitAction {
+  String get label {
+    switch (this) {
+      case UsageLimitAction.warningOnly:
+        return 'Warning Only';
+      case UsageLimitAction.reminderPause:
+        return 'Reminder Overlay';
+      case UsageLimitAction.strictBlock:
+        return 'Strict Restriction';
+    }
+  }
+}
+
 class TrackedAppRule {
   final String id;
   final String displayName;
@@ -49,8 +69,13 @@ class TrackedAppRule {
   final String? iosBundleHint;
   final String category;
   final int dailyLimitMinutes;
+  final int? weekdayLimitMinutes;
+  final int? weekendLimitMinutes;
   final int warningThresholdPercent;
   final WellbeingInterventionLevel interventionLevel;
+  final UsageLimitAction? limitReachedAction;
+  final int dailyResetHour;
+  final int dailyResetMinute;
   final String? blockedScheduleStart; // 'HH:mm'
   final String? blockedScheduleEnd; // 'HH:mm'
   final bool isEnabled;
@@ -63,13 +88,70 @@ class TrackedAppRule {
     this.iosBundleHint,
     this.category = 'social',
     this.dailyLimitMinutes = 45,
+    this.weekdayLimitMinutes,
+    this.weekendLimitMinutes,
     this.warningThresholdPercent = 80,
     this.interventionLevel = WellbeingInterventionLevel.preLimitWarning,
+    this.limitReachedAction,
+    this.dailyResetHour = 0,
+    this.dailyResetMinute = 0,
     this.blockedScheduleStart,
     this.blockedScheduleEnd,
     this.isEnabled = true,
     this.isPreset = false,
   }) : id = id ?? const Uuid().v4();
+
+  /// Effective limit in minutes for [now], respecting optional weekday/weekend
+  /// overrides before falling back to [dailyLimitMinutes].
+  int effectiveLimitMinutesFor(DateTime now) {
+    final isWeekend =
+        now.weekday == DateTime.saturday || now.weekday == DateTime.sunday;
+    if (isWeekend && weekendLimitMinutes != null) {
+      return weekendLimitMinutes!;
+    }
+    if (!isWeekend && weekdayLimitMinutes != null) {
+      return weekdayLimitMinutes!;
+    }
+    return dailyLimitMinutes;
+  }
+
+  /// Resolves the active limit-reached action from [limitReachedAction] or
+  /// the graduated [interventionLevel].
+  UsageLimitAction get resolvedLimitAction {
+    if (limitReachedAction != null) return limitReachedAction!;
+    switch (interventionLevel) {
+      case WellbeingInterventionLevel.trackOnly:
+      case WellbeingInterventionLevel.preLimitWarning:
+        return UsageLimitAction.warningOnly;
+      case WellbeingInterventionLevel.timedSoftPause:
+        return UsageLimitAction.reminderPause;
+      case WellbeingInterventionLevel.blockingSchedule:
+      case WellbeingInterventionLevel.strictModeGuard:
+        return UsageLimitAction.strictBlock;
+    }
+  }
+
+  /// Computes a timezone/date-safe logical day key based on [dailyResetHour]
+  /// and [dailyResetMinute].
+  String currentResetWindowKey(DateTime now) {
+    final boundary = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      dailyResetHour.clamp(0, 23),
+      dailyResetMinute.clamp(0, 59),
+    );
+    final effectiveDay = now.isBefore(boundary)
+        ? now.subtract(const Duration(days: 1))
+        : now;
+    final y = effectiveDay.year.toString().padLeft(4, '0');
+    final m = effectiveDay.month.toString().padLeft(2, '0');
+    final d = effectiveDay.day.toString().padLeft(2, '0');
+    return '$y-$m-$d@${dailyResetHour.toString().padLeft(2, '0')}:${dailyResetMinute.toString().padLeft(2, '0')}';
+  }
+
+  int warningMinutesFor(DateTime now) =>
+      ((effectiveLimitMinutesFor(now) * warningThresholdPercent) / 100).round();
 
   int get warningMinutes =>
       ((dailyLimitMinutes * warningThresholdPercent) / 100).round();
@@ -99,8 +181,15 @@ class TrackedAppRule {
     String? iosBundleHint,
     String? category,
     int? dailyLimitMinutes,
+    int? weekdayLimitMinutes,
+    bool clearWeekdayLimit = false,
+    int? weekendLimitMinutes,
+    bool clearWeekendLimit = false,
     int? warningThresholdPercent,
     WellbeingInterventionLevel? interventionLevel,
+    UsageLimitAction? limitReachedAction,
+    int? dailyResetHour,
+    int? dailyResetMinute,
     String? blockedScheduleStart,
     bool clearScheduleStart = false,
     String? blockedScheduleEnd,
@@ -115,9 +204,18 @@ class TrackedAppRule {
       iosBundleHint: iosBundleHint ?? this.iosBundleHint,
       category: category ?? this.category,
       dailyLimitMinutes: dailyLimitMinutes ?? this.dailyLimitMinutes,
+      weekdayLimitMinutes: clearWeekdayLimit
+          ? null
+          : (weekdayLimitMinutes ?? this.weekdayLimitMinutes),
+      weekendLimitMinutes: clearWeekendLimit
+          ? null
+          : (weekendLimitMinutes ?? this.weekendLimitMinutes),
       warningThresholdPercent:
           warningThresholdPercent ?? this.warningThresholdPercent,
       interventionLevel: interventionLevel ?? this.interventionLevel,
+      limitReachedAction: limitReachedAction ?? this.limitReachedAction,
+      dailyResetHour: dailyResetHour ?? this.dailyResetHour,
+      dailyResetMinute: dailyResetMinute ?? this.dailyResetMinute,
       blockedScheduleStart: clearScheduleStart
           ? null
           : (blockedScheduleStart ?? this.blockedScheduleStart),
@@ -135,8 +233,13 @@ class TrackedAppRule {
         'iosBundleHint': iosBundleHint,
         'category': category,
         'dailyLimitMinutes': dailyLimitMinutes,
+        'weekdayLimitMinutes': weekdayLimitMinutes,
+        'weekendLimitMinutes': weekendLimitMinutes,
         'warningThresholdPercent': warningThresholdPercent,
         'interventionLevel': interventionLevel.name,
+        'limitReachedAction': limitReachedAction?.name,
+        'dailyResetHour': dailyResetHour,
+        'dailyResetMinute': dailyResetMinute,
         'blockedScheduleStart': blockedScheduleStart,
         'blockedScheduleEnd': blockedScheduleEnd,
         'isEnabled': isEnabled,
@@ -151,11 +254,21 @@ class TrackedAppRule {
       iosBundleHint: json['iosBundleHint'] as String?,
       category: json['category'] as String? ?? 'social',
       dailyLimitMinutes: json['dailyLimitMinutes'] as int? ?? 45,
+      weekdayLimitMinutes: json['weekdayLimitMinutes'] as int?,
+      weekendLimitMinutes: json['weekendLimitMinutes'] as int?,
       warningThresholdPercent: json['warningThresholdPercent'] as int? ?? 80,
       interventionLevel: WellbeingInterventionLevel.values.firstWhere(
         (e) => e.name == json['interventionLevel'],
         orElse: () => WellbeingInterventionLevel.preLimitWarning,
       ),
+      limitReachedAction: json['limitReachedAction'] != null
+          ? UsageLimitAction.values.firstWhere(
+              (a) => a.name == json['limitReachedAction'],
+              orElse: () => UsageLimitAction.warningOnly,
+            )
+          : null,
+      dailyResetHour: json['dailyResetHour'] as int? ?? 0,
+      dailyResetMinute: json['dailyResetMinute'] as int? ?? 0,
       blockedScheduleStart: json['blockedScheduleStart'] as String?,
       blockedScheduleEnd: json['blockedScheduleEnd'] as String?,
       isEnabled: json['isEnabled'] as bool? ?? true,
@@ -338,12 +451,14 @@ class WellbeingDailySnapshot {
   final List<AppUsageRecord> records;
   final bool permissionGranted;
   final String honestBoundaryMessage;
+  final List<String> bypassedPackages;
 
   const WellbeingDailySnapshot({
     required this.dateKey,
     this.records = const [],
     required this.permissionGranted,
     this.honestBoundaryMessage = '',
+    this.bypassedPackages = const [],
   });
 
   int get totalTrackedMinutes =>

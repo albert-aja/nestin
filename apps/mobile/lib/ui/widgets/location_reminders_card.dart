@@ -60,10 +60,7 @@ class LocationRemindersCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  l10n.pick(
-                                    'Location Reminders',
-                                    'Pengingat Lokasi',
-                                  ),
+                                  l10n.tr('location_reminders'),
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
@@ -85,10 +82,7 @@ class LocationRemindersCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  l10n.pick(
-                                    '$armedCount Armed',
-                                    '$armedCount Aktif',
-                                  ),
+                                  l10n.tr('armed_2', {'armedCount': armedCount}),
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -102,10 +96,7 @@ class LocationRemindersCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            l10n.pick(
-                              '🧭 ${provider.places.length} geofence zones • ${perm.label}',
-                              '🧭 ${provider.places.length} zona lokasi • ${perm.label}',
-                            ),
+                            l10n.tr('geofence_zones', {'provider_length': provider.places.length, 'perm_label': perm.label}),
                             style: TextStyle(
                               fontSize: 11,
                               color: perm.isReadyForBackground
@@ -203,10 +194,7 @@ class LocationRemindersCard extends StatelessWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      l10n.pick(
-                                        '🧭 Triggered: "${item.title}" (${item.triggerType.shortLabel} $placeName)',
-                                        '🧭 Terpicu: "${item.title}" (${item.triggerType.shortLabel} $placeName)',
-                                      ),
+                                      l10n.tr('triggered', {'item_title': item.title, 'item_shortLabel': item.triggerType.shortLabel, 'placeName': placeName}),
                                     ),
                                     duration: const Duration(seconds: 2),
                                   ),
@@ -223,7 +211,7 @@ class LocationRemindersCard extends StatelessWidget {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text(
-                              l10n.pick('Test', 'Uji'),
+                              l10n.tr('test'),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -245,10 +233,7 @@ class LocationRemindersCard extends StatelessWidget {
                       border: Border.all(color: AppColors.border(context)),
                     ),
                     child: Text(
-                      l10n.pick(
-                        'No active place alerts. Tap to set reminders on arrival or departure.',
-                        'Belum ada pengingat lokasi aktif. Ketuk untuk mengatur saat tiba atau pergi.',
-                      ),
+                      l10n.tr('no_active_place_alerts_tap_to'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -263,14 +248,8 @@ class LocationRemindersCard extends StatelessWidget {
                   children: [
                     Text(
                       pending.length > previewItems.length
-                          ? l10n.pick(
-                              '+${pending.length - previewItems.length} more reminders',
-                              '+${pending.length - previewItems.length} pengingat lagi',
-                            )
-                          : l10n.pick(
-                              'Manage places & geofence rules',
-                              'Kelola tempat & aturan lokasi',
-                            ),
+                          ? l10n.tr('more_reminders', {'pending_length': pending.length - previewItems.length})
+                          : l10n.tr('manage_places_geofence_rules'),
                       style: const TextStyle(
                         fontSize: 11,
                         color: _scoutBlue,

@@ -168,7 +168,7 @@ export const SEED_CATEGORIES: InspirationCategoryRecord[] = [
 export const SEED_AUTHORS: InspirationAuthorRecord[] = [
   {
     id: '52000000-0000-0000-0000-000000000001',
-    name: 'Roo • Time & Planning',
+    name: 'Roo • Time, Planning & Habits',
     slug: 'roo-time-planning',
     bio: 'Nestin morning companion for steady starts.',
     isAnonymousOrUnknown: false,
@@ -220,7 +220,7 @@ export const SEED_QUOTES: InspirationQuoteRecord[] = [
   {
     id: '10000000-0000-0000-0000-000000000001',
     quoteText: 'Small progress is still progress. Keep moving forward.',
-    author: 'Roo • Time & Planning',
+    author: 'Roo • Time, Planning & Habits',
     authorId: '52000000-0000-0000-0000-000000000001',
     category: 'motivation',
     categoryId: '51000000-0000-0000-0000-000000000001',
@@ -241,7 +241,7 @@ export const SEED_QUOTES: InspirationQuoteRecord[] = [
   {
     id: '10000000-0000-0000-0000-000000000002',
     quoteText: 'Langkah kecil tetaplah sebuah kemajuan. Teruslah berjalan dengan tenang.',
-    author: 'Roo • Time & Planning',
+    author: 'Roo • Time, Planning & Habits',
     authorId: '52000000-0000-0000-0000-000000000001',
     category: 'motivation',
     categoryId: '51000000-0000-0000-0000-000000000001',
@@ -325,7 +325,7 @@ export const SEED_QUOTES: InspirationQuoteRecord[] = [
   {
     id: '10000000-0000-0000-0000-000000000006',
     quoteText: 'Fokus pada satu hal penting jauh lebih bermakna daripada menyibukkan diri sepanjang hari.',
-    author: 'Roo • Time & Planning',
+    author: 'Roo • Time, Planning & Habits',
     authorId: '52000000-0000-0000-0000-000000000001',
     category: 'productivity',
     categoryId: '51000000-0000-0000-0000-000000000003',

@@ -170,18 +170,9 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
           content: Text(
             share
                 ? (outcome.sharedViaNativeSheet
-                    ? l10n.pick(
-                        'Card exported and ready to share.',
-                        'Kartu berhasil diekspor dan siap dibagikan.',
-                      )
-                    : l10n.pick(
-                        'Card PNG saved locally & quote copied to clipboard.',
-                        'PNG kartu disimpan di perangkat & kutipan disalin.',
-                      ))
-                : l10n.pick(
-                    'Saved quote card PNG (${(outcome.pngBytes.lengthInBytes / 1024).toStringAsFixed(0)} KB)',
-                    'PNG kartu tersimpan (${(outcome.pngBytes.lengthInBytes / 1024).toStringAsFixed(0)} KB)',
-                  ),
+                    ? l10n.tr('card_exported_and_ready_to_share')
+                    : l10n.tr('card_png_saved_locally_quote_copied'))
+                : l10n.tr('saved_quote_card_png_kb', {'outcome_0': (outcome.pngBytes.lengthInBytes / 1024).toStringAsFixed(0)}),
           ),
         ),
       );
@@ -225,15 +216,15 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.pick('Quote Card Studio', 'Studio Kartu Kutipan')),
+        title: Text(l10n.tr('quote_card_studio')),
         actions: [
           IconButton(
-            tooltip: l10n.pick('Save PNG', 'Simpan PNG'),
+            tooltip: l10n.tr('save_png'),
             onPressed: _isExporting ? null : () => _exportCard(share: false),
             icon: const Icon(Icons.download_rounded),
           ),
           IconButton(
-            tooltip: l10n.pick('Share Card', 'Bagikan Kartu'),
+            tooltip: l10n.tr('share_card'),
             onPressed: _isExporting ? null : () => _exportCard(share: true),
             icon: const Icon(Icons.share_rounded),
           ),
@@ -249,80 +240,88 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
               color: AppColors.recessedSurface(context),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Center(
-                child: AspectRatio(
-                  aspectRatio: _config.aspectRatio.ratioValue,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        RepaintBoundary(
-                          key: _boundaryKey,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: _config.useGradient
-                                  ? null
-                                  : _config.solidColor,
-                              gradient: _config.useGradient
-                                  ? LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: _config.gradientColors,
-                                    )
-                                  : null,
-                            ),
-                            padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
-                            child: Column(
-                              children: [
-                                if (isLockScreen) const SizedBox(height: 52),
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment(
-                                      0,
-                                      (safeVerticalBias * 2) - 1,
-                                    ),
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 320,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: 340,
+                    height: 340 / _config.aspectRatio.ratioValue,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          RepaintBoundary(
+                            key: _boundaryKey,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: _config.useGradient
+                                    ? null
+                                    : _config.solidColor,
+                                gradient: _config.useGradient
+                                    ? LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: _config.gradientColors,
+                                      )
+                                    : null,
+                              ),
+                              padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+                              child: Column(
+                                children: [
+                                  if (isLockScreen) const SizedBox(height: 64),
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment(
+                                        0,
+                                        (safeVerticalBias * 2) - 1,
                                       ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            switch (_config.textAlign) {
-                                          TextAlign.left =>
-                                            CrossAxisAlignment.start,
-                                          TextAlign.right =>
-                                            CrossAxisAlignment.end,
-                                          _ => CrossAxisAlignment.center,
-                                        },
-                                        children: [
-                                          Text(
-                                            '“${widget.quoteText}”',
-                                            textAlign: _config.textAlign,
-                                            style: _quoteTypography(context),
-                                          ),
-                                          if (_config.showAuthor &&
-                                              widget.authorName
-                                                  .trim()
-                                                  .isNotEmpty) ...[
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              '— ${widget.authorName}',
-                                              textAlign: _config.textAlign,
-                                              style: TextStyle(
-                                                fontSize: (_config.fontSize * 0.58)
-                                                    .clamp(11.0, 16.0),
-                                                fontWeight: FontWeight.w600,
-                                                color: _config.textColor
-                                                    .withValues(alpha: 0.84),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: SizedBox(
+                                          width: 292,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                switch (_config.textAlign) {
+                                              TextAlign.left =>
+                                                CrossAxisAlignment.start,
+                                              TextAlign.right =>
+                                                CrossAxisAlignment.end,
+                                              _ => CrossAxisAlignment.center,
+                                            },
+                                            children: [
+                                              Text(
+                                                '“${widget.quoteText}”',
+                                                textAlign: _config.textAlign,
+                                                style:
+                                                    _quoteTypography(context),
                                               ),
-                                            ),
-                                          ],
-                                        ],
+                                              if (_config.showAuthor &&
+                                                  widget.authorName
+                                                      .trim()
+                                                      .isNotEmpty) ...[
+                                                const SizedBox(height: 12),
+                                                Text(
+                                                  '— ${widget.authorName}',
+                                                  textAlign: _config.textAlign,
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                        (_config.fontSize *
+                                                                0.58)
+                                                            .clamp(11.0, 16.0),
+                                                    fontWeight: FontWeight.w600,
+                                                    color: _config.textColor
+                                                        .withValues(
+                                                            alpha: 0.84),
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
                                 const SizedBox(height: 10),
                                 // Dedicated safe footer row prevents text overlapping mascot/branding
                                 Row(
@@ -396,10 +395,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                                     ),
                                   ),
                                   Text(
-                                    l10n.pick(
-                                      'Lock Screen Clock Safe Zone',
-                                      'Zona Aman Jam Layar Kunci',
-                                    ),
+                                    l10n.tr('lock_screen_clock_safe_zone'),
                                     style: TextStyle(
                                       fontSize: 9,
                                       color: _config.textColor
@@ -417,6 +413,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
               ),
             ),
           ),
+        ),
 
           // Controls Panel
           Expanded(
@@ -436,7 +433,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${l10n.pick('Saved', 'Tersimpan')}: $_lastExportedPath',
+                      '${l10n.tr('saved')}: $_lastExportedPath',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -448,7 +445,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                 // Format / Layout Ratio
                 _sectionHeader(
                   context,
-                  l10n.pick('Layout & Wallpaper Format', 'Format & Wallpaper'),
+                  l10n.tr('layout_wallpaper_format'),
                 ),
                 Wrap(
                   spacing: 8,
@@ -456,13 +453,13 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                   children: QuoteCardAspectRatio.values.map((ratio) {
                     final label = switch (ratio) {
                       QuoteCardAspectRatio.square1x1 =>
-                        l10n.pick('Square 1:1', 'Persegi 1:1'),
+                        l10n.tr('square_1_1'),
                       QuoteCardAspectRatio.portrait4x5 =>
-                        l10n.pick('Portrait 4:5', 'Potret 4:5'),
+                        l10n.tr('portrait_4_5'),
                       QuoteCardAspectRatio.lockScreen9x16 =>
-                        l10n.pick('Lock Screen 9:16', 'Layar Kunci'),
+                        l10n.tr('lock_screen_9_16'),
                       QuoteCardAspectRatio.homeScreen9x16 =>
-                        l10n.pick('Home Screen 9:16', 'Layar Utama'),
+                        l10n.tr('home_screen_9_16'),
                     };
                     return ChoiceChip(
                       label: Text(label),
@@ -487,7 +484,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                 // Templates & Palettes
                 _sectionHeader(
                   context,
-                  l10n.pick('Templates & Colors', 'Templat & Warna'),
+                  l10n.tr('templates_colors'),
                 ),
                 SizedBox(
                   height: 44,
@@ -534,7 +531,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                 // Typography & Alignment
                 _sectionHeader(
                   context,
-                  l10n.pick('Typography & Position', 'Tipografi & Posisi'),
+                  l10n.tr('typography_position'),
                 ),
                 Row(
                   children: [
@@ -594,7 +591,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                 Row(
                   children: [
                     Text(
-                      l10n.pick('Size', 'Ukuran'),
+                      l10n.tr('size'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -611,7 +608,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                       ),
                     ),
                     Text(
-                      l10n.pick('Pos', 'Posisi'),
+                      l10n.tr('pos'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -636,21 +633,21 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                   runSpacing: 6,
                   children: [
                     FilterChip(
-                      label: Text(l10n.pick('Gradient', 'Gradasi')),
+                      label: Text(l10n.tr('gradient')),
                       selected: _config.useGradient,
                       onSelected: (v) => setState(() {
                         _config = _config.copyWith(useGradient: v);
                       }),
                     ),
                     FilterChip(
-                      label: Text(l10n.pick('Author', 'Penulis')),
+                      label: Text(l10n.tr('author')),
                       selected: _config.showAuthor,
                       onSelected: (v) => setState(() {
                         _config = _config.copyWith(showAuthor: v);
                       }),
                     ),
                     FilterChip(
-                      label: Text(l10n.pick('Nestin Mark', 'Logo Nestin')),
+                      label: Text(l10n.tr('nestin_mark')),
                       selected: _config.showBranding,
                       onSelected: (v) => setState(() {
                         _config = _config.copyWith(showBranding: v);
@@ -661,7 +658,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                 const SizedBox(height: 10),
                 _sectionHeader(
                   context,
-                  l10n.pick('Bird Companion Badge', 'Ilustrasi Burung Nestin'),
+                  l10n.tr('bird_companion_badge'),
                 ),
                 SizedBox(
                   height: 40,
@@ -671,7 +668,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: ChoiceChip(
-                          label: Text(l10n.pick('None', 'Tanpa')),
+                          label: Text(l10n.tr('none_2')),
                           selected: _config.mascotDomain == null,
                           onSelected: (_) => setState(() {
                             _config = _config.copyWith(clearMascot: true);
@@ -702,7 +699,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                         onPressed:
                             _isExporting ? null : () => _exportCard(share: false),
                         icon: const Icon(Icons.save_alt_rounded, size: 18),
-                        label: Text(l10n.pick('Export PNG', 'Simpan PNG')),
+                        label: Text(l10n.tr('export_png')),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -724,7 +721,7 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
                                 ),
                               )
                             : const Icon(Icons.share_rounded, size: 18),
-                        label: Text(l10n.pick('Share Card', 'Bagikan')),
+                        label: Text(l10n.tr('share_card_2')),
                       ),
                     ),
                   ],

@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/entity_link.dart';
 import '../../providers/automation_provider.dart';
 import '../../providers/before_you_go_provider.dart';
+import '../../providers/bucket_list_provider.dart';
 import '../../providers/calendar_provider.dart';
 import '../../providers/cross_module_link_provider.dart';
 import '../../providers/hobby_provider.dart';
@@ -332,6 +333,17 @@ class LinkedEntitiesSection extends StatelessWidget {
       }
     }
 
+    final bucket = safeRead<BucketListProvider>();
+    if (bucket != null) {
+      for (final item in bucket.items) {
+        out.add(_LinkCandidate(
+          type: LinkEntityType.bucketList,
+          id: item.id,
+          title: item.title,
+        ));
+      }
+    }
+
     final byg = safeRead<BeforeYouGoProvider>();
     if (byg != null) {
       for (final p in byg.presets) {
@@ -375,6 +387,8 @@ class LinkedEntitiesSection extends StatelessWidget {
         return Icons.palette_outlined;
       case LinkEntityType.readingBook:
         return Icons.menu_book_rounded;
+      case LinkEntityType.bucketList:
+        return Icons.explore_rounded;
       case LinkEntityType.medication:
         return Icons.medication_outlined;
       case LinkEntityType.beforeYouGoPreset:

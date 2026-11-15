@@ -69,6 +69,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/l10n/
     - assets/logo.jpg
     - assets/banner.jpg
     - assets/mascots/flock_mascots.jpg
@@ -78,6 +79,8 @@ flutter:
     - assets/mascots/sprites/pippin/
     - assets/mascots/sprites/twill/
     - assets/mascots/sprites/scout/
+    - assets/mascots/sprites/duos/
+    - assets/mascots/sprites/ensembles/
     - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see

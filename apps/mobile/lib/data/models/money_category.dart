@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_localizations.dart';
 import 'money_account.dart';
 
 enum MoneyCategoryType {
-  income('Income', Color(0xFF10B981)),
-  expense('Expense', Color(0xFFEF4444));
+  income('money_income', Color(0xFF10B981)),
+  expense('money_expense', Color(0xFFEF4444));
 
-  final String label;
+  final String translationKey;
   final Color semanticColor;
 
-  const MoneyCategoryType(this.label, this.semanticColor);
+  String get label => AppLocalizations.current.tr(translationKey);
+
+  const MoneyCategoryType(this.translationKey, this.semanticColor);
 
   static MoneyCategoryType fromName(String? name) {
     return MoneyCategoryType.values.firstWhere(
@@ -43,6 +46,45 @@ class MoneyCategory {
 
   Color get color => Color(colorValue);
   IconData get icon => resolveCategoryIcon(iconCodePoint);
+
+  /// Localized display label that translates unmodified seeded defaults into
+  /// Bahasa Indonesia while respecting user-renamed or custom categories.
+  String get displayName {
+    final translationKey = _translationKeyForDefault(id, name);
+    if (translationKey != null) {
+      return AppLocalizations.current.tr(translationKey);
+    }
+    return name;
+  }
+
+  static String? _translationKeyForDefault(String id, String rawName) {
+    final cleanName = rawName.trim();
+    const mappings = <String, ({String en, String key})>{
+      '_inc_salary': (en: 'Salary', key: 'cat_salary'),
+      '_inc_business': (en: 'Business Income', key: 'cat_business_income'),
+      '_inc_freelance': (en: 'Freelance', key: 'cat_freelance'),
+      '_inc_investment': (en: 'Investment Returns', key: 'cat_investment_returns'),
+      '_inc_gifts': (en: 'Gifts', key: 'cat_gifts'),
+      '_inc_other': (en: 'Other Income', key: 'cat_other_income'),
+      '_exp_food': (en: 'Food & Drinks', key: 'cat_food_drinks'),
+      '_exp_transport': (en: 'Transportation', key: 'cat_transportation'),
+      '_exp_shopping': (en: 'Shopping', key: 'cat_shopping'),
+      '_exp_housing': (en: 'Housing', key: 'cat_housing'),
+      '_exp_utilities': (en: 'Utilities', key: 'cat_utilities'),
+      '_exp_health': (en: 'Health', key: 'cat_health_expense'),
+      '_exp_entertainment': (en: 'Entertainment', key: 'cat_entertainment'),
+      '_exp_education': (en: 'Education', key: 'cat_education'),
+      '_exp_family': (en: 'Family', key: 'cat_family'),
+      '_exp_subscriptions': (en: 'Subscriptions', key: 'cat_subscriptions'),
+      '_exp_other': (en: 'Other Expenses', key: 'cat_other_expenses'),
+    };
+    for (final entry in mappings.entries) {
+      if (id.endsWith(entry.key) && cleanName == entry.value.en) {
+        return entry.value.key;
+      }
+    }
+    return null;
+  }
 
   static const List<IconData> _knownIcons = [
     Icons.work_rounded,

@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum VitalType {
   heartRate,
   bloodOxygen,
@@ -5,15 +7,16 @@ enum VitalType {
   bodyWeight;
 
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case VitalType.heartRate:
-        return 'Heart Rate';
+        return l10n.tr('heart_rate');
       case VitalType.bloodOxygen:
-        return 'Blood Oxygen';
+        return l10n.tr('blood_oxygen');
       case VitalType.bloodPressure:
-        return 'Blood Pressure';
+        return l10n.tr('blood_pressure');
       case VitalType.bodyWeight:
-        return 'Body Weight';
+        return l10n.tr('body_weight');
     }
   }
 
@@ -77,22 +80,27 @@ class VitalLog {
   }
 
   String get statusLabel {
+    final l10n = AppLocalizations.current;
     switch (type) {
       case VitalType.heartRate:
-        if (primaryValue < 55) return 'Athletic Low';
-        if (primaryValue <= 95) return 'Normal Resting';
-        return 'Elevated';
+        if (primaryValue < 55) return l10n.tr('athletic_low');
+        if (primaryValue <= 95) {
+          return l10n.tr('normal_resting');
+        }
+        return l10n.tr('elevated');
       case VitalType.bloodOxygen:
-        if (primaryValue >= 95) return 'Optimal SpO2';
-        if (primaryValue >= 90) return 'Mildly Low';
-        return 'Low Range';
+        if (primaryValue >= 95) return l10n.tr('optimal_spo2');
+        if (primaryValue >= 90) return l10n.tr('mildly_low');
+        return l10n.tr('low_range');
       case VitalType.bloodPressure:
         final dia = secondaryValue ?? 80;
-        if (primaryValue < 120 && dia < 80) return 'Normal';
-        if (primaryValue < 130 && dia < 80) return 'Elevated';
-        return 'High Range';
+        if (primaryValue < 120 && dia < 80) return l10n.tr('normal');
+        if (primaryValue < 130 && dia < 80) {
+          return l10n.tr('elevated');
+        }
+        return l10n.tr('high_range');
       case VitalType.bodyWeight:
-        return 'Check-In';
+        return l10n.tr('check_in');
     }
   }
 

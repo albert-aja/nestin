@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/alarm_category.dart';
 import '../data/models/location_reminder.dart';
 import '../data/models/saved_place.dart';
@@ -600,9 +601,10 @@ class GeofenceProvider extends ChangeNotifier {
     required String placeName,
     required GeofenceTransitionEvent transition,
   }) async {
+    final l10n = AppLocalizations.current;
     final actionVerb = transition == GeofenceTransitionEvent.exit
-        ? 'Leaving'
-        : 'Near';
+        ? l10n.tr('leaving_2')
+        : l10n.tr('near_2');
     final title = '🧭 $actionVerb $placeName: ${reminder.title}';
 
     final buffer = StringBuffer();
@@ -613,7 +615,9 @@ class GeofenceProvider extends ChangeNotifier {
     }
     if (reminder.checkDepartureChecklist &&
         transition == GeofenceTransitionEvent.exit) {
-      buffer.write(' • Check BeforeYouGo keys, wallet & essentials!');
+      buffer.write(
+        l10n.tr('check_beforeyougo_keys_wallet_essentials'),
+      );
     }
 
     await _notificationService.showGeofenceNotification(

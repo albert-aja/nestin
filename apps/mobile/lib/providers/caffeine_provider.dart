@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/caffeine_data.dart';
 import '../data/services/notification_service.dart';
 import '../data/services/storage_service.dart';
@@ -230,14 +231,15 @@ class CaffeineProvider extends ChangeNotifier {
     final hh = candidate.hour.toString().padLeft(2, '0');
     final mm = candidate.minute.toString().padLeft(2, '0');
     final activeMg = residualAt(now).round();
+    final l10n = AppLocalizations.current;
 
     _lastScheduledCurfew = candidate;
     await _notificationService.scheduleWellnessNotification(
       id: curfewNotificationId,
-      title: '☕ Seren: Caffeine Curfew ($hh:$mm)',
+      title: l10n.tr('seren_caffeine_curfew', {'hh': hh, 'mm': mm}),
       body: activeMg > 0
-          ? 'Switch to water or herbal tea now (~${activeMg}mg active) so tonight\'s sleep stays deep.'
-          : 'Afternoon stimulant cutoff reached! Stick to water or decaf for restful sleep tonight.',
+          ? l10n.tr('switch_to_water_or_herbal_tea', {'activeMg': activeMg})
+          : l10n.tr('afternoon_stimulant_cutoff_reached_stick_to'),
       scheduledDate: candidate,
       payload: 'caffeine_curfew',
     );
@@ -249,13 +251,14 @@ class CaffeineProvider extends ChangeNotifier {
     final bedResidual = targetBedtime != null
         ? residualAt(targetBedtime).round()
         : activeMg;
+    final l10n = AppLocalizations.current;
 
     await _notificationService.showWellnessNotification(
       id: curfewNotificationId,
-      title: '☕ Seren: Afternoon Caffeine Cutoff',
+      title: l10n.tr('seren_afternoon_caffeine_cutoff'),
       body: targetBedtime != null
-          ? 'Estimated ~${bedResidual}mg at tonight\'s bedtime (${_config.halfLifeHours.toStringAsFixed(1)}h half-life). Switch to water or decaf!'
-          : 'Curfew at ${_config.formattedCurfewTime} active (~${activeMg}mg in system). Protect tonight\'s REM sleep!',
+          ? l10n.tr('estimated_mg_at_tonight_s_bedtime', {'bedResidual': bedResidual, 'config_1': _config.halfLifeHours.toStringAsFixed(1)})
+          : l10n.tr('curfew_at_active_mg_in_system', {'config_formattedCurfewTime': _config.formattedCurfewTime, 'activeMg': activeMg}),
       payload: 'caffeine_curfew',
     );
   }

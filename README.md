@@ -1,5 +1,7 @@
 # Nestin — Personal Everyday Space
 
+![Logo](apps\mobile\assets\banner.jpg)
+
 **Tagline:** Every moment, right on time.  
 **Architecture:** Local-First Monorepo — Flutter Mobile (`apps/mobile`) + Node.js/NestJS Backend (`apps/backend`) + React/TypeScript Admin CMS (`apps/admin`) + Supabase PostgreSQL/Auth/Storage (`infrastructure/supabase`)
 
@@ -31,12 +33,14 @@ nestin/
 
 ## The Six Bird Families (Strictly 6 Domains)
 
-1. **Roo (Rooster) — Time & Planning:** Alarms, wake-up challenges, timers, Pomodoro sprints, calendar events, reminders, tasks, daily routines & streaks, Android glance widgets.
+![Mascots](apps\mobile\source_art\mascots\family\family_polaroid_selfie_frame.jpg)
+
+1. **Roo (Rooster) — Time, Planning & Habits:** Alarms, wake-up challenges, timers, Pomodoro sprints, calendar events, reminders, tasks, daily routines & streaks, Digital Discipline (App Fast, Focus Lock, Usage Limits), Android glance widgets.
 2. **Echo (Owl) — Journal & Memories:** Diary entries, memories scrapbook, timeline feed, prompts, nostalgic throwbacks, PIN/biometric privacy lock.
 3. **Seren (Dove) — Personal Wellness:** Medication schedule & dose adherence/refills, daily hydration intake & sparkline, REM sleep cycle & bedtime wind-down audio, caffeine half-life cutoff tracker, health/vitals tracking, wearable bridge.
 4. **Pippin (Dodo) — Personal Interests:** Reading progress tracker, hobby practice hours & milestones.
 5. **Twill (Weaverbird) — Notes & Organization:** Markdown/checklist notes, collections, wishlists, quick capture, local-first Basic Money Management.
-6. **Scout (Carrier Pigeon) — Everyday Assistance & Smart Context:** Today dashboard, BeforeYouGo departure checklists & heads-up alerts, native geofencing & location reminders, Digital Wellbeing controls, Phone Mode Orchestrator, Permission Center, Shared Automation Engine, Universal Search, Cross-Module Entity Linking.
+6. **Scout (Carrier Pigeon) — Everyday Assistance & Device Utilities:** Today dashboard, BeforeYouGo departure checklists & heads-up alerts, native geofencing & location reminders, Phone Mode Orchestrator, Permission Center, Shared Automation Engine, Universal Search, Cross-Module Entity Linking.
 
 ---
 

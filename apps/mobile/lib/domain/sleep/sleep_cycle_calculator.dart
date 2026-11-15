@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 class SleepCycleOption {
   final int cycles;
   final Duration sleepDuration;
@@ -12,6 +14,16 @@ class SleepCycleOption {
     required this.isRecommended,
     required this.label,
   });
+
+  String get localizedLabel {
+    final l10n = AppLocalizations.current;
+    final hours = (cycles * 1.5).toStringAsFixed(1);
+    final base = l10n.tr('cycles_hrs', {'cycles': cycles, 'hours': hours});
+    if (cycles == 5) {
+      return l10n.tr('optimal_sweet_spot', {'base': base});
+    }
+    return base;
+  }
 }
 
 class SleepCycleCalculator {

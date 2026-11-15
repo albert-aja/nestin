@@ -100,10 +100,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          l10n.pick(
-            '${entry.type.emoji} Logged ${entry.label} (~${entry.caffeineMg}mg)',
-            '${entry.type.emoji} Mencatat ${entry.label} (~${entry.caffeineMg}mg)',
-          ),
+          l10n.tr('logged_mg', {'entry_emoji': entry.type.emoji, 'entry_label': entry.label, 'entry_caffeineMg': entry.caffeineMg}),
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -117,7 +114,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
   ) async {
     final l10n = context.l10n;
     final labelController = TextEditingController(
-      text: l10n.pick('Iced Latte', 'Es Kopi Susu'),
+      text: l10n.tr('iced_latte'),
     );
     final mgController = TextEditingController(text: '85');
 
@@ -126,7 +123,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.elevatedSurface(dialogCtx),
         title: Text(
-          l10n.pick('Log Custom Stimulant', 'Catat Minuman Kustom'),
+          l10n.tr('log_custom_stimulant'),
           style: TextStyle(color: AppColors.textPrimary(dialogCtx)),
         ),
         content: Column(
@@ -135,7 +132,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
             TextField(
               controller: labelController,
               decoration: InputDecoration(
-                labelText: l10n.pick('Drink name', 'Nama minuman'),
+                labelText: l10n.tr('drink_name'),
               ),
             ),
             const SizedBox(height: 12),
@@ -143,7 +140,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
               controller: mgController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: l10n.pick('Caffeine (mg)', 'Kafein (mg)'),
+                labelText: l10n.tr('caffeine_mg'),
                 suffixText: 'mg',
               ),
             ),
@@ -152,13 +149,13 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: Text(l10n.pick('Cancel', 'Batal')),
+            child: Text(l10n.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogCtx).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: _caffeineAmber),
             child: Text(
-              l10n.pick('Log', 'Catat'),
+              l10n.tr('log'),
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -312,10 +309,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.pick(
-                          'Caffeine & Cutoff Tracker',
-                          'Pelacak Kafein & Batas Sore',
-                        ),
+                        l10n.tr('caffeine_cutoff_tracker'),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -323,10 +317,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                         ),
                       ),
                       Text(
-                        l10n.pick(
-                          'Seren ~${caffeine.halfLifeHours.toStringAsFixed(1)}h half-life decay to bedtime',
-                          'Seren peluruhan paruh ~${caffeine.halfLifeHours.toStringAsFixed(1)} jam menuju jam tidur',
-                        ),
+                        l10n.tr('seren_h_half_life_decay_to', {'caffeine_1': caffeine.halfLifeHours.toStringAsFixed(1)}),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary(context),
@@ -367,10 +358,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.pick(
-                                'AT TONIGHT\'S BEDTIME (${_formatHm(targetBedtime)})',
-                                'SAAT JAM TIDUR MALAM (${_formatHm(targetBedtime)})',
-                              ),
+                              l10n.tr('at_tonight_s_bedtime', {'formatHm_targetBedtime': _formatHm(targetBedtime)}),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
@@ -393,7 +381,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  l10n.pick('residual est.', 'estimasi sisa'),
+                                  l10n.tr('residual_est'),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textSecondary(context),
@@ -431,24 +419,24 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                     children: [
                       Expanded(
                         child: _MetricTile(
-                          label: l10n.pick('Active Now', 'Aktif Kini'),
+                          label: l10n.tr('active_now'),
                           value: '${activeNowMg.round()} mg',
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: _MetricTile(
-                          label: l10n.pick('Today Intake', 'Asupan Hari Ini'),
+                          label: l10n.tr('today_intake'),
                           value: '$todayTotalMg / $limitMg mg',
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: _MetricTile(
-                          label: l10n.pick('Clears <25mg', 'Turun <25mg'),
+                          label: l10n.tr('clears_25mg'),
                           value: clearTime != null
                               ? _formatHm(clearTime)
-                              : l10n.pick('Clear', 'Bersih'),
+                              : l10n.tr('clear_2'),
                         ),
                       ),
                     ],
@@ -487,10 +475,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        l10n.pick(
-                          'Half-Life Decay Curve',
-                          'Kurva Peluruhan Kafein',
-                        ),
+                        l10n.tr('half_life_decay_curve'),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -498,10 +483,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                         ),
                       ),
                       Text(
-                        l10n.pick(
-                          'Goal ≤${caffeine.bedtimeSafeThresholdMg}mg at ${_formatHm(targetBedtime)}',
-                          'Target ≤${caffeine.bedtimeSafeThresholdMg}mg jam ${_formatHm(targetBedtime)}',
-                        ),
+                        l10n.tr('goal_mg_at', {'caffeine_bedtimeSafeThresholdMg': caffeine.bedtimeSafeThresholdMg, 'formatHm_targetBedtime': _formatHm(targetBedtime)}),
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary(context),
@@ -592,7 +574,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  l10n.pick('Quick Log Serving', 'Catat Cepat Minuman'),
+                  l10n.tr('quick_log_serving'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -610,7 +592,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      l10n.pick('Past Curfew', 'Lewat Batas Sore'),
+                      l10n.tr('past_curfew'),
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -628,7 +610,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
               child: Row(
                 children: [
                   _TimeOffsetChip(
-                    label: l10n.pick('Now', 'Sekarang'),
+                    label: l10n.tr('now'),
                     selected: _selectedOffsetMinutes == 0,
                     onTap: () => setState(() => _selectedOffsetMinutes = 0),
                   ),
@@ -654,7 +636,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                   _TimeOffsetChip(
                     label: _selectedOffsetMinutes == -1 && _customTime != null
                         ? '${_customTime!.hour.toString().padLeft(2, '0')}:${_customTime!.minute.toString().padLeft(2, '0')}'
-                        : l10n.pick('Pick Time', 'Pilih Jam'),
+                        : l10n.tr('pick_time'),
                     selected: _selectedOffsetMinutes == -1,
                     onTap: () => _pickDrinkTime(context),
                   ),
@@ -695,7 +677,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                 ActionChip(
                   avatar: const Text('⚡'),
                   label: Text(
-                    l10n.pick('Custom mg...', 'Kustom mg...'),
+                    l10n.tr('custom_mg'),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -739,10 +721,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.pick(
-                                'Afternoon Curfew Nudge',
-                                'Pengingat Batas Kafein Sore',
-                              ),
+                              l10n.tr('afternoon_curfew_nudge'),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -750,10 +729,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                               ),
                             ),
                             Text(
-                              l10n.pick(
-                                'Cutoff at ${_formatHm(curfewTime)} (${caffeine.config.syncCurfewWithBedtime ? '${caffeine.config.bedtimeCutOffLeadHours}h before bed' : 'fixed'})',
-                                'Batas pukul ${_formatHm(curfewTime)} (${caffeine.config.syncCurfewWithBedtime ? '${caffeine.config.bedtimeCutOffLeadHours}j sebelum tidur' : 'jam tetap'})',
-                              ),
+                              l10n.tr('cutoff_at', {'formatHm_curfewTime': _formatHm(curfewTime), 'caffeine_fixed': caffeine.config.syncCurfewWithBedtime ? '${caffeine.config.bedtimeCutOffLeadHours}h before bed' : 'fixed', 'caffeine_tetap': caffeine.config.syncCurfewWithBedtime ? '${caffeine.config.bedtimeCutOffLeadHours}j sebelum tidur' : 'jam tetap'}),
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary(context),
@@ -806,7 +782,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                         ),
                       ChoiceChip(
                         label: Text(
-                          l10n.pick('8h Before Bed', '8j Sebelum Tidur'),
+                          l10n.tr('k_8h_before_bed'),
                           style: TextStyle(
                             fontSize: 11,
                             color: caffeine.config.syncCurfewWithBedtime
@@ -826,7 +802,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                       ),
                       ActionChip(
                         label: Text(
-                          l10n.pick('Custom Time', 'Atur Jam'),
+                          l10n.tr('custom_time'),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textPrimary(context),
@@ -842,7 +818,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                   Row(
                     children: [
                       Text(
-                        l10n.pick('Half-Life:', 'Waktu Paruh:'),
+                        l10n.tr('half_life'),
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary(context),
@@ -880,17 +856,14 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                l10n.pick(
-                                  'Seren sent a test caffeine curfew nudge!',
-                                  'Seren mengirim pengingat uji batas kafein!',
-                                ),
+                                l10n.tr('seren_sent_a_test_caffeine_curfew'),
                               ),
                               duration: const Duration(seconds: 2),
                             ),
                           );
                         },
                         child: Text(
-                          l10n.pick('Test Nudge', 'Uji Notif'),
+                          l10n.tr('test_nudge'),
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -910,10 +883,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  l10n.pick(
-                    'Today\'s Drinks (${caffeine.todayEntries.length})',
-                    'Minuman Hari Ini (${caffeine.todayEntries.length})',
-                  ),
+                  l10n.tr('today_s_drinks', {'caffeine_length': caffeine.todayEntries.length}),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -924,7 +894,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                   TextButton(
                     onPressed: () => caffeine.clearDayEntries(now),
                     child: Text(
-                      l10n.pick('Clear Today', 'Hapus Hari Ini'),
+                      l10n.tr('clear_today'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -944,10 +914,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                   border: Border.all(color: AppColors.border(context)),
                 ),
                 child: Text(
-                  l10n.pick(
-                    'No caffeine logged today. Tap Espresso, Coffee, Matcha, Tea, or Soda above to track bedtime clearance.',
-                    'Belum ada kafein hari ini. Ketuk Espresso, Kopi, Matcha, Teh, atau Soda di atas untuk melacak sisa saat jam tidur.',
-                  ),
+                  l10n.tr('no_caffeine_logged_today_tap_espresso'),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary(context),
@@ -992,10 +959,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                               ),
                             ),
                             Text(
-                              l10n.pick(
-                                '${_formatHm(entry.consumedAt)} • ${entry.caffeineMg}mg dose (~${remainingFromDrink.round()}mg active)',
-                                '${_formatHm(entry.consumedAt)} • dosis ${entry.caffeineMg}mg (~${remainingFromDrink.round()}mg aktif)',
-                              ),
+                              l10n.tr('mg_dose_mg_active', {'formatHm_consumedAt': _formatHm(entry.consumedAt), 'entry_caffeineMg': entry.caffeineMg, 'remainingFromDrink_round': remainingFromDrink.round()}),
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary(context),
@@ -1005,7 +969,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                         ),
                       ),
                       IconButton(
-                        tooltip: l10n.pick('Delete', 'Hapus'),
+                        tooltip: l10n.tr('delete'),
                         onPressed: () => caffeine.deleteEntry(entry.id),
                         icon: Icon(
                           Icons.delete_outline_rounded,

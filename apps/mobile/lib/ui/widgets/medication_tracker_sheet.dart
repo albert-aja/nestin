@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/medication_item.dart';
 import '../../data/models/medication_log.dart';
@@ -39,10 +40,12 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
   }
 
   void _promptRefillDialog(BuildContext context, MedicationItem med) {
+    final l10n = context.l10n;
     int refillAmount = 30;
     showDialog(
       context: context,
       builder: (ctx) {
+        final dialogL10n = ctx.l10n;
         final violetAccent = AppColors.adaptive(
           ctx,
           dark: const Color(0xFFA78BFA),
@@ -59,7 +62,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Refill ${med.name}',
+                      l10n.tr('refill_2', {'med_name': med.name}),
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.textPrimary(ctx),
@@ -73,7 +76,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Current stock: ${med.currentStock ?? 0} ${med.dosageUnit}',
+                    l10n.tr('current_stock_2', {'med_0': med.currentStock ?? 0, 'med_dosageUnit': med.dosageUnit, 'med_localizedUnitLabel': med.localizedUnitLabel}),
                     style: TextStyle(
                       color: AppColors.textSecondary(ctx),
                       fontSize: 13,
@@ -81,7 +84,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Select refill quantity:',
+                    l10n.tr('select_refill_quantity'),
                     style: TextStyle(
                       color: AppColors.textPrimary(ctx),
                       fontSize: 13,
@@ -113,7 +116,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
                   child: Text(
-                    'Cancel',
+                    l10n.tr('cancel'),
                     style: TextStyle(color: AppColors.textSecondary(ctx)),
                   ),
                 ),
@@ -123,14 +126,21 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                         .refillMedication(med.id, refillAmount);
                     Navigator.of(ctx).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Refilled +$refillAmount ${med.dosageUnit} of ${med.name}')),
+                      SnackBar(
+                        content: Text(
+                          l10n.tr('refilled_of', {'refillAmount': refillAmount, 'med_dosageUnit': med.dosageUnit, 'med_name': med.name, 'med_localizedUnitLabel': med.localizedUnitLabel}),
+                        ),
+                      ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8B5CF6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Confirm Refill', style: TextStyle(color: Colors.white)),
+                  child: Text(
+                    l10n.tr('confirm_refill'),
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             );
@@ -142,6 +152,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final violetAccent = AppColors.adaptive(
       context,
       dark: const Color(0xFFA78BFA),
@@ -200,7 +211,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Medication & Pill Tracker',
+                            l10n.tr('medication_pill_tracker'),
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -208,7 +219,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             ),
                           ),
                           Text(
-                            'Seren Wellness Companion',
+                            l10n.tr('seren_wellness_companion'),
                             style: TextStyle(
                               fontSize: 11,
                               color: violetAccent,
@@ -249,7 +260,9 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              streak > 0 ? '$streak-Day Streak' : 'Start Your Streak',
+                              streak > 0
+                                  ? l10n.tr('day_streak_2', {'streak': streak})
+                                  : l10n.tr('start_your_streak'),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -258,8 +271,8 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             ),
                             Text(
                               streak > 0
-                                  ? 'Consecutive perfect adherence days'
-                                  : 'Take your doses consistently',
+                                  ? l10n.tr('consecutive_perfect_adherence_days')
+                                  : l10n.tr('take_your_doses_consistently'),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.textSecondary(context),
@@ -278,7 +291,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '$weeklyRate% 7d Adherence',
+                        l10n.tr('k_7d_adherence', {'weeklyRate': weeklyRate}),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -311,7 +324,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Low Supply Warning',
+                              l10n.tr('low_supply_warning'),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -319,7 +332,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                               ),
                             ),
                             Text(
-                              '${lowStockMeds.first.name} has only ${lowStockMeds.first.currentStock} left!',
+                              l10n.tr('has_only_left', {'lowStockMeds_name': lowStockMeds.first.name, 'lowStockMeds_currentStock': lowStockMeds.first.currentStock}),
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textPrimary(context),
@@ -335,7 +348,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         ),
                         child: Text(
-                          '+ Refill',
+                          l10n.tr('refill'),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -367,8 +380,12 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                   unselectedLabelColor: AppColors.textSecondary(context),
                   labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                   tabs: [
-                    Tab(text: "Today's Doses (${provider.todayDosesTakenCount}/${provider.todayDosesTotalCount})"),
-                    Tab(text: "Cabinet (${provider.activeMedications.length})"),
+                    Tab(
+                      text: l10n.tr('today_s_doses', {'provider_todayDosesTakenCount': provider.todayDosesTakenCount, 'provider_todayDosesTotalCount': provider.todayDosesTotalCount}),
+                    ),
+                    Tab(
+                      text: l10n.tr('cabinet', {'provider_length': provider.activeMedications.length}),
+                    ),
                   ],
                 ),
               ),
@@ -394,9 +411,13 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
               ElevatedButton.icon(
                 onPressed: () => AddEditMedicationSheet.show(context),
                 icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-                label: const Text(
-                  'Add New Medication',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+                label: Text(
+                  l10n.tr('add_new_medication'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8B5CF6),
@@ -416,6 +437,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
     MedicationProvider provider,
     List<TodayDoseSlot> doses,
   ) {
+    final l10n = context.l10n;
     final violetAccent = AppColors.adaptive(
       context,
       dark: const Color(0xFFA78BFA),
@@ -444,7 +466,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
             ),
             const SizedBox(height: 12),
             Text(
-              'No medications scheduled for today',
+              l10n.tr('no_medications_scheduled_for_today'),
               style: TextStyle(
                 color: AppColors.textSecondary(context),
                 fontSize: 14,
@@ -453,7 +475,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
             ),
             const SizedBox(height: 4),
             Text(
-              'Tap "+ Add New Medication" to create your dosage schedule.',
+              l10n.tr('tap_add_new_medication_to_create'),
               style: TextStyle(
                 color: AppColors.textMuted(context),
                 fontSize: 11,
@@ -486,7 +508,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '🌿 Wonderful! All doses taken for today. Keep up the restorative wellness rhythm.',
+                    l10n.tr('wonderful_all_doses_taken_for_today'),
                     style: TextStyle(
                       fontSize: 12,
                       color: emeraldText,
@@ -621,8 +643,8 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                                     const SizedBox(width: 4),
                                     Text(
                                       slot.snooze!.snoozeCount > 1
-                                          ? 'Snoozed until ${slot.snooze!.formattedSnoozedUntil} (${slot.snooze!.snoozeCount}x)'
-                                          : 'Snoozed until ${slot.snooze!.formattedSnoozedUntil}',
+                                          ? l10n.tr('snoozed_until_x', {'slot_formattedSnoozedUntil': slot.snooze!.formattedSnoozedUntil, 'slot_snoozeCount': slot.snooze!.snoozeCount})
+                                          : l10n.tr('snoozed_until', {'slot_formattedSnoozedUntil': slot.snooze!.formattedSnoozedUntil}),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -666,7 +688,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                                       size: 14, color: emeraldText),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Taken',
+                                    l10n.tr('taken'),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
@@ -679,7 +701,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             IconButton(
                               icon: Icon(Icons.undo_rounded,
                                   size: 16, color: AppColors.textSecondary(context)),
-                              tooltip: 'Undo',
+                              tooltip: l10n.tr('undo'),
                               onPressed: () {
                                 if (slot.log != null) {
                                   provider.undoDose(slot.log!.id);
@@ -700,7 +722,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Skipped',
+                                l10n.tr('skipped'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textSecondary(context),
@@ -710,7 +732,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             IconButton(
                               icon: Icon(Icons.undo_rounded,
                                   size: 16, color: AppColors.textSecondary(context)),
-                              tooltip: 'Undo',
+                              tooltip: l10n.tr('undo'),
                               onPressed: () {
                                 if (slot.log != null) {
                                   provider.undoDose(slot.log!.id);
@@ -742,7 +764,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '⏰ Snoozed ${med.name} 15m (next alert at ${snoozed.formattedSnoozedUntil})',
+                                    l10n.tr('snoozed_15m_next_alert_at', {'med_name': med.name, 'snoozed_formattedSnoozedUntil': snoozed.formattedSnoozedUntil}),
                                   ),
                                   behavior: SnackBarBehavior.floating,
                                 ),
@@ -754,7 +776,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                               color: amberText,
                             ),
                             label: Text(
-                              'Snooze 15m',
+                              l10n.tr('notif_action_snooze_15m'),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -788,10 +810,13 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10)),
                             ),
-                            child: Text('Skip',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary(context))),
+                            child: Text(
+                              l10n.tr('skip'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary(context),
+                              ),
+                            ),
                           ),
 
                           // 1-Tap Take Button
@@ -803,11 +828,14 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             ),
                             icon: const Icon(Icons.check_rounded,
                                 size: 16, color: Colors.white),
-                            label: const Text('Take',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white)),
+                            label: Text(
+                              l10n.tr('take'),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF10B981),
                               foregroundColor: Colors.white,
@@ -831,6 +859,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
   }
 
   Widget _buildCabinetTab(BuildContext context, MedicationProvider provider) {
+    final l10n = context.l10n;
     final medications = provider.medications;
     final violetAccent = AppColors.adaptive(
       context,
@@ -855,7 +884,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
             ),
             const SizedBox(height: 12),
             Text(
-              'Your medicine cabinet is empty',
+              l10n.tr('your_medicine_cabinet_is_empty'),
               style: TextStyle(
                 color: AppColors.textSecondary(context),
                 fontSize: 14,
@@ -864,7 +893,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
             ),
             const SizedBox(height: 4),
             Text(
-              'Add your prescriptions, vitamins, or supplements below.',
+              l10n.tr('add_your_prescriptions_vitamins_or_supplements'),
               style: TextStyle(
                 color: AppColors.textMuted(context),
                 fontSize: 11,
@@ -965,7 +994,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Stock: ${med.currentStock} ${med.dosageUnit}',
+                            l10n.tr('stock', {'med_currentStock': med.currentStock, 'med_dosageUnit': med.dosageUnit, 'med_localizedUnitLabel': med.localizedUnitLabel}),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: isLow ? FontWeight.w700 : FontWeight.w500,
@@ -978,7 +1007,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                       ),
                     ] else ...[
                       Text(
-                        'Stock tracking disabled',
+                        l10n.tr('stock_tracking_disabled'),
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textMuted(context),
@@ -993,7 +1022,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                           IconButton(
                             icon: Icon(Icons.add_circle_outline_rounded,
                                 size: 20, color: violetAccent),
-                            tooltip: 'Refill Pills',
+                            tooltip: l10n.tr('refill_pills'),
                             onPressed: () => _promptRefillDialog(context, med),
                           ),
                         ],
@@ -1003,12 +1032,12 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             size: 18,
                             color: AppColors.textSecondary(context),
                           ),
-                          tooltip: 'Edit',
+                          tooltip: l10n.tr('edit'),
                           onPressed: () => AddEditMedicationSheet.show(context, item: med),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                          tooltip: 'Delete',
+                          tooltip: l10n.tr('delete'),
                           onPressed: () => provider.deleteMedication(med.id),
                         ),
                       ],

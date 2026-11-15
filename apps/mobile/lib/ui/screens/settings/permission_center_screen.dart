@@ -28,12 +28,12 @@ class PermissionCenterScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          l10n.pick('Permission & Capability Center', 'Pusat Izin & Kapabilitas'),
+          l10n.tr('permission_capability_center'),
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
         ),
         actions: [
           IconButton(
-            tooltip: l10n.pick('Re-check OS Permissions', 'Periksa Ulang Izin'),
+            tooltip: l10n.tr('re_check_os_permissions'),
             icon: provider.isRefreshing
                 ? const SizedBox(
                     width: 18,
@@ -70,10 +70,7 @@ class PermissionCenterScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      l10n.pick(
-                        '${revoked.length} previously granted permission(s) were revoked: ${revoked.map((e) => e.title).join(', ')}. Features using them have safely degraded.',
-                        '${revoked.length} izin yang sebelumnya diberikan telah dicabut: ${revoked.map((e) => e.title).join(', ')}.',
-                      ),
+                      l10n.tr('previously_granted_permission_s_were_revoked', {'revoked_length': revoked.length, 'revoked_join': revoked.map((e) => e.title).join(', ')}),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -87,7 +84,7 @@ class PermissionCenterScreen extends StatelessWidget {
           if (requiredPerms.isNotEmpty) ...[
             _sectionHeader(
               context,
-              l10n.pick('Required Core Permissions', 'Izin Inti Wajib'),
+              l10n.tr('required_core_permissions'),
               AppColors.primary,
             ),
             ...requiredPerms.map((p) => _permissionCard(context, provider, p)),
@@ -97,8 +94,7 @@ class PermissionCenterScreen extends StatelessWidget {
           if (recommendedPerms.isNotEmpty) ...[
             _sectionHeader(
               context,
-              l10n.pick('Recommended Reliability & Telemetry',
-                  'Disarankan untuk Keandalan & Telemetri'),
+              l10n.tr('recommended_reliability_telemetry'),
               AppColors.accent,
             ),
             ...recommendedPerms
@@ -109,8 +105,7 @@ class PermissionCenterScreen extends StatelessWidget {
           if (optionalPerms.isNotEmpty) ...[
             _sectionHeader(
               context,
-              l10n.pick('Optional Device Control & Context',
-                  'Izin Kontrol Perangkat Opsional'),
+              l10n.tr('optional_device_control_context'),
               AppColors.info,
             ),
             ...optionalPerms.map((p) => _permissionCard(context, provider, p)),

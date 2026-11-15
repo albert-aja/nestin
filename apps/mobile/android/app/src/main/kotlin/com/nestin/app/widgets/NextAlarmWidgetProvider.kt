@@ -31,6 +31,19 @@ class NextAlarmWidgetProvider : AppWidgetProvider() {
         const val KEY_AMPM = "next_alarm_ampm"
         const val KEY_COUNTDOWN = "next_alarm_countdown"
         const val KEY_LABEL = "next_alarm_label"
+        const val KEY_MASCOT_POSE = "next_alarm_mascot_pose"
+        const val KEY_SHOW_MASCOTS = "widgets_show_mascots"
+
+        fun resolveMascotDrawable(poseKey: String, hasAlarm: Boolean): Int {
+            if (!hasAlarm || poseKey == "roo_quiet") {
+                return R.drawable.mascot_widget_roo_quiet
+            }
+            return when (poseKey) {
+                "roo_hurry" -> R.drawable.mascot_widget_roo_hurry
+                "roo_morning" -> R.drawable.mascot_widget_roo_morning
+                else -> R.drawable.mascot_widget_roo_alarm
+            }
+        }
 
         fun updateAppWidget(
             context: Context,
@@ -43,6 +56,8 @@ class NextAlarmWidgetProvider : AppWidgetProvider() {
             val ampm = prefs.getString(KEY_AMPM, "AM") ?: "AM"
             val countdown = prefs.getString(KEY_COUNTDOWN, "Active") ?: "Active"
             val label = prefs.getString(KEY_LABEL, "Morning Wake Up • Daily") ?: "Morning Wake Up"
+            val mascotPose = prefs.getString(KEY_MASCOT_POSE, "roo_alarm") ?: "roo_alarm"
+            val showMascots = prefs.getBoolean(KEY_SHOW_MASCOTS, true)
 
             val views = RemoteViews(context.packageName, R.layout.widget_next_alarm)
 
@@ -58,6 +73,16 @@ class NextAlarmWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.tv_alarm_countdown, "Off")
                 views.setTextViewText(R.id.tv_alarm_label, "No upcoming alarms scheduled")
                 views.setViewVisibility(R.id.tv_alarm_countdown, View.VISIBLE)
+            }
+
+            if (showMascots) {
+                views.setViewVisibility(R.id.layout_alarm_mascot_badge, View.VISIBLE)
+                views.setImageViewResource(
+                    R.id.iv_alarm_mascot,
+                    resolveMascotDrawable(mascotPose, hasAlarm)
+                )
+            } else {
+                views.setViewVisibility(R.id.layout_alarm_mascot_badge, View.GONE)
             }
 
             // PendingIntent to launch app into alarms screen

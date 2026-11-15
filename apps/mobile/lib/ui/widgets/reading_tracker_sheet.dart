@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/reading_item.dart';
 import '../../providers/reading_provider.dart';
@@ -39,6 +40,30 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
 
   late TabController _tabController;
   bool _showSparklineDrawer = false;
+
+  String _localizeCategory(BuildContext context, String category) {
+    final l10n = context.l10n;
+    switch (category) {
+      case 'Self-Growth':
+        return l10n.tr('self_growth');
+      case 'Fiction':
+        return l10n.tr('fiction');
+      case 'Tech':
+        return l10n.tr('tech');
+      case 'Productivity':
+        return l10n.tr('productivity');
+      case 'Creativity':
+        return l10n.tr('creativity');
+      case 'Biography':
+        return l10n.tr('biography');
+      case 'Science':
+        return l10n.tr('science');
+      case 'General':
+        return l10n.tr('general');
+      default:
+        return category;
+    }
+  }
 
   @override
   void initState() {
@@ -93,6 +118,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
+            final l10n = ctx.l10n;
             final safeTotal = totalPages < 1 ? 1 : totalPages;
             final safeCurrent = currentPage.clamp(0, safeTotal);
             final pct = ((safeCurrent / safeTotal) * 100).round();
@@ -113,7 +139,9 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      isEdit ? 'Edit Reading Item' : 'Add Book / Reading',
+                      isEdit
+                          ? l10n.tr('edit_reading_item')
+                          : l10n.tr('add_book_reading'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -136,8 +164,8 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       ),
                       decoration: _inputDecoration(
                         ctx,
-                        label: 'Title',
-                        hint: 'e.g. The Design of Everyday Things',
+                        label: l10n.tr('title'),
+                        hint: l10n.tr('e_g_the_design_of_everyday'),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -149,8 +177,8 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       ),
                       decoration: _inputDecoration(
                         ctx,
-                        label: 'Author / Creator',
-                        hint: 'e.g. Don Norman',
+                        label: l10n.tr('author_creator'),
+                        hint: l10n.tr('e_g_don_norman'),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -168,7 +196,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             ),
                             decoration: _inputDecoration(
                               ctx,
-                              label: 'Current Page',
+                              label: l10n.tr('current_page'),
                               hint: '0',
                             ),
                             onChanged: (val) {
@@ -190,7 +218,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             ),
                             decoration: _inputDecoration(
                               ctx,
-                              label: 'Total Pages',
+                              label: l10n.tr('total_pages'),
                               hint: '300',
                             ),
                             onChanged: (val) {
@@ -213,7 +241,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '$safeCurrent / $safeTotal pages',
+                          l10n.tr('pages_4', {'safeCurrent': safeCurrent, 'safeTotal': safeTotal}),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary(ctx),
@@ -258,7 +286,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
 
                     // Format selector
                     Text(
-                      'FORMAT',
+                      l10n.tr('format'),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -294,7 +322,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
 
                     // Category selector
                     Text(
-                      'CATEGORY',
+                      l10n.tr('category_3'),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -309,7 +337,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       children: categories.map((cat) {
                         final selected = category == cat;
                         return ChoiceChip(
-                          label: Text(cat),
+                          label: Text(_localizeCategory(ctx, cat)),
                           selected: selected,
                           selectedColor: _pippinEmerald.withValues(alpha: 0.28),
                           backgroundColor: AppColors.elevatedSurface(ctx),
@@ -332,7 +360,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                     Row(
                       children: [
                         Text(
-                          'RATING',
+                          l10n.tr('rating'),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -373,8 +401,8 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       ),
                       decoration: _inputDecoration(
                         ctx,
-                        label: 'Takeaways / Quotes (optional)',
-                        hint: 'Memorable quotes or key insights...',
+                        label: l10n.tr('takeaways_quotes_optional'),
+                        hint: l10n.tr('memorable_quotes_or_key_insights'),
                       ),
                     ),
                   ],
@@ -383,7 +411,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text('Cancel',
+                  child: Text(l10n.tr('cancel'),
                       style: TextStyle(color: AppColors.textSecondary(ctx))),
                 ),
                 ElevatedButton(
@@ -448,7 +476,9 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                     ),
                   ),
                   child: Text(
-                    isEdit ? 'Save Changes' : 'Add Book',
+                    isEdit
+                        ? l10n.tr('save_changes')
+                        : l10n.tr('add_book_2'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -491,6 +521,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final emeraldText = AppColors.adaptive(
       context,
       dark: _pippinEmerald,
@@ -540,7 +571,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Reading Progress Tracker',
+                            l10n.tr('reading_progress_tracker_3'),
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -548,7 +579,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             ),
                           ),
                           Text(
-                            'Pippin Reading Sanctuary',
+                            l10n.tr('pippin_reading_sanctuary'),
                             style: TextStyle(
                               fontSize: 11,
                               color: emeraldText,
@@ -563,7 +594,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        tooltip: 'Daily Goal & Evening Nudge',
+                        tooltip: l10n.tr('daily_goal_evening_nudge'),
                         icon: Icon(
                           provider.eveningReminderEnabled
                               ? Icons.notifications_active_rounded
@@ -575,6 +606,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                         onPressed: () => ReadingGoalSettingsSheet.show(context),
                       ),
                       IconButton(
+                        tooltip: l10n.tr('close'),
                         icon: Icon(Icons.close_rounded,
                             color: AppColors.textSecondary(context)),
                         onPressed: () => Navigator.of(context).pop(),
@@ -602,7 +634,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       children: [
                         _buildStatColumn(
                           context,
-                          'Reading',
+                          l10n.tr('reading_2'),
                           '${provider.currentlyReadingCount}',
                           emeraldText,
                         ),
@@ -612,8 +644,8 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             color: AppColors.border(context)),
                         _buildStatColumn(
                           context,
-                          'Today',
-                          '${provider.todayPagesRead}/${provider.dailyPageGoal}p',
+                          l10n.tr('today'),
+                          '${provider.todayPagesRead}/${provider.dailyPageGoal}${l10n.tr('p')}',
                           provider.isDailyGoalMet
                               ? emeraldText
                               : AppColors.textPrimary(context),
@@ -624,8 +656,8 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             color: AppColors.border(context)),
                         _buildStatColumn(
                           context,
-                          'Streak',
-                          '🔥 ${provider.currentStreak}d',
+                          l10n.tr('streak'),
+                          '🔥 ${provider.currentStreak}${l10n.tr('d')}',
                           goldText,
                         ),
                         Container(
@@ -634,12 +666,12 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             color: AppColors.border(context)),
                         _buildStatColumn(
                           context,
-                          'Finished',
+                          l10n.tr('finished'),
                           '✅ ${provider.finishedBooksCount}',
                           goldText,
                         ),
                         IconButton(
-                          tooltip: 'Toggle 7-Day Sparkline',
+                          tooltip: l10n.tr('toggle_7_day_sparkline'),
                           visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(
@@ -693,10 +725,14 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                   labelStyle: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w700),
                   tabs: [
-                    Tab(text: 'All (${allBooks.length})'),
-                    Tab(text: 'Reading (${readingBooks.length})'),
-                    Tab(text: 'Queue (${queueBooks.length})'),
-                    Tab(text: 'Finished (${finishedBooks.length})'),
+                    Tab(
+                        text: l10n.tr('all_4', {'allBooks_length': allBooks.length})),
+                    Tab(
+                        text: l10n.tr('reading_3', {'readingBooks_length': readingBooks.length})),
+                    Tab(
+                        text: l10n.tr('queue', {'queueBooks_length': queueBooks.length})),
+                    Tab(
+                        text: l10n.tr('finished_2', {'finishedBooks_length': finishedBooks.length})),
                   ],
                 ),
               ),
@@ -707,22 +743,34 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildBookList(context, provider, allBooks,
-                        emptyTitle: 'Your reading shelf is empty',
-                        emptySubtitle:
-                            'Tap "+ Add Book / Reading" to track pages and completion.'),
-                    _buildBookList(context, provider, readingBooks,
-                        emptyTitle: 'Nothing currently being read',
-                        emptySubtitle:
-                            'Start a book from your Queue or slide its progress!'),
-                    _buildBookList(context, provider, queueBooks,
-                        emptyTitle: 'Reading queue is clear',
-                        emptySubtitle:
-                            'Save upcoming books, articles, and guides to read next.'),
-                    _buildBookList(context, provider, finishedBooks,
-                        emptyTitle: 'No finished books yet',
-                        emptySubtitle:
-                            'Reach 100% on a book to celebrate and save takeaways!'),
+                    _buildBookList(
+                      context,
+                      provider,
+                      allBooks,
+                      emptyTitle: l10n.tr('your_reading_shelf_is_empty'),
+                      emptySubtitle: l10n.tr('tap_add_book_reading_to_track'),
+                    ),
+                    _buildBookList(
+                      context,
+                      provider,
+                      readingBooks,
+                      emptyTitle: l10n.tr('nothing_currently_being_read'),
+                      emptySubtitle: l10n.tr('start_a_book_from_your_queue'),
+                    ),
+                    _buildBookList(
+                      context,
+                      provider,
+                      queueBooks,
+                      emptyTitle: l10n.tr('reading_queue_is_clear'),
+                      emptySubtitle: l10n.tr('save_upcoming_books_articles_and_guides'),
+                    ),
+                    _buildBookList(
+                      context,
+                      provider,
+                      finishedBooks,
+                      emptyTitle: l10n.tr('no_finished_books_yet'),
+                      emptySubtitle: l10n.tr('reach_100_on_a_book_to'),
+                    ),
                   ],
                 ),
               ),
@@ -733,9 +781,9 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                 onPressed: () => _showAddEditBookDialog(context),
                 icon: const Icon(Icons.add_rounded,
                     color: Colors.white, size: 20),
-                label: const Text(
-                  'Add Book / Reading',
-                  style: TextStyle(
+                label: Text(
+                  l10n.tr('add_book_reading'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -919,7 +967,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            book.category,
+                            _localizeCategory(context, book.category),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -972,42 +1020,50 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                     await provider.deleteBook(book.id);
                   }
                 },
-                itemBuilder: (menuCtx) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Text('Edit Details',
-                        style: TextStyle(
-                            color: AppColors.textPrimary(menuCtx),
-                            fontSize: 13)),
-                  ),
-                  PopupMenuItem(
-                    value: 'status_reading',
-                    child: Text('Mark as Reading',
-                        style: TextStyle(
-                            color: AppColors.textPrimary(menuCtx),
-                            fontSize: 13)),
-                  ),
-                  PopupMenuItem(
-                    value: 'status_queue',
-                    child: Text('Move to Queue',
-                        style: TextStyle(
-                            color: AppColors.textPrimary(menuCtx),
-                            fontSize: 13)),
-                  ),
-                  PopupMenuItem(
-                    value: 'status_finished',
-                    child: Text('Mark as Finished (100%)',
-                        style: TextStyle(
-                            color: AppColors.textPrimary(menuCtx),
-                            fontSize: 13)),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text('Delete Book',
-                        style:
-                            TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
-                  ),
-                ],
+                itemBuilder: (menuCtx) {
+                  final mL10n = menuCtx.l10n;
+                  return [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Text(
+                          mL10n.tr('edit_details'),
+                          style: TextStyle(
+                              color: AppColors.textPrimary(menuCtx),
+                              fontSize: 13)),
+                    ),
+                    PopupMenuItem(
+                      value: 'status_reading',
+                      child: Text(
+                          mL10n.tr('mark_as_reading'),
+                          style: TextStyle(
+                              color: AppColors.textPrimary(menuCtx),
+                              fontSize: 13)),
+                    ),
+                    PopupMenuItem(
+                      value: 'status_queue',
+                      child: Text(
+                          mL10n.tr('move_to_queue'),
+                          style: TextStyle(
+                              color: AppColors.textPrimary(menuCtx),
+                              fontSize: 13)),
+                    ),
+                    PopupMenuItem(
+                      value: 'status_finished',
+                      child: Text(
+                          mL10n.tr('mark_as_finished_100'),
+                          style: TextStyle(
+                              color: AppColors.textPrimary(menuCtx),
+                              fontSize: 13)),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                          mL10n.tr('delete_book'),
+                          style: const TextStyle(
+                              color: Color(0xFFEF4444), fontSize: 13)),
+                    ),
+                  ];
+                },
               ),
             ],
           ),

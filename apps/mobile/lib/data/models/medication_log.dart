@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum MedicationAction {
   taken,
   skipped,
@@ -5,11 +7,12 @@ enum MedicationAction {
 
 extension MedicationActionExtension on MedicationAction {
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case MedicationAction.taken:
-        return 'Taken';
+        return l10n.tr('taken');
       case MedicationAction.skipped:
-        return 'Skipped';
+        return l10n.tr('skipped');
     }
   }
 }

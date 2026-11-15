@@ -8,6 +8,7 @@ import 'reading_goal_sheet.dart';
 import 'reading_progress_slider.dart';
 import 'reading_sparkline_history.dart';
 import 'reading_tracker_sheet.dart';
+export '../screens/explore/nestin_discover_screen.dart';
 
 class ReadingProgressCard extends StatelessWidget {
   final bool isCompact;
@@ -64,10 +65,7 @@ class ReadingProgressCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  l10n.pick(
-                                    'Reading Progress Tracker',
-                                    'Pelacak Kemajuan Baca',
-                                  ),
+                                  l10n.tr('reading_progress_tracker_2'),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
@@ -85,10 +83,7 @@ class ReadingProgressCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  l10n.pick(
-                                    '$readingCount Reading • $finishedCount Done',
-                                    '$readingCount Dibaca • $finishedCount Selesai',
-                                  ),
+                                  l10n.tr('reading_done', {'readingCount': readingCount, 'finishedCount': finishedCount}),
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -104,10 +99,7 @@ class ReadingProgressCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            l10n.pick(
-                              '${provider.totalPagesRead} total pages read • ${provider.totalBooksCount} in library',
-                              '${provider.totalPagesRead} total halaman dibaca • ${provider.totalBooksCount} di pustaka',
-                            ),
+                            l10n.tr('total_pages_read_in_library', {'provider_totalPagesRead': provider.totalPagesRead, 'provider_totalBooksCount': provider.totalBooksCount}),
                             style: TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary(context),
@@ -142,10 +134,7 @@ class ReadingProgressCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        l10n.pick(
-                          'No books added yet. Track your current page & completion!',
-                          'Belum ada buku. Lacak halaman & progres bacamu!',
-                        ),
+                        l10n.tr('no_books_added_yet_track_your'),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary(context),
@@ -164,7 +153,7 @@ class ReadingProgressCard extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        l10n.pick('+ Add Book', '+ Tambah Buku'),
+                        l10n.tr('add_book'),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -219,10 +208,7 @@ class ReadingProgressCard extends StatelessWidget {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(
-                          l10n.pick(
-                            'All (${provider.totalBooksCount})',
-                            'Semua (${provider.totalBooksCount})',
-                          ),
+                          l10n.tr('all_3', {'provider_totalBooksCount': provider.totalBooksCount}),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,

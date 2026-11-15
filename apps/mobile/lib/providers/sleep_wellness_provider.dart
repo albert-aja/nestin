@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/bedtime_wind_down_config.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/notification_service.dart';
@@ -142,12 +143,12 @@ class SleepWellnessProvider extends ChangeNotifier {
 
       final hourStr = targetBedtime.hour.toString().padLeft(2, '0');
       final minuteStr = targetBedtime.minute.toString().padLeft(2, '0');
+      final l10n = AppLocalizations.current;
 
       await _notificationService.scheduleWellnessNotification(
         id: windDownNotificationId,
-        title: '🌙 Seren — Bedtime Wind-Down',
-        body:
-            'Time to unwind! Bedtime in ${_config.windDownLeadMinutes}m ($hourStr:$minuteStr for ${_config.targetSleepCycles} cycles). Tap to start 30m soothing ambient rain or forest breeze. 🌿🌧️',
+        title: l10n.tr('seren_bedtime_wind_down'),
+        body: l10n.tr('time_to_unwind_bedtime_in_m', {'config_windDownLeadMinutes': _config.windDownLeadMinutes, 'hourStr': hourStr, 'minuteStr': minuteStr, 'config_targetSleepCycles': _config.targetSleepCycles}),
         scheduledDate: alertTime,
         payload: 'wind_down_ambient',
       );
@@ -183,12 +184,12 @@ class SleepWellnessProvider extends ChangeNotifier {
     final targetBedtime = getTargetBedtime(nextAlarmTime: nextAlarmTime);
     final hourStr = targetBedtime.hour.toString().padLeft(2, '0');
     final minuteStr = targetBedtime.minute.toString().padLeft(2, '0');
+    final l10n = AppLocalizations.current;
 
     await _notificationService.showWellnessNotification(
       id: 7199,
-      title: '🌙 Seren — Bedtime Wind-Down (Test)',
-      body:
-          'Time to unwind! Bedtime in ${_config.windDownLeadMinutes}m ($hourStr:$minuteStr for ${_config.targetSleepCycles} cycles). Tap to start 30m soothing ambient rain or forest breeze. 🌿🌧️',
+      title: l10n.tr('seren_bedtime_wind_down_test'),
+      body: l10n.tr('time_to_unwind_bedtime_in_m', {'config_windDownLeadMinutes': _config.windDownLeadMinutes, 'hourStr': hourStr, 'minuteStr': minuteStr, 'config_targetSleepCycles': _config.targetSleepCycles}),
       payload: 'wind_down_ambient',
     );
   }

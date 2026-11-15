@@ -27,12 +27,14 @@ import '../../widgets/reading_progress_card.dart';
 import '../../widgets/gratitude_jar_sheet.dart';
 import '../../widgets/location_reminders_card.dart';
 import '../../widgets/before_you_go_card.dart';
+import '../../widgets/before_you_go_weather_banner.dart';
 import '../../widgets/money_summary_card.dart';
 import '../../widgets/oem_warning_banner.dart';
+import '../../widgets/mascot_milestone_stamp_overlay.dart';
 import '../alarms/alarm_edit_screen.dart';
 import '../search/universal_search_screen.dart';
 import '../settings/settings_screen.dart';
-import '../scout/digital_wellbeing_screen.dart';
+import '../scout/phone_modes_screen.dart';
 import '../automation/automation_hub_screen.dart';
 import '../../../providers/device_control_provider.dart';
 import '../../../providers/automation_provider.dart';
@@ -50,6 +52,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   late Timer _ticker;
   DateTime _now = DateTime.now();
   WeatherInfo? _weatherInfo;
+  WeatherProviderInterface? _weatherService;
 
   @override
   void initState() {
@@ -61,12 +64,35 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         });
       }
     });
+    _attachWeatherService();
     _loadWeather();
   }
 
+  void _attachWeatherService() {
+    WeatherProviderInterface resolved;
+    try {
+      resolved = Provider.of<WeatherProviderInterface>(context, listen: false);
+    } on ProviderNotFoundException {
+      resolved = LocalWeatherService();
+    }
+    if (identical(_weatherService, resolved)) return;
+    final prev = _weatherService;
+    if (prev is LocalWeatherService) {
+      prev.removeWeatherListener(_onWeatherServiceUpdated);
+    }
+    _weatherService = resolved;
+    if (resolved is LocalWeatherService) {
+      resolved.addWeatherListener(_onWeatherServiceUpdated);
+    }
+  }
+
+  void _onWeatherServiceUpdated() {
+    if (mounted) _loadWeather();
+  }
+
   Future<void> _loadWeather() async {
-    final weatherService = LocalWeatherService();
-    final info = await weatherService.getCurrentWeather();
+    final service = _weatherService ?? LocalWeatherService();
+    final info = await service.getCurrentWeather();
     if (mounted) {
       setState(() {
         _weatherInfo = info;
@@ -76,6 +102,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   @override
   void dispose() {
+    final service = _weatherService;
+    if (service is LocalWeatherService) {
+      service.removeWeatherListener(_onWeatherServiceUpdated);
+    }
     _ticker.cancel();
     super.dispose();
   }
@@ -307,7 +337,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                             Navigator.of(ctx).push(
                               MaterialPageRoute(
                                 builder: (_) => activeMode != null
-                                    ? const DigitalWellbeingScreen(initialTab: 1)
+                                    ? const PhoneModesScreen()
                                     : const AutomationHubScreen(),
                               ),
                             );
@@ -512,12 +542,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l10n.pick('Today\'s Agenda', 'Agenda Hari Ini'),
+                    l10n.tr('today_s_agenda'),
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                   TextButton(
                     onPressed: () => widget.onNavigateTab(1, 2),
-                    child: Text(l10n.pick('Full Calendar', 'Kalender Lengkap'),
+                    child: Text(l10n.tr('full_calendar'),
                         style: const TextStyle(fontSize: 12)),
                   ),
                 ],
@@ -555,7 +585,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   Row(
                     children: [
                       Text(
-                        l10n.pick('Tasks Due Today', 'Tugas Hari Ini'),
+                        l10n.tr('tasks_due_today'),
                         style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w700),
                       ),
@@ -580,7 +610,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   ),
                   TextButton(
                     onPressed: () => widget.onNavigateTab(1, 3),
-                    child: Text(l10n.pick('All Tasks', 'Semua Tugas'),
+                    child: Text(l10n.tr('all_tasks'),
                         style: const TextStyle(fontSize: 12)),
                   ),
                 ],
@@ -603,12 +633,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l10n.pick('Daily Routines & Habits', 'Rutinitas & Kebiasaan'),
+                    l10n.tr('daily_routines_habits'),
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                   TextButton(
                     onPressed: () => widget.onNavigateTab(1, 4),
-                    child: Text(l10n.pick('Manage', 'Kelola'),
+                    child: Text(l10n.tr('manage'),
                         style: const TextStyle(fontSize: 12)),
                   ),
                 ],
@@ -680,7 +710,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l10n.pick('Everyday Reflection', 'Refleksi Harian'),
+                    l10n.tr('everyday_reflection'),
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                   TextButton(
@@ -764,7 +794,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.pick('☀️ Morning Briefing', '☀️ Ringkasan Pagi'),
+                      l10n.tr('morning_briefing'),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -773,10 +803,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      l10n.pick(
-                        '${weather != null ? "${weather.temperatureCelsius.toInt()}°C • " : ""}${tasks.length} tasks due, ${events.length} events today.',
-                        '${weather != null ? "${weather.temperatureCelsius.toInt()}°C • " : ""}${tasks.length} tugas, ${events.length} acara hari ini.',
-                      ),
+                      l10n.tr('tasks_due_events_today', {'weather_C': weather != null ? "${weather.temperatureCelsius.toInt()}°C • " : "", 'tasks_length': tasks.length, 'events_length': events.length}),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(context),
@@ -794,7 +821,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   _showBriefingDialog(context, nextAlarm, tasks, events, weather);
                 },
                 icon: const Icon(Icons.volume_up_rounded, size: 14),
-                label: Text(l10n.pick('Read', 'Baca'),
+                label: Text(l10n.tr('read'),
                     style: const TextStyle(fontSize: 11)),
                 style: FilledButton.styleFrom(
                   backgroundColor:
@@ -836,7 +863,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             children: [
               Icon(Icons.wb_twilight_rounded, color: accentInk, size: 24),
               const SizedBox(width: 10),
-              Text(l10n.pick('Daily Briefing', 'Ringkasan Harian'),
+              Text(l10n.tr('daily_briefing'),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             ],
           ),
@@ -845,10 +872,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.pick(
-                  'Good day! Here is your snapshot for ${l10n.formatDate(_now, "EEEE, MMM d")}:',
-                  'Selamat beraktivitas! Ini ringkasan untuk ${l10n.formatDate(_now, "EEEE, d MMM")}:',
-                ),
+                l10n.tr('good_day_here_is_your_snapshot', {'l10n_d': l10n.formatDate(_now, "EEEE, MMM d"), 'l10n_MMM': l10n.formatDate(_now, "EEEE, d MMM")}),
                 style: TextStyle(
                   fontSize: 13,
                   color: AppColors.textSecondary(ctx),
@@ -863,10 +887,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        l10n.pick(
-                          'Weather: ${weather.temperatureCelsius.toInt()}°C (${weather.condition}). ${weather.advice}',
-                          'Cuaca: ${weather.temperatureCelsius.toInt()}°C (${weather.condition}). ${weather.advice}',
-                        ),
+                        l10n.tr('weather_c', {'weather_toInt': weather.temperatureCelsius.toInt(), 'weather_condition': weather.condition, 'weather_advice': weather.advice}),
                         style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -883,14 +904,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 Expanded(
                   child: Text(
                     nextAlarm != null
-                        ? l10n.pick(
-                            'Next Alarm: "${nextAlarm.title}" at ${nextAlarm.formattedTime()}',
-                            'Alarm Berikutnya: "${nextAlarm.title}" pukul ${nextAlarm.formattedTime()}',
-                          )
-                        : l10n.pick(
-                            'No alarms currently scheduled for today.',
-                            'Belum ada alarm terjadwal hari ini.',
-                          ),
+                        ? l10n.tr('next_alarm_at', {'nextAlarm_title': nextAlarm.title, 'nextAlarm_formattedTime': nextAlarm.formattedTime()})
+                        : l10n.tr('no_alarms_currently_scheduled_for_today'),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),
@@ -905,10 +920,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.pick(
-                      'Tasks: ${tasks.length} pending items due today.',
-                      'Tugas: ${tasks.length} tugas perlu diselesaikan hari ini.',
-                    ),
+                    l10n.tr('tasks_pending_items_due_today', {'tasks_length': tasks.length}),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),
@@ -923,10 +935,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.pick(
-                      'Agenda: ${events.length} events scheduled in calendar.',
-                      'Agenda: ${events.length} acara terjadwal di kalender.',
-                    ),
+                    l10n.tr('agenda_events_scheduled_in_calendar', {'events_length': events.length}),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),
@@ -942,7 +951,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text(l10n.pick('Ready for the day!', 'Siap jalani hari!'),
+            child: Text(l10n.tr('ready_for_the_day'),
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w700)),
           ),
@@ -969,84 +978,84 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
             final Map<String, Map<String, dynamic>> sectionMeta = {
               DashboardConfig.sectionWeather: {
-                'title': l10n.pick('Weather & Daily Advice', 'Cuaca & Saran Harian'),
+                'title': l10n.tr('weather_daily_advice'),
                 'icon': Icons.wb_sunny_rounded,
                 'color': AppColors.accent,
                 'isEnabled': config.showWeather,
                 'toggle': (bool v) => provider.toggleWeather(v),
               },
               DashboardConfig.sectionNextAlarm: {
-                'title': l10n.pick('Hero Next Alarm', 'Alarm Berikutnya'),
+                'title': l10n.tr('hero_next_alarm'),
                 'icon': Icons.alarm_rounded,
                 'color': AppColors.primary,
                 'isEnabled': config.showNextAlarm,
                 'toggle': (bool v) => provider.toggleNextAlarm(v),
               },
               DashboardConfig.sectionAgenda: {
-                'title': l10n.pick('Today\'s Agenda (Events & Reminders)', 'Agenda Hari Ini (Acara & Pengingat)'),
+                'title': l10n.tr('today_s_agenda_events_reminders'),
                 'icon': Icons.event_note_rounded,
                 'color': AppColors.catWork,
                 'isEnabled': config.showTodayAgenda,
                 'toggle': (bool v) => provider.toggleTodayAgenda(v),
               },
               DashboardConfig.sectionLocationReminders: {
-                'title': l10n.pick('Scout Location Reminders (Geofences)', 'Pengingat Lokasi Scout (Geofence)'),
+                'title': l10n.tr('scout_location_reminders_geofences'),
                 'icon': Icons.location_on_rounded,
                 'color': const Color(0xFF3B82F6),
                 'isEnabled': config.showLocationReminders,
                 'toggle': (bool v) => provider.toggleLocationReminders(v),
               },
               DashboardConfig.sectionBeforeYouGo: {
-                'title': l10n.pick('Scout BeforeYouGo & Departure Alerts', 'BeforeYouGo & Pengingat Berangkat Scout'),
+                'title': l10n.tr('scout_beforeyougo_departure_alerts'),
                 'icon': Icons.door_front_door_outlined,
                 'color': const Color(0xFF3B82F6),
                 'isEnabled': config.showBeforeYouGo,
                 'toggle': (bool v) => provider.toggleBeforeYouGo(v),
               },
               DashboardConfig.sectionTasks: {
-                'title': l10n.pick('Tasks Due Today', 'Tugas Hari Ini'),
+                'title': l10n.tr('tasks_due_today'),
                 'icon': Icons.checklist_rounded,
                 'color': AppColors.catWork,
                 'isEnabled': config.showTodayTasks,
                 'toggle': (bool v) => provider.toggleTodayTasks(v),
               },
               DashboardConfig.sectionRoutines: {
-                'title': l10n.pick('Daily Routines & Habits', 'Rutinitas & Kebiasaan Harian'),
+                'title': l10n.tr('daily_routines_habits_2'),
                 'icon': Icons.repeat_rounded,
                 'color': AppColors.accent,
                 'isEnabled': config.showRoutines,
                 'toggle': (bool v) => provider.toggleRoutines(v),
               },
               DashboardConfig.sectionHydration: {
-                'title': l10n.pick('Hydration 7-Day Sparkline', 'Grafik Hidrasi 7 Hari'),
+                'title': l10n.tr('hydration_7_day_sparkline'),
                 'icon': Icons.water_drop_rounded,
                 'color': const Color(0xFF38BDF8),
                 'isEnabled': config.showHydration,
                 'toggle': (bool v) => provider.toggleHydration(v),
               },
               DashboardConfig.sectionWellness: {
-                'title': l10n.pick('Seren Health (Steps, Sleep & Vitals)', 'Kesehatan Seren (Langkah, Tidur & Vital)'),
+                'title': l10n.tr('seren_health_steps_sleep_vitals'),
                 'icon': Icons.spa_rounded,
                 'color': const Color(0xFF8B5CF6),
                 'isEnabled': config.showWellness,
                 'toggle': (bool v) => provider.toggleWellness(v),
               },
               DashboardConfig.sectionReading: {
-                'title': l10n.pick('Reading Progress Tracker', 'Pelacak Progres Membaca'),
+                'title': l10n.tr('reading_progress_tracker'),
                 'icon': Icons.menu_book_rounded,
                 'color': const Color(0xFF10B981),
                 'isEnabled': config.showReading,
                 'toggle': (bool v) => provider.toggleReading(v),
               },
               DashboardConfig.sectionMoney: {
-                'title': l10n.pick('Twill Money Management', 'Pengelola Keuangan Twill'),
+                'title': l10n.tr('twill_money_management'),
                 'icon': Icons.account_balance_wallet_rounded,
                 'color': const Color(0xFFF59E0B),
                 'isEnabled': config.showMoney,
                 'toggle': (bool v) => provider.toggleMoney(v),
               },
               DashboardConfig.sectionMood: {
-                'title': l10n.pick('Reflection & Weekly Mood Trend', 'Refleksi & Tren Suasana Hati'),
+                'title': l10n.tr('reflection_weekly_mood_trend'),
                 'icon': Icons.mood_rounded,
                 'color': AppColors.catPersonal,
                 'isEnabled': config.showQuickJournal,
@@ -1066,7 +1075,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          l10n.pick('Customize Dashboard Cards', 'Atur Kartu Beranda'),
+                          l10n.tr('customize_dashboard_cards'),
                           style: const TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w800),
                         ),
@@ -1083,10 +1092,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      l10n.pick(
-                        'Drag handles to reorder sections. Toggle switches to show or hide cards.',
-                        'Seret pegangan untuk mengurutkan. Gunakan sakelar untuk menampilkan atau menyembunyikan kartu.',
-                      ),
+                      l10n.tr('drag_handles_to_reorder_sections_toggle'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -1191,31 +1197,26 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   Widget _buildWeatherBanner(WeatherInfo info, String dateText) {
     return Builder(
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface(context),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border(context)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.wb_sunny_rounded,
-                color: AppColors.adaptive(
-                  context,
-                  dark: AppColors.accent,
-                  light: const Color(0xFFB45309),
+      builder: (context) {
+        final visual =
+            BeforeYouGoWeatherBanner.resolveWeatherVisual(context, info);
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.cardSurface(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border(context)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: visual.color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                size: 26,
+                child: Icon(visual.icon, color: visual.color, size: 26),
               ),
-            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -1264,7 +1265,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ),
           ],
         ),
-      ),
+      );
+      },
     );
   }
 
@@ -1288,18 +1290,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 size: 34, color: AppColors.textSecondary(context)),
             const SizedBox(height: 10),
             Text(
-              context.l10n.pick(
-                'No upcoming alarms set',
-                'Belum ada alarm mendatang',
-              ),
+              context.l10n.tr('no_upcoming_alarms_set'),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
-              context.l10n.pick(
-                'Set an alarm to keep your schedule punctual',
-                'Atur alarm agar jadwalmu tetap tepat waktu',
-              ),
+              context.l10n.tr('set_an_alarm_to_keep_your'),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary(context),
@@ -1319,7 +1315,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 ),
               ),
               child: Text(
-                  context.l10n.pick('Add Alarm', 'Tambah Alarm'),
+                  context.l10n.tr('add_alarm'),
                   style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w700)),
             ),
@@ -1419,10 +1415,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     Icon(Icons.psychology_rounded, size: 14, color: accentInk),
                     const SizedBox(width: 4),
                     Text(
-                      context.l10n.pick(
-                        '${challenge.typeLabel} Challenge',
-                        'Tantangan ${challenge.typeLabel}',
-                      ),
+                      context.l10n.tr('challenge', {'challenge_typeLabel': challenge.typeLabel}),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -1433,7 +1426,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 )
               else
                 Text(
-                  context.l10n.pick('Standard dismissal', 'Matikan standar'),
+                  context.l10n.tr('standard_dismissal'),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
@@ -1442,7 +1435,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               FilledButton.icon(
                 onPressed: () => provider.triggerAlarm(alarm),
                 icon: const Icon(Icons.play_arrow_rounded, size: 16),
-                label: Text(context.l10n.pick('Test Ring', 'Uji Dering')),
+                label: Text(context.l10n.tr('test_ring')),
                 style: FilledButton.styleFrom(
                   backgroundColor:
                       AppColors.primary.withValues(alpha: isDark ? 0.25 : 0.14),
@@ -1530,10 +1523,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ),
               alignment: Alignment.center,
               child: Text(
-                context.l10n.pick(
-                  'No events or reminders scheduled for today.',
-                  'Belum ada acara atau pengingat hari ini.',
-                ),
+                context.l10n.tr('no_events_or_reminders_scheduled_for'),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary(context),
@@ -1664,10 +1654,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ),
               alignment: Alignment.center,
               child: Text(
-                context.l10n.pick(
-                  'All caught up! No tasks due today.',
-                  'Semua beres! Tidak ada tugas jatuh tempo hari ini.',
-                ),
+                context.l10n.tr('all_caught_up_no_tasks_due'),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary(context),
@@ -1727,10 +1714,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           ),
                           if (t.subtasks.isNotEmpty)
                             Text(
-                              context.l10n.pick(
-                                '${t.completedSubtasksCount}/${t.subtasks.length} subtasks',
-                                '${t.completedSubtasksCount}/${t.subtasks.length} subtugas',
-                              ),
+                              context.l10n.tr('subtasks', {'t_completedSubtasksCount': t.completedSubtasksCount, 't_length': t.subtasks.length}),
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary(context),
@@ -1811,10 +1795,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     ),
                     const Spacer(),
                     Text(
-                      context.l10n.pick(
-                        '🔥 ${activeRoutine.streakCount} day streak',
-                        '🔥 ${activeRoutine.streakCount} hari beruntun',
-                      ),
+                      context.l10n.tr('day_streak', {'activeRoutine_streakCount': activeRoutine.streakCount}),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -1851,9 +1832,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     final isDone =
                         activeRoutine.completedStepIndices.contains(idx);
                     return InkWell(
-                      onTap: () {
+                      onTap: () async {
                         HapticFeedback.lightImpact();
-                        provider.toggleStep(activeRoutine.id, idx);
+                        final milestone =
+                            await provider.toggleStep(activeRoutine.id, idx);
+                        if (milestone != null && context.mounted) {
+                          MascotMilestoneStampOverlay.showRooOnFire(
+                            context,
+                            routineTitle: activeRoutine.title,
+                            streakDays: milestone,
+                          );
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1903,27 +1892,27 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     final moods = [
       {
         'emoji': '😊',
-        'label': l10n.pick('Great', 'Sangat Baik'),
+        'label': l10n.tr('great_2'),
         'mood': JournalMood.great,
       },
       {
         'emoji': '🙂',
-        'label': l10n.pick('Good', 'Baik'),
+        'label': l10n.tr('good'),
         'mood': JournalMood.good,
       },
       {
         'emoji': '😐',
-        'label': l10n.pick('Neutral', 'Netral'),
+        'label': l10n.tr('neutral'),
         'mood': JournalMood.neutral,
       },
       {
         'emoji': '😔',
-        'label': l10n.pick('Low', 'Kurang'),
+        'label': l10n.tr('low_2'),
         'mood': JournalMood.low,
       },
       {
         'emoji': '😫',
-        'label': l10n.pick('Tough', 'Berat'),
+        'label': l10n.tr('tough'),
         'mood': JournalMood.tough,
       },
     ];
@@ -1939,10 +1928,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l10n.pick(
-              'How are you feeling right now?',
-              'Bagaimana perasaanmu saat ini?',
-            ),
+            l10n.tr('how_are_you_feeling_right_now'),
             style: TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary(context),
@@ -1962,14 +1948,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   final now = DateTime.now();
                   final entry = JournalEntry(
                     id: const Uuid().v4(),
-                    title: l10n.pick('Mood Check: $label', 'Cek Suasana Hati: $label'),
-                    content: l10n.pick(
-                      'Logged mood $emoji $label during everyday reflection.',
-                      'Mencatat suasana hati $emoji $label saat refleksi harian.',
-                    ),
+                    title: l10n.tr('mood_check', {'label': label}),
+                    content: l10n.tr('logged_mood_during_everyday_reflection', {'emoji': emoji, 'label': label}),
                     date: now,
                     mood: moodEnum,
-                    tags: [l10n.pick('Reflection', 'Refleksi'), label],
+                    tags: [l10n.tr('reflection'), label],
                     createdAt: now,
                     updatedAt: now,
                   );
@@ -1978,10 +1961,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          l10n.pick(
-                            'Logged feeling $emoji $label to diary!',
-                            'Perasaan $emoji $label dicatat ke diari!',
-                          ),
+                          l10n.tr('logged_feeling_to_diary', {'emoji': emoji, 'label': label}),
                         ),
                         duration: const Duration(seconds: 2),
                         behavior: SnackBarBehavior.floating,
@@ -2115,22 +2095,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    context.l10n.pick(
-                      '7-Day Reflection Trend',
-                      'Tren Refleksi 7 Hari',
-                    ),
+                    context.l10n.tr('k_7_day_reflection_trend'),
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                   ),
                   Text(
                     dominantMood != null
-                        ? context.l10n.pick(
-                            '$loggedCount/7 days • Mostly ${dominantMood.label} ${dominantMood.emoji}',
-                            '$loggedCount/7 hari • Dominan ${dominantMood.label} ${dominantMood.emoji}',
-                          )
-                        : context.l10n.pick(
-                            '$loggedCount/7 days logged',
-                            '$loggedCount/7 hari tercatat',
-                          ),
+                        ? context.l10n.tr('k_7_days_mostly', {'loggedCount': loggedCount, 'dominantMood_label': dominantMood.label, 'dominantMood_emoji': dominantMood.emoji})
+                        : context.l10n.tr('k_7_days_logged', {'loggedCount': loggedCount}),
                     style: TextStyle(
                       fontSize: 10,
                       color: AppColors.textSecondary(context),

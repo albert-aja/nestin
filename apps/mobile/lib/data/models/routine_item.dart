@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum RoutineType {
   morning,
   evening,
@@ -38,13 +40,14 @@ class RoutineItem {
   }
 
   String get typeLabel {
+    final l10n = AppLocalizations.current;
     switch (type) {
       case RoutineType.morning:
-        return 'Morning Routine';
+        return l10n.tr('morning_routine');
       case RoutineType.evening:
-        return 'Evening Routine';
+        return l10n.tr('evening_routine');
       case RoutineType.custom:
-        return 'Custom Habit';
+        return l10n.tr('custom_habit');
     }
   }
 

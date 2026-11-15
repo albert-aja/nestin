@@ -19,7 +19,7 @@ void main() {
         sourceArtSheetsDir.existsSync(),
         isTrue,
         reason:
-            'All 14 source art sheets must be archived under source_art/mascots/sheets.',
+            'All 18 source art sheets must be archived under source_art/mascots/sheets.',
       );
 
       final files = sourceArtSheetsDir
@@ -27,36 +27,55 @@ void main() {
           .whereType<File>()
           .where((f) => f.path.endsWith('.jpg'))
           .toList();
-      expect(files.length, 14, reason: 'Expected all 14 raw sheet JPG files in source_art.');
+      expect(
+        files.length,
+        greaterThanOrEqualTo(22),
+        reason: 'Expected at least 22 raw sheet JPG files in source_art/mascots/sheets.',
+      );
+
+      final familyDir = Directory('source_art/mascots/family');
+      expect(familyDir.existsSync(), isTrue);
+      final familyFiles = familyDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.jpg'))
+          .toList();
+      expect(
+        familyFiles.length,
+        greaterThanOrEqualTo(5),
+        reason: 'Expected at least 5 family photo JPG canvases in source_art/mascots/family.',
+      );
     });
 
-    test('Sliced sprite library contains 84 transparent PNGs totaling < 2 MB', () {
+    test('Sliced sprite library contains 132 transparent PNGs totaling < 10 MB', () {
       final spritesDir = Directory('assets/mascots/sprites');
       expect(spritesDir.existsSync(), isTrue);
 
       final expectedCounts = {
-        'roo': 18,
-        'seren': 18,
-        'echo': 12,
-        'pippin': 12,
-        'twill': 12,
-        'scout': 12,
+        'roo': 24,
+        'seren': 24,
+        'echo': 18,
+        'pippin': 18,
+        'twill': 18,
+        'scout': 18,
+        'duos': 6,
+        'ensembles': 6,
       };
 
       int totalPngCount = 0;
       int totalByteLength = 0;
 
-      expectedCounts.forEach((bird, count) {
-        final birdDir = Directory('assets/mascots/sprites/$bird');
-        expect(birdDir.existsSync(), isTrue, reason: 'Missing sprite directory for $bird');
+      expectedCounts.forEach((dir, count) {
+        final spriteSubdir = Directory('assets/mascots/sprites/$dir');
+        expect(spriteSubdir.existsSync(), isTrue, reason: 'Missing sprite directory for $dir');
 
-        final pngs = birdDir
+        final pngs = spriteSubdir
             .listSync()
             .whereType<File>()
             .where((f) => f.path.endsWith('.png'))
             .toList();
         expect(pngs.length, count,
-            reason: 'Expected $count sprites for $bird, found ${pngs.length}');
+            reason: 'Expected $count sprites for $dir, found ${pngs.length}');
 
         totalPngCount += pngs.length;
         for (final png in pngs) {
@@ -64,9 +83,9 @@ void main() {
         }
       });
 
-      expect(totalPngCount, 84);
-      // Total size must be under 2.0 MB (actual is ~1.8 MB)
-      expect(totalByteLength, lessThan(2 * 1024 * 1024));
+      expect(totalPngCount, 132);
+      // Total size must be under 10.0 MB (actual is ~8.46 MB)
+      expect(totalByteLength, lessThan(10 * 1024 * 1024));
     });
 
     test('pubspec.yaml registers sprite directories and excludes sheets', () {
@@ -78,6 +97,8 @@ void main() {
       expect(pubspec.contains('- assets/mascots/sprites/pippin/'), isTrue);
       expect(pubspec.contains('- assets/mascots/sprites/twill/'), isTrue);
       expect(pubspec.contains('- assets/mascots/sprites/scout/'), isTrue);
+      expect(pubspec.contains('- assets/mascots/sprites/duos/'), isTrue);
+      expect(pubspec.contains('- assets/mascots/sprites/ensembles/'), isTrue);
       expect(pubspec.contains('- assets/mascots/flock_mascots.jpg'), isTrue);
 
       // Must not register sheets

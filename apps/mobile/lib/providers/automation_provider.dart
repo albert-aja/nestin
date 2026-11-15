@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/alarm_category.dart';
+import '../data/models/app_restriction.dart';
 import '../data/models/automation_rule.dart';
 import '../data/models/device_capability.dart';
 import '../data/models/reminder.dart';
@@ -336,10 +338,11 @@ class AutomationProvider extends ChangeNotifier {
         ),
       );
       if (notifications != null) {
+        final l10n = AppLocalizations.current;
         await notifications!.showAutomationNotification(
           id: rule.id.hashCode.abs() % 100000 + 850000,
-          title: 'Confirm Automation · ${rule.name}',
-          body: '$triggerReason triggered a device-control rule. Tap to review.',
+          title: l10n.tr('confirm_automation', {'rule_name': rule.name}),
+          body: l10n.tr('triggered_a_device_control_rule_tap', {'triggerReason': triggerReason}),
           payload: 'nestin://automation',
         );
       }
@@ -589,6 +592,43 @@ class AutomationProvider extends ChangeNotifier {
               } else {
                 unsupportedCount++;
                 actionResults.add('Could not open OS settings on this host.');
+              }
+              completed = true;
+              break;
+
+            case AutomationActionType.applyAppRestriction:
+              final pkg = action.params['packageName'] as String? ?? '';
+              final appName = action.params['appName'] as String? ?? pkg;
+              final durationMin = action.params['durationMinutes'] as int? ?? 30;
+              final strengthName =
+                  action.params['strength'] as String? ?? 'reminder';
+              final strength = RestrictionStrength.values.firstWhere(
+                (s) => s.name == strengthName,
+                orElse: () => RestrictionStrength.reminder,
+              );
+              if (pkg.isEmpty) {
+                hardFailed = true;
+                actionResults.add('No target package provided for app restriction.');
+              } else {
+                await _deviceControl.registerExtraRestrictionRule(
+                  RestrictionRule(
+                    id: 'auto_${rule.id}_$pkg',
+                    sourceType: RestrictionSourceType.automation,
+                    sourceId: rule.id,
+                    title: rule.name,
+                    packageName: pkg,
+                    appName: appName,
+                    strength: strength,
+                    reason:
+                        'Triggered by Automation "${rule.name}" for ${durationMin}m.',
+                    expiresAt: now.add(Duration(minutes: durationMin)),
+                  ),
+                  now: now,
+                );
+                successes++;
+                actionResults.add(
+                  'Registered ${strength.label} for $appName (${durationMin}m).',
+                );
               }
               completed = true;
               break;

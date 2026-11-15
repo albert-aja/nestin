@@ -112,10 +112,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            l10n.pick(
-                              'Daily Page Goal & Streak',
-                              'Target Halaman & Streak',
-                            ),
+                            l10n.tr('daily_page_goal_streak'),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -123,10 +120,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            l10n.pick(
-                              'Pippin evening reading habit & history',
-                              'Pengingat baca sore Pippin & riwayat',
-                            ),
+                            l10n.tr('pippin_evening_reading_habit_history'),
                             style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
@@ -161,7 +155,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                     children: [
                       _buildStatCol(
                         context,
-                        label: l10n.pick('Current Streak', 'Streak Kini'),
+                        label: l10n.tr('current_streak'),
                         value: '🔥 ${currentStreak}d',
                         color: goldInk,
                       ),
@@ -172,7 +166,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                       ),
                       _buildStatCol(
                         context,
-                        label: l10n.pick('Best Streak', 'Streak Terbaik'),
+                        label: l10n.tr('best_streak'),
                         value: '🏆 ${bestStreak}d',
                         color: emeraldInk,
                       ),
@@ -183,7 +177,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                       ),
                       _buildStatCol(
                         context,
-                        label: l10n.pick('7-Day Total', 'Total 7 Hari'),
+                        label: l10n.tr('k_7_day_total'),
                         value: '${provider.weeklyTotalPages} p',
                         color: AppColors.textPrimary(context),
                       ),
@@ -206,7 +200,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
 
                 // Daily Page Goal Configuration
                 Text(
-                  l10n.pick('DAILY PAGE TARGET', 'TARGET HALAMAN HARIAN'),
+                  l10n.tr('daily_page_target'),
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
@@ -241,10 +235,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                             child: Column(
                               children: [
                                 Text(
-                                  l10n.pick(
-                                    '$goal pages / day',
-                                    '$goal halaman / hari',
-                                  ),
+                                  l10n.tr('pages_day', {'goal': goal}),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
@@ -252,10 +243,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  l10n.pick(
-                                    'Pages logged on books today count automatically',
-                                    'Halaman yang dicatat hari ini dihitung otomatis',
-                                  ),
+                                  l10n.tr('pages_logged_on_books_today_count'),
                                   style: TextStyle(
                                     fontSize: 10.5,
                                     color: AppColors.textSecondary(context),
@@ -345,10 +333,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  l10n.pick(
-                                    'Evening Pippin Nudge',
-                                    'Pengingat Sore Pippin',
-                                  ),
+                                  l10n.tr('evening_pippin_nudge'),
                                   style: TextStyle(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
@@ -356,10 +341,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  l10n.pick(
-                                    'Optional reminder if today\'s goal is incomplete',
-                                    'Pengingat opsional jika target hari ini belum tercapai',
-                                  ),
+                                  l10n.tr('optional_reminder_if_today_s_goal'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary(context),
@@ -415,10 +397,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              l10n.pick(
-                                'Reminder time: ${provider.formattedReminderTime}',
-                                'Waktu pengingat: ${provider.formattedReminderTime}',
-                              ),
+                              l10n.tr('reminder_time', {'provider_formattedReminderTime': provider.formattedReminderTime}),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -443,7 +422,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                               },
                               icon: const Icon(Icons.schedule_rounded, size: 15),
                               label: Text(
-                                l10n.pick('Custom Time', 'Atur Jam'),
+                                l10n.tr('custom_time'),
                                 style: const TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
@@ -493,10 +472,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  l10n.pick(
-                                    'Sent Pippin reading nudge preview!',
-                                    'Pratinjau pengingat Pippin terkirim!',
-                                  ),
+                                  l10n.tr('sent_pippin_reading_nudge_preview'),
                                 ),
                                 duration: const Duration(seconds: 2),
                               ),
@@ -508,10 +484,7 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                             color: emeraldInk,
                           ),
                           label: Text(
-                            l10n.pick(
-                              'Send Test Nudge',
-                              'Kirim Pratinjau Pengingat',
-                            ),
+                            l10n.tr('send_test_nudge'),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,

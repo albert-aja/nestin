@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/alarm_category.dart';
 import '../../data/models/location_reminder.dart';
@@ -44,6 +44,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<GeofenceProvider>(context);
     final maxHeight = MediaQuery.of(context).size.height * 0.90;
 
@@ -91,7 +92,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Scout Location Reminders',
+                            l10n.tr('notif_channel_geofence_name'),
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -99,7 +100,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                             ),
                           ),
                           Text(
-                            'Native geofence arrival & departure triggers',
+                            l10n.tr('native_geofence_arrival_departure_triggers'),
                             style: TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary(context),
@@ -109,6 +110,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                       ),
                     ),
                     IconButton(
+                      tooltip: l10n.tr('close'),
                       icon: Icon(
                         Icons.close_rounded,
                         color: AppColors.textPrimary(context),
@@ -134,13 +136,19 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
             child: Row(
               children: [
                 _buildTabButton(
-                  'Triggers (${provider.pendingReminders.length})',
+                  l10n.tr('triggers', {'provider_length': provider.pendingReminders.length}),
                   0,
                 ),
                 const SizedBox(width: 8),
-                _buildTabButton('Places (${provider.places.length})', 1),
+                _buildTabButton(
+                  l10n.tr('places', {'provider_length': provider.places.length}),
+                  1,
+                ),
                 const SizedBox(width: 8),
-                _buildTabButton('Activity (${provider.logs.length})', 2),
+                _buildTabButton(
+                  l10n.tr('activity', {'provider_length': provider.logs.length}),
+                  2,
+                ),
               ],
             ),
           ),
@@ -186,8 +194,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                       ),
                       label: Text(
                         _tabIndex == 1
-                            ? 'Add Saved Place'
-                            : 'New Location Reminder',
+                            ? l10n.tr('add_saved_place')
+                            : l10n.tr('new_location_reminder'),
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -215,6 +223,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
     BuildContext context,
     GeofenceProvider provider,
   ) {
+    final l10n = context.l10n;
     final perm = provider.permissionState;
     final Color statusColor;
     final String message;
@@ -223,8 +232,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
 
     if (perm == LocationPermissionState.alwaysGranted) {
       statusColor = _emerald;
-      message =
-          'Background geofencing armed (${provider.armedCount} active rules)';
+      message = l10n.tr('background_geofencing_armed_active_rules', {'provider_armedCount': provider.armedCount});
       actionLabel = 'GPS';
       actionCallback = () async {
         final coord = await provider.refreshCurrentLocation(
@@ -235,8 +243,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
             SnackBar(
               content: Text(
                 coord != null
-                    ? '📍 GPS updated (${coord.latitude.toStringAsFixed(4)}, ${coord.longitude.toStringAsFixed(4)})'
-                    : 'No recent GPS fix returned by device.',
+                    ? l10n.tr('gps_updated', {'coord_4': coord.longitude.toStringAsFixed(4)})
+                    : l10n.tr('no_recent_gps_fix_returned_by'),
               ),
               duration: const Duration(seconds: 2),
             ),
@@ -245,18 +253,18 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
       };
     } else if (perm == LocationPermissionState.whileInUse) {
       statusColor = _amber;
-      message = 'Foreground only • Grant Always Allow for closed-app alerts';
-      actionLabel = 'Always';
+      message = l10n.tr('foreground_only_grant_always_allow_for');
+      actionLabel = l10n.tr('always');
       actionCallback = () => provider.requestBackgroundPermission();
     } else if (perm == LocationPermissionState.deniedForever) {
       statusColor = _coral;
-      message = 'Location permission disabled • Enable in System Settings';
-      actionLabel = 'Settings';
+      message = l10n.tr('location_permission_disabled_enable_in_system');
+      actionLabel = l10n.tr('settings');
       actionCallback = () => provider.openLocationSettings();
     } else {
       statusColor = _scoutBlue;
-      message = 'Grant location permission to arm native OS geofences';
-      actionLabel = 'Enable';
+      message = l10n.tr('grant_location_permission_to_arm_native');
+      actionLabel = l10n.tr('enable');
       actionCallback = () => provider.requestForegroundPermission();
     }
 
@@ -342,6 +350,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
   }
 
   Widget _buildRemindersTab(BuildContext context, GeofenceProvider provider) {
+    final l10n = context.l10n;
     final List<LocationReminder> list;
     switch (_reminderFilter) {
       case 1:
@@ -367,13 +376,18 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
               spacing: 6,
               runSpacing: 6,
               children: [
-                _buildFilterChip('Active (${provider.pendingReminders.length})', 0),
                 _buildFilterChip(
-                    '📥 Arrive (${provider.arriveReminders.length})', 1),
+                    l10n.tr('active_4', {'provider_length': provider.pendingReminders.length}),
+                    0),
                 _buildFilterChip(
-                    '📤 Leave (${provider.leaveReminders.length})', 2),
+                    l10n.tr('arrive', {'provider_length': provider.arriveReminders.length}),
+                    1),
                 _buildFilterChip(
-                    'Done (${provider.completedReminders.length})', 3),
+                    l10n.tr('leave', {'provider_length': provider.leaveReminders.length}),
+                    2),
+                _buildFilterChip(
+                    l10n.tr('done_3', {'provider_length': provider.completedReminders.length}),
+                    3),
               ],
             ),
           ),
@@ -383,9 +397,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
           child: list.isEmpty
               ? _buildEmptyBox(
                   icon: Icons.location_searching_rounded,
-                  title: 'No matching location triggers',
-                  subtitle:
-                      'Create an arrival or departure reminder for a saved place.',
+                  title: l10n.tr('no_matching_location_triggers'),
+                  subtitle: l10n.tr('create_an_arrival_or_departure_reminder'),
                 )
               : ListView.separated(
                   padding: const EdgeInsets.symmetric(
@@ -436,7 +449,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
     SavedPlace? place,
     double? distanceMeters,
   ) {
-    final placeName = place?.name ?? 'Unknown Place';
+    final l10n = context.l10n;
+    final placeName = place?.name ?? l10n.tr('unknown_place');
     final placeEmoji = place?.category.emoji ?? '📍';
 
     return Container(
@@ -530,8 +544,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
               ),
               _metaPill(
                 item.oneTimeOnly
-                    ? '1-Time'
-                    : 'Repeats • ${item.safeCooldownMinutes}m cooldown',
+                    ? l10n.tr('k_1_time')
+                    : l10n.tr('repeats_m_cooldown', {'item_safeCooldownMinutes': item.safeCooldownMinutes}),
                 AppColors.textSecondary(context),
               ),
               if (item.checkDepartureChecklist)
@@ -545,7 +559,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 ),
               if (distanceMeters != null)
                 _metaPill(
-                  '${distanceMeters.round()} m away',
+                  l10n.tr('m_away', {'distanceMeters_round': distanceMeters.round()}),
                   AppColors.textSecondary(context),
                 ),
             ],
@@ -561,7 +575,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '🧭 Test triggered: "${item.title}" near $placeName',
+                          l10n.tr('test_triggered_near', {'item_title': item.title, 'placeName': placeName}),
                         ),
                         duration: const Duration(seconds: 2),
                       ),
@@ -569,7 +583,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                   }
                 },
                 icon: const Icon(Icons.notifications_active_outlined, size: 15),
-                label: const Text('Test Trigger', style: TextStyle(fontSize: 11)),
+                label: Text(l10n.tr('test_trigger'),
+                    style: const TextStyle(fontSize: 11)),
                 style: TextButton.styleFrom(
                   foregroundColor: _scoutBlue,
                   visualDensity: VisualDensity.compact,
@@ -582,13 +597,15 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                   existing: item,
                 ),
                 icon: const Icon(Icons.edit_outlined, size: 15),
-                label: const Text('Edit', style: TextStyle(fontSize: 11)),
+                label: Text(l10n.tr('edit_2'),
+                    style: const TextStyle(fontSize: 11)),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.textSecondary(context),
                   visualDensity: VisualDensity.compact,
                 ),
               ),
               IconButton(
+                tooltip: l10n.tr('delete_reminder'),
                 icon: Icon(
                   Icons.delete_outline_rounded,
                   size: 18,
@@ -605,12 +622,13 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
   }
 
   Widget _buildPlacesTab(BuildContext context, GeofenceProvider provider) {
+    final l10n = context.l10n;
     final places = provider.places;
     if (places.isEmpty) {
       return _buildEmptyBox(
         icon: Icons.add_location_alt_rounded,
-        title: 'No designated places yet',
-        subtitle: 'Add Home, Work, Gym, or Stores to attach geofence reminders.',
+        title: l10n.tr('no_designated_places_yet'),
+        subtitle: l10n.tr('add_home_work_gym_or_stores'),
       );
     }
 
@@ -684,7 +702,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                     ],
                     const SizedBox(height: 4),
                     Text(
-                      '${place.formattedCoordinates} • $armedForPlace armed${dist != null ? ' • ${inside == true ? 'Inside' : '${dist.round()} m'}' : ''}',
+                      '${place.formattedCoordinates} • ${l10n.tr('armed_3', {'armedForPlace': armedForPlace})}${dist != null ? ' • ${inside == true ? l10n.tr('inside') : '${dist.round()} m'}' : ''}',
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(context),
@@ -694,7 +712,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 ),
               ),
               IconButton(
-                tooltip: 'Add Reminder for ${place.name}',
+                tooltip: l10n.tr('add_reminder_for', {'place_name': place.name}),
                 icon: const Icon(Icons.add_alert_outlined,
                     size: 19, color: _scoutBlue),
                 onPressed: () => showLocationReminderEditorDialog(
@@ -704,7 +722,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
-                tooltip: 'Edit Place',
+                tooltip: l10n.tr('edit_place'),
                 icon: Icon(Icons.edit_outlined,
                     size: 18, color: AppColors.textSecondary(context)),
                 onPressed: () =>
@@ -712,7 +730,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
-                tooltip: 'Delete Place',
+                tooltip: l10n.tr('delete_place'),
                 icon: Icon(Icons.delete_outline_rounded,
                     size: 18, color: AppColors.textSecondary(context)),
                 onPressed: () => provider.deletePlace(place.id),
@@ -726,6 +744,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
   }
 
   Widget _buildActivityTab(BuildContext context, GeofenceProvider provider) {
+    final l10n = context.l10n;
     final places = provider.places;
     final selectedPlace = places.isEmpty
         ? null
@@ -754,7 +773,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Geofence Boundary Simulator',
+                        l10n.tr('geofence_boundary_simulator'),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
@@ -766,7 +785,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Test arrival and departure alerts at any saved place without walking.',
+                  l10n.tr('test_arrival_and_departure_alerts_at'),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
@@ -776,8 +795,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 DropdownButtonFormField<String>(
                   initialValue: selectedPlace.id,
                   dropdownColor: AppColors.sheetSurface(context),
-                  decoration: const InputDecoration(
-                    labelText: 'Target Place',
+                  decoration: InputDecoration(
+                    labelText: l10n.tr('target_place'),
                     isDense: true,
                   ),
                   items: places
@@ -812,8 +831,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                               SnackBar(
                                 content: Text(
                                   fired.isEmpty
-                                      ? 'Simulated arrival at ${selectedPlace.name} (no matching arrival rules).'
-                                      : '📥 Arrival fired ${fired.length} reminder(s) at ${selectedPlace.name}!',
+                                      ? l10n.tr('simulated_arrival_at_no_matching_arrival', {'selectedPlace_name': selectedPlace.name})
+                                      : l10n.tr('arrival_fired_reminder_s_at', {'fired_length': fired.length, 'selectedPlace_name': selectedPlace.name}),
                                 ),
                                 duration: const Duration(seconds: 2),
                               ),
@@ -821,8 +840,10 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                           }
                         },
                         icon: const Icon(Icons.login_rounded, size: 16),
-                        label: const Text('Simulate Arrive',
-                            style: TextStyle(fontSize: 11)),
+                        label: Text(
+                          l10n.tr('simulate_arrive'),
+                          style: const TextStyle(fontSize: 11),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -845,8 +866,8 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                               SnackBar(
                                 content: Text(
                                   fired.isEmpty
-                                      ? 'Simulated departure from ${selectedPlace.name} (no matching departure rules).'
-                                      : '📤 Departure fired ${fired.length} reminder(s) from ${selectedPlace.name}!',
+                                      ? l10n.tr('simulated_departure_from_no_matching_departure', {'selectedPlace_name': selectedPlace.name})
+                                      : l10n.tr('departure_fired_reminder_s_from', {'fired_length': fired.length, 'selectedPlace_name': selectedPlace.name}),
                                 ),
                                 duration: const Duration(seconds: 2),
                               ),
@@ -854,8 +875,10 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                           }
                         },
                         icon: const Icon(Icons.logout_rounded, size: 16),
-                        label: const Text('Simulate Leave',
-                            style: TextStyle(fontSize: 11)),
+                        label: Text(
+                          l10n.tr('simulate_leave'),
+                          style: const TextStyle(fontSize: 11),
+                        ),
                       ),
                     ),
                   ],
@@ -867,14 +890,15 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Recent Trigger Log',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            Text(
+              l10n.tr('recent_trigger_log'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
             if (provider.logs.isNotEmpty)
               TextButton(
                 onPressed: provider.clearLogs,
-                child: const Text('Clear', style: TextStyle(fontSize: 12)),
+                child: Text(l10n.tr('clear_3'),
+                    style: const TextStyle(fontSize: 12)),
               ),
           ],
         ),
@@ -883,15 +907,14 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
             padding: const EdgeInsets.only(top: 24),
             child: _buildEmptyBox(
               icon: Icons.history_rounded,
-              title: 'No geofence events recorded yet',
-              subtitle:
-                  'Arrival and departure triggers appear here automatically.',
+              title: l10n.tr('no_geofence_events_recorded_yet'),
+              subtitle: l10n.tr('arrival_and_departure_triggers_appear_here'),
             ),
           )
         else
           ...provider.logs.map((log) {
             final timeStr =
-                DateFormat('MMM d • HH:mm').format(log.triggeredAt);
+                l10n.formatDate(log.triggeredAt, 'MMM d • HH:mm');
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
@@ -927,7 +950,9 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                     ),
                   ),
                   _metaPill(
-                    log.isSimulated ? 'Simulated' : 'Native OS',
+                    log.isSimulated
+                        ? l10n.tr('simulated')
+                        : l10n.tr('native_os'),
                     log.isSimulated
                         ? AppColors.adaptive(
                             context,
@@ -1070,6 +1095,7 @@ class _LocationReminderEditorDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<GeofenceProvider>(context);
     final places = provider.places;
     if (_selectedPlaceId == null && places.isNotEmpty) {
@@ -1083,8 +1109,8 @@ class _LocationReminderEditorDialogState
       ),
       title: Text(
         widget.existing == null
-            ? 'New Location Reminder'
-            : 'Edit Location Reminder',
+            ? l10n.tr('new_location_reminder')
+            : l10n.tr('edit_location_reminder'),
         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
       ),
       content: SizedBox(
@@ -1097,18 +1123,18 @@ class _LocationReminderEditorDialogState
               TextField(
                 controller: _titleCtrl,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Remind Me To',
-                  hintText: 'e.g. Take gym bag, Buy milk',
-                  prefixIcon: Icon(Icons.notifications_active_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.tr('remind_me_to'),
+                  hintText: l10n.tr('e_g_take_gym_bag_buy'),
+                  prefixIcon: const Icon(Icons.notifications_active_outlined),
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _notesCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  prefixIcon: Icon(Icons.notes_rounded),
+                decoration: InputDecoration(
+                  labelText: l10n.tr('notes_optional'),
+                  prefixIcon: const Icon(Icons.notes_rounded),
                 ),
               ),
               const SizedBox(height: 14),
@@ -1117,7 +1143,7 @@ class _LocationReminderEditorDialogState
                 children: [
                   Flexible(
                     child: Text(
-                      'Designated Place',
+                      l10n.tr('designated_place'),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -1133,8 +1159,8 @@ class _LocationReminderEditorDialogState
                       }
                     },
                     icon: const Icon(Icons.add_location_rounded, size: 15),
-                    label:
-                        const Text('New Place', style: TextStyle(fontSize: 11)),
+                    label: Text(l10n.tr('new_place'),
+                        style: const TextStyle(fontSize: 11)),
                     style: TextButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                     ),
@@ -1149,7 +1175,7 @@ class _LocationReminderEditorDialogState
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    'Add a place first using "New Place".',
+                    l10n.tr('add_a_place_first_using_new'),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.adaptive(
@@ -1186,7 +1212,7 @@ class _LocationReminderEditorDialogState
                 ),
               const SizedBox(height: 14),
               Text(
-                'Geofence Trigger Event',
+                l10n.tr('geofence_trigger_event'),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -1210,12 +1236,12 @@ class _LocationReminderEditorDialogState
               const SizedBox(height: 10),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
-                  'One-time trigger',
-                  style: TextStyle(fontSize: 13),
+                title: Text(
+                  l10n.tr('one_time_trigger'),
+                  style: const TextStyle(fontSize: 13),
                 ),
                 subtitle: Text(
-                  'Automatically complete after firing once',
+                  l10n.tr('automatically_complete_after_firing_once'),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
@@ -1230,17 +1256,27 @@ class _LocationReminderEditorDialogState
                   initialValue: _cooldown,
                   isExpanded: true,
                   dropdownColor: AppColors.sheetSurface(context),
-                  decoration: const InputDecoration(
-                    labelText: 'Re-trigger Cooldown',
-                    prefixIcon: Icon(Icons.hourglass_bottom_rounded),
+                  decoration: InputDecoration(
+                    labelText: l10n.tr('re_trigger_cooldown'),
+                    prefixIcon: const Icon(Icons.hourglass_bottom_rounded),
                     isDense: true,
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 0, child: Text('No cooldown')),
-                    DropdownMenuItem(value: 15, child: Text('15 minutes')),
-                    DropdownMenuItem(value: 30, child: Text('30 minutes')),
-                    DropdownMenuItem(value: 60, child: Text('1 hour')),
-                    DropdownMenuItem(value: 240, child: Text('4 hours')),
+                  items: [
+                    DropdownMenuItem(
+                        value: 0,
+                        child: Text(l10n.tr('no_cooldown'))),
+                    DropdownMenuItem(
+                        value: 15,
+                        child: Text(l10n.tr('k_15_minutes'))),
+                    DropdownMenuItem(
+                        value: 30,
+                        child: Text(l10n.tr('k_30_minutes'))),
+                    DropdownMenuItem(
+                        value: 60,
+                        child: Text(l10n.tr('k_1_hour'))),
+                    DropdownMenuItem(
+                        value: 240,
+                        child: Text(l10n.tr('k_4_hours'))),
                   ],
                   onChanged: (val) {
                     if (val != null) setState(() => _cooldown = val);
@@ -1249,12 +1285,12 @@ class _LocationReminderEditorDialogState
               if (_triggerType != GeofenceTriggerType.arrive)
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(
-                    'Include BeforeYouGo check',
-                    style: TextStyle(fontSize: 13),
+                  title: Text(
+                    l10n.tr('include_beforeyougo_check'),
+                    style: const TextStyle(fontSize: 13),
                   ),
                   subtitle: Text(
-                    'Remind to check keys, wallet & essentials',
+                    l10n.tr('remind_to_check_keys_wallet_essentials'),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.textSecondary(context),
@@ -1274,7 +1310,7 @@ class _LocationReminderEditorDialogState
                       padding: const EdgeInsets.only(right: 6),
                       child: ChoiceChip(
                         selected: selected,
-                        label: Text(cat.name),
+                        label: Text(cat.displayName),
                         selectedColor: cat.color,
                         onSelected: (_) => setState(() => _category = cat),
                       ),
@@ -1289,7 +1325,7 @@ class _LocationReminderEditorDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.tr('cancel')),
         ),
         ElevatedButton(
           onPressed: _selectedPlaceId == null
@@ -1326,7 +1362,9 @@ class _LocationReminderEditorDialogState
                 },
           style: ElevatedButton.styleFrom(backgroundColor: _scoutBlue),
           child: Text(
-            widget.existing == null ? 'Save Trigger' : 'Update Trigger',
+            widget.existing == null
+                ? l10n.tr('save_trigger')
+                : l10n.tr('update_trigger'),
             style: const TextStyle(color: Colors.white),
           ),
         ),
@@ -1397,6 +1435,7 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<GeofenceProvider>(context, listen: false);
 
     return AlertDialog(
@@ -1405,7 +1444,9 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
         borderRadius: BorderRadius.circular(20),
       ),
       title: Text(
-        widget.existing == null ? 'Add Saved Place' : 'Edit Saved Place',
+        widget.existing == null
+            ? l10n.tr('add_saved_place')
+            : l10n.tr('edit_saved_place'),
         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
       ),
       content: SizedBox(
@@ -1418,18 +1459,18 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
               TextField(
                 controller: _nameCtrl,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Place Name',
-                  hintText: 'e.g. Home, Supermarket, Office',
-                  prefixIcon: Icon(Icons.label_outline_rounded),
+                decoration: InputDecoration(
+                  labelText: l10n.tr('place_name'),
+                  hintText: l10n.tr('e_g_home_supermarket_office'),
+                  prefixIcon: const Icon(Icons.label_outline_rounded),
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _addrCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Address or Landmark (Optional)',
-                  prefixIcon: Icon(Icons.signpost_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.tr('address_or_landmark_optional'),
+                  prefixIcon: const Icon(Icons.signpost_outlined),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1473,8 +1514,8 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
                 icon: const Icon(Icons.my_location_rounded, size: 16),
                 label: Text(
                   _isFetchingGps
-                      ? 'Locating GPS...'
-                      : 'Use Current GPS Location',
+                      ? l10n.tr('locating_gps')
+                      : l10n.tr('use_current_gps_location'),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
@@ -1488,8 +1529,8 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
                         signed: true,
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Latitude',
+                      decoration: InputDecoration(
+                        labelText: l10n.tr('latitude'),
                         isDense: true,
                       ),
                     ),
@@ -1502,8 +1543,8 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
                         signed: true,
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Longitude',
+                      decoration: InputDecoration(
+                        labelText: l10n.tr('longitude'),
                         isDense: true,
                       ),
                     ),
@@ -1515,7 +1556,7 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Geofence Radius',
+                      l10n.tr('geofence_radius'),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
@@ -1526,7 +1567,7 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${_radiusMeters.round()} meters',
+                    l10n.tr('meters', {'radiusMeters_round': _radiusMeters.round()}),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -1551,7 +1592,7 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.tr('cancel')),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -1584,7 +1625,9 @@ class _SavedPlaceEditorDialogState extends State<_SavedPlaceEditorDialog> {
           },
           style: ElevatedButton.styleFrom(backgroundColor: _scoutBlue),
           child: Text(
-            widget.existing == null ? 'Save Place' : 'Update Place',
+            widget.existing == null
+                ? l10n.tr('save_place')
+                : l10n.tr('update_place'),
             style: const TextStyle(color: Colors.white),
           ),
         ),

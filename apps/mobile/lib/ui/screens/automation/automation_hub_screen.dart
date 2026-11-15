@@ -21,12 +21,12 @@ class AutomationHubScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          l10n.pick('Nestin Automation Engine', 'Mesin Otomasi Nestin'),
+          l10n.tr('nestin_automation_engine'),
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
         ),
         actions: [
           IconButton(
-            tooltip: l10n.pick('New Automation', 'Otomasi Baru'),
+            tooltip: l10n.tr('new_automation'),
             icon: const Icon(Icons.add_circle_outline_rounded),
             onPressed: () =>
                 _showComposeAutomationSheet(context, automation, deviceControl),
@@ -37,14 +37,14 @@ class AutomationHubScreen extends StatelessWidget {
         onPressed: () =>
             _showComposeAutomationSheet(context, automation, deviceControl),
         icon: const Icon(Icons.add_rounded),
-        label: Text(l10n.pick('New Rule', 'Aturan Baru')),
+        label: Text(l10n.tr('new_rule')),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (pending.isNotEmpty) ...[
             Text(
-              l10n.pick('Pending Confirmations', 'Menunggu Konfirmasi'),
+              l10n.tr('pending_confirmations'),
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 14,
@@ -83,13 +83,13 @@ class AutomationHubScreen extends StatelessWidget {
                           TextButton(
                             onPressed: () =>
                                 automation.dismissPendingExecution(p.id),
-                            child: Text(l10n.pick('Skip', 'Lewati')),
+                            child: Text(l10n.tr('skip')),
                           ),
                           const SizedBox(width: 8),
                           FilledButton(
                             onPressed: () =>
                                 automation.confirmPendingExecution(p.id),
-                            child: Text(l10n.pick('Confirm & Run', 'Jalankan')),
+                            child: Text(l10n.tr('confirm_run')),
                           ),
                         ],
                       ),
@@ -103,8 +103,7 @@ class AutomationHubScreen extends StatelessWidget {
 
           if (ownership.isNotEmpty) ...[
             Text(
-              l10n.pick('Shared Setting Ownership Locks',
-                  'Kunci Kepemilikan Pengaturan Bersama'),
+              l10n.tr('shared_setting_ownership_locks'),
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
             ),
             const SizedBox(height: 8),
@@ -128,7 +127,7 @@ class AutomationHubScreen extends StatelessWidget {
                       trailing: TextButton(
                         onPressed: () =>
                             automation.releaseOwnershipLock(entry.key),
-                        child: Text(l10n.pick('Release', 'Lepas')),
+                        child: Text(l10n.tr('release')),
                       ),
                     );
                   }).toList(),
@@ -138,8 +137,7 @@ class AutomationHubScreen extends StatelessWidget {
           ],
 
           Text(
-            l10n.pick('Automation Rules (${automation.rules.length})',
-                'Aturan Otomasi (${automation.rules.length})'),
+            l10n.tr('automation_rules', {'automation_length': automation.rules.length}),
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
           ),
           const SizedBox(height: 8),
@@ -216,7 +214,7 @@ class AutomationHubScreen extends StatelessWidget {
                       children: [
                         TextButton.icon(
                           icon: const Icon(Icons.play_arrow_rounded, size: 17),
-                          label: Text(l10n.pick('Run Now', 'Jalankan')),
+                          label: Text(l10n.tr('run_now')),
                           onPressed: () async {
                             final log =
                                 await automation.runRuleManually(rule.id);
@@ -227,7 +225,7 @@ class AutomationHubScreen extends StatelessWidget {
                           },
                         ),
                         IconButton(
-                          tooltip: l10n.pick('Delete rule', 'Hapus'),
+                          tooltip: l10n.tr('delete_rule'),
                           icon: const Icon(Icons.delete_outline_rounded,
                               size: 18, color: AppColors.error),
                           onPressed: () => automation.deleteRule(rule.id),
@@ -242,7 +240,7 @@ class AutomationHubScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
           Text(
-            l10n.pick('Execution & Rollback History', 'Riwayat Eksekusi'),
+            l10n.tr('execution_rollback_history'),
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
           ),
           const SizedBox(height: 8),
@@ -252,8 +250,7 @@ class AutomationHubScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  l10n.pick('No automation executions logged yet.',
-                      'Belum ada riwayat eksekusi otomasi.'),
+                  l10n.tr('no_automation_executions_logged_yet'),
                   style: TextStyle(color: AppColors.textSecondary(context)),
                 ),
               ),
@@ -318,7 +315,7 @@ class AutomationHubScreen extends StatelessWidget {
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
                             icon: const Icon(Icons.undo_rounded, size: 16),
-                            label: Text(l10n.pick('Rollback Mode', 'Batalkan')),
+                            label: Text(l10n.tr('rollback_mode')),
                             onPressed: () =>
                                 automation.rollbackExecution(log.id),
                           ),

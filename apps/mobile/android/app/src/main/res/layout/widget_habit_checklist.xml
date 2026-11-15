@@ -5,14 +5,31 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_card_bg"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="14dp">
 
-    <!-- Top Header: Title, Streak and Progress -->
+    <!-- Top Header: Roo Companion, Title, Streak and Progress -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/layout_habit_mascot_badge"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/widget_mascot_halo_roo"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/iv_habit_mascot"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/widget_mascot_roo_desc"
+                android:scaleType="fitCenter"
+                android:src="@drawable/mascot_widget_roo_momentum" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tv_habit_title"
@@ -30,6 +47,7 @@
             android:id="@+id/tv_habit_streak"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
             android:layout_marginEnd="6dp"
             android:background="@drawable/widget_pill_bg"
             android:paddingStart="6dp"
@@ -54,8 +72,8 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginBottom="7dp"
         android:background="#222530" />
 
     <!-- Step 1 -->
@@ -170,4 +188,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

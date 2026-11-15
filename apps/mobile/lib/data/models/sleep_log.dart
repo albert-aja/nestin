@@ -1,3 +1,5 @@
+import '../../core/l10n/app_localizations.dart';
+
 enum SleepQualityRating {
   poor,
   fair,
@@ -6,17 +8,18 @@ enum SleepQualityRating {
   excellent;
 
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case SleepQualityRating.poor:
-        return 'Poor';
+        return l10n.tr('poor');
       case SleepQualityRating.fair:
-        return 'Fair';
+        return l10n.tr('fair');
       case SleepQualityRating.good:
-        return 'Good';
+        return l10n.tr('good');
       case SleepQualityRating.restorative:
-        return 'Restorative';
+        return l10n.tr('restorative');
       case SleepQualityRating.excellent:
-        return 'Excellent';
+        return l10n.tr('excellent');
     }
   }
 

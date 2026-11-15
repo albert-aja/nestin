@@ -70,10 +70,7 @@ class MoneySummaryCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  l10n.pick(
-                                    'Twill Money Manager',
-                                    'Manajer Keuangan Twill',
-                                  ),
+                                  l10n.tr('twill_money_manager'),
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
@@ -92,10 +89,7 @@ class MoneySummaryCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    l10n.pick(
-                                      '$dueRecurring Due',
-                                      '$dueRecurring Jatuh Tempo',
-                                    ),
+                                    l10n.tr('due', {'dueRecurring': dueRecurring}),
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -113,14 +107,8 @@ class MoneySummaryCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             provider.activeAccounts.isEmpty
-                                ? l10n.pick(
-                                    'No accounts yet • Tap to set up wallets',
-                                    'Belum ada akun • Ketuk untuk atur dompet',
-                                  )
-                                : l10n.pick(
-                                    'Balance: ${provider.formatAmount(provider.combinedActiveBalanceMinor)} • ${provider.activeAccounts.length} wallets',
-                                    'Saldo: ${provider.formatAmount(provider.combinedActiveBalanceMinor)} • ${provider.activeAccounts.length} dompet',
-                                  ),
+                                ? l10n.tr('no_accounts_yet_tap_to_set')
+                                : l10n.tr('balance_wallets', {'provider_combinedActiveBalanceMinor': provider.formatAmount(provider.combinedActiveBalanceMinor), 'provider_length': provider.activeAccounts.length}),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -146,7 +134,7 @@ class MoneySummaryCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _CardMiniStat(
-                        label: l10n.pick('Month In', 'Masuk'),
+                        label: l10n.tr('month_in'),
                         value: provider.formatAmount(
                           summary.totalIncomeMinor,
                           compact: true,
@@ -156,7 +144,7 @@ class MoneySummaryCard extends StatelessWidget {
                     ),
                     Expanded(
                       child: _CardMiniStat(
-                        label: l10n.pick('Month Out', 'Keluar'),
+                        label: l10n.tr('month_out'),
                         value: provider.formatAmount(
                           summary.totalExpenseMinor,
                           compact: true,
@@ -166,7 +154,7 @@ class MoneySummaryCard extends StatelessWidget {
                     ),
                     Expanded(
                       child: _CardMiniStat(
-                        label: l10n.pick('Net', 'Bersih'),
+                        label: l10n.tr('net'),
                         value: provider.formatAmount(
                           summary.netCashFlowMinor,
                           compact: true,

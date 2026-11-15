@@ -77,6 +77,8 @@ class UserPreferences {
   final DiaryAutoLockDelay diaryAutoLockDelay;
   final bool showJournalPrompts;
   final bool showThrowbacks;
+  final bool hasCompletedOnboarding;
+  final bool showWidgetMascots;
 
   const UserPreferences({
     this.themeMode = ThemeMode.dark,
@@ -98,6 +100,8 @@ class UserPreferences {
     this.diaryAutoLockDelay = DiaryAutoLockDelay.oneMinute,
     this.showJournalPrompts = true,
     this.showThrowbacks = true,
+    this.hasCompletedOnboarding = false,
+    this.showWidgetMascots = true,
   });
 
   factory UserPreferences.defaults() {
@@ -128,6 +132,8 @@ class UserPreferences {
     DiaryAutoLockDelay? diaryAutoLockDelay,
     bool? showJournalPrompts,
     bool? showThrowbacks,
+    bool? hasCompletedOnboarding,
+    bool? showWidgetMascots,
   }) {
     return UserPreferences(
       themeMode: themeMode ?? this.themeMode,
@@ -153,6 +159,9 @@ class UserPreferences {
       diaryAutoLockDelay: diaryAutoLockDelay ?? this.diaryAutoLockDelay,
       showJournalPrompts: showJournalPrompts ?? this.showJournalPrompts,
       showThrowbacks: showThrowbacks ?? this.showThrowbacks,
+      hasCompletedOnboarding:
+          hasCompletedOnboarding ?? this.hasCompletedOnboarding,
+      showWidgetMascots: showWidgetMascots ?? this.showWidgetMascots,
     );
   }
 
@@ -177,6 +186,8 @@ class UserPreferences {
       'diaryAutoLockDelay': diaryAutoLockDelay.name,
       'showJournalPrompts': showJournalPrompts,
       'showThrowbacks': showThrowbacks,
+      'hasCompletedOnboarding': hasCompletedOnboarding,
+      'showWidgetMascots': showWidgetMascots,
     };
   }
 
@@ -218,6 +229,8 @@ class UserPreferences {
       diaryAutoLockDelay: autoLockDelay,
       showJournalPrompts: json['showJournalPrompts'] as bool? ?? true,
       showThrowbacks: json['showThrowbacks'] as bool? ?? true,
+      hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool? ?? false,
+      showWidgetMascots: json['showWidgetMascots'] as bool? ?? true,
     );
   }
 }

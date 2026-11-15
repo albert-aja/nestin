@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/money_account.dart';
 import '../../../../data/models/money_transaction.dart';
@@ -50,6 +50,7 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final filtered = provider.filterTransactions(
       type: _typeFilter,
@@ -70,7 +71,7 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                 controller: _searchCtrl,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Search descriptions, categories, wallets...',
+                  hintText: l10n.tr('search_descriptions_categories_wallets'),
                   prefixIcon: const Icon(Icons.search_rounded, size: 18),
                   suffixIcon: _searchCtrl.text.isNotEmpty
                       ? IconButton(
@@ -91,7 +92,10 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                 children: [
                   ChoiceChip(
                     selected: _typeFilter == null,
-                    label: const Text('All Types', style: TextStyle(fontSize: 11)),
+                    label: Text(
+                      l10n.tr('all_types'),
+                      style: const TextStyle(fontSize: 11),
+                    ),
                     onSelected: (_) => setState(() => _typeFilter = null),
                   ),
                   ...MoneyTransactionType.values.map(
@@ -113,8 +117,8 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                     avatar: const Icon(Icons.date_range_rounded, size: 14),
                     label: Text(
                       _dateRange == null
-                          ? 'Date Range'
-                          : '${DateFormat('MMM d').format(_dateRange!.start)} - ${DateFormat('MMM d').format(_dateRange!.end)}',
+                          ? l10n.tr('date_range')
+                          : '${l10n.formatDate(_dateRange!.start, 'MMM d')} - ${l10n.formatDate(_dateRange!.end, 'MMM d')}',
                       style: const TextStyle(fontSize: 11),
                     ),
                     onPressed: _dateRange != null
@@ -132,17 +136,19 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                       initialValue: _accountFilterId,
                       dropdownColor: AppColors.cardSurface(context),
                       isDense: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Account',
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: InputDecoration(
+                        labelText: l10n.tr('account'),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
                       ),
                       items: [
-                        const DropdownMenuItem<String?>(
+                        DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('All Accounts',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            l10n.tr('all_accounts'),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ),
                         ...provider.accounts.map(
                           (a) => DropdownMenuItem<String?>(
@@ -163,22 +169,24 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                       initialValue: _categoryFilterId,
                       dropdownColor: AppColors.cardSurface(context),
                       isDense: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: InputDecoration(
+                        labelText: l10n.tr('category'),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
                       ),
                       items: [
-                        const DropdownMenuItem<String?>(
+                        DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('All Categories',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            l10n.tr('all_categories'),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ),
                         ...provider.categories.map(
                           (c) => DropdownMenuItem<String?>(
                             value: c.id,
-                            child: Text(c.name,
+                            child: Text(c.displayName,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontSize: 12)),
                           ),
@@ -203,14 +211,14 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                         Icon(Icons.receipt_long_outlined,
                             size: 44, color: AppColors.textSecondary(context)),
                         const SizedBox(height: 10),
-                        const Text(
-                          'No matching transactions',
-                          style: TextStyle(
+                        Text(
+                          l10n.tr('no_matching_transactions'),
+                          style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 15),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Record an income, expense, or internal transfer to start tracking.',
+                          l10n.tr('record_an_income_expense_or_internal'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
@@ -221,7 +229,9 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                         ElevatedButton.icon(
                           onPressed: () => showMoneyTransactionSheet(context),
                           icon: const Icon(Icons.add_rounded, size: 18),
-                          label: const Text('Add Transaction'),
+                          label: Text(
+                            l10n.tr('add_transaction'),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: kTwillAmber,
                             foregroundColor: Colors.black,
@@ -257,25 +267,27 @@ class MoneyTransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final account = provider.findAccountById(tx.accountId);
     final toAccount =
         tx.toAccountId != null ? provider.findAccountById(tx.toAccountId!) : null;
     final category = provider.findCategoryById(tx.categoryId);
 
+    final fallbackAccount = l10n.tr('account_2');
     final title = tx.type == MoneyTransactionType.transfer
-        ? '${account?.name ?? 'Account'} -> ${toAccount?.name ?? 'Account'}'
+        ? '${account?.name ?? fallbackAccount} -> ${toAccount?.name ?? fallbackAccount}'
         : (tx.description.isNotEmpty
             ? tx.description
-            : (category?.name ?? tx.type.label));
+            : (category?.displayName ?? tx.type.label));
 
     final subtitleParts = <String>[
       if (tx.type != MoneyTransactionType.transfer && category != null)
-        category.name,
+        category.displayName,
       if (tx.type != MoneyTransactionType.transfer && account != null)
         account.name,
       if (tx.type == MoneyTransactionType.transfer && tx.description.isNotEmpty)
         tx.description,
-      DateFormat('MMM d, yyyy').format(tx.transactionDate),
+      l10n.formatDate(tx.transactionDate, 'MMM d, yyyy'),
     ];
 
     final signedText = tx.type == MoneyTransactionType.transfer
@@ -329,10 +341,12 @@ void showMoneyTransactionDetailDialog(
   MoneyProvider provider,
   MoneyTransaction tx,
 ) {
+  final l10n = context.l10n;
   final account = provider.findAccountById(tx.accountId);
   final toAccount =
       tx.toAccountId != null ? provider.findAccountById(tx.toAccountId!) : null;
   final category = provider.findCategoryById(tx.categoryId);
+  final unknownLabel = l10n.tr('unknown');
 
   showDialog<void>(
     context: context,
@@ -342,7 +356,11 @@ void showMoneyTransactionDetailDialog(
         children: [
           Icon(tx.type.icon, color: tx.type.color, size: 20),
           const SizedBox(width: 8),
-          Expanded(child: Text('${tx.type.label} Details')),
+          Expanded(
+            child: Text(
+              l10n.tr('details', {'tx_label': tx.type.label}),
+            ),
+          ),
         ],
       ),
       content: Column(
@@ -358,32 +376,46 @@ void showMoneyTransactionDetailDialog(
             ),
           ),
           const SizedBox(height: 10),
-          Text('Date: ${DateFormat('MMM d, yyyy').format(tx.transactionDate)}',
-              style: const TextStyle(fontSize: 12)),
+          Text(
+            l10n.tr('date', {'l10n_yyyy': l10n.formatDate(tx.transactionDate, 'MMM d, yyyy')}),
+            style: const TextStyle(fontSize: 12),
+          ),
           if (tx.type == MoneyTransactionType.transfer) ...[
-            Text('From: ${account?.name ?? 'Unknown'}',
-                style: const TextStyle(fontSize: 12)),
-            Text('To: ${toAccount?.name ?? 'Unknown'}',
-                style: const TextStyle(fontSize: 12)),
+            Text(
+              l10n.tr('from', {'account_unknownLabel': account?.name ?? unknownLabel}),
+              style: const TextStyle(fontSize: 12),
+            ),
+            Text(
+              l10n.tr('to', {'toAccount_unknownLabel': toAccount?.name ?? unknownLabel}),
+              style: const TextStyle(fontSize: 12),
+            ),
             if (tx.transferGroupId != null)
-              Text('Transfer Ref: ${tx.transferGroupId}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary(ctx),
-                  )),
+              Text(
+                l10n.tr('transfer_ref', {'tx_transferGroupId': tx.transferGroupId}),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary(ctx),
+                ),
+              ),
           ] else ...[
-            Text('Account: ${account?.name ?? 'Unknown'}',
-                style: const TextStyle(fontSize: 12)),
-            Text('Category: ${category?.name ?? 'Uncategorized'}',
-                style: const TextStyle(fontSize: 12)),
+            Text(
+              l10n.tr('account_3', {'account_unknownLabel': account?.name ?? unknownLabel}),
+              style: const TextStyle(fontSize: 12),
+            ),
+            Text(
+              l10n.tr('category_2', {'category_Kategori': category?.displayName ?? l10n.tr('uncategorized')}),
+              style: const TextStyle(fontSize: 12),
+            ),
           ],
           if (tx.description.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text('Note: ${tx.description}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary(ctx),
-                )),
+            Text(
+              l10n.tr('note', {'tx_description': tx.description}),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary(ctx),
+              ),
+            ),
           ],
         ],
       ),
@@ -393,18 +425,21 @@ void showMoneyTransactionDetailDialog(
             Navigator.of(ctx).pop();
             await provider.deleteTransaction(tx.id);
           },
-          child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+          child: Text(
+            l10n.tr('delete'),
+            style: const TextStyle(color: AppColors.error),
+          ),
         ),
         TextButton(
           onPressed: () {
             Navigator.of(ctx).pop();
             showMoneyTransactionSheet(context, existing: tx);
           },
-          child: const Text('Edit'),
+          child: Text(l10n.tr('edit')),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Close'),
+          child: Text(l10n.tr('close')),
         ),
       ],
     ),
@@ -436,6 +471,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final list = _showArchived ? provider.accounts : provider.activeAccounts;
 
@@ -456,7 +492,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Combined Active Balance',
+                      l10n.tr('combined_active_balance'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -477,7 +513,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
               ElevatedButton.icon(
                 onPressed: () => showMoneyAccountDialog(context),
                 icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text('New Account'),
+                label: Text(l10n.tr('new_account')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kTwillAmber,
                   foregroundColor: Colors.black,
@@ -494,7 +530,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
               FilterChip(
                 selected: _showArchived,
                 label: Text(
-                  'Show Archived (${provider.archivedAccounts.length})',
+                  l10n.tr('show_archived', {'provider_length': provider.archivedAccounts.length}),
                   style: const TextStyle(fontSize: 11),
                 ),
                 onSelected: (v) => setState(() => _showArchived = v),
@@ -520,13 +556,14 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'No Wallets Added Yet',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                  Text(
+                    l10n.tr('no_wallets_added_yet'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Add your Cash, Bank Account, or E-Wallet balances so Twill can keep them organized.',
+                    l10n.tr('add_your_cash_bank_account_or'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
@@ -568,7 +605,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Archived',
+                          l10n.tr('archived_2'),
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.textSecondary(context),
@@ -579,7 +616,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
                   ],
                 ),
                 subtitle: Text(
-                  '${acct.type.label} • Opening ${provider.formatAmount(acct.initialBalanceMinor)}',
+                  l10n.tr('opening', {'acct_label': acct.type.label, 'provider_initialBalanceMinor': provider.formatAmount(acct.initialBalanceMinor)}),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -602,7 +639,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
                       ),
                     ),
                     Text(
-                      'Tap history',
+                      l10n.tr('tap_history'),
                       style: TextStyle(
                         fontSize: 10,
                         color: AppColors.textSecondary(context),
@@ -624,6 +661,7 @@ class _AccountDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final acct = provider.findAccountById(accountId);
     if (acct == null) return const SizedBox.shrink();
@@ -656,7 +694,7 @@ class _AccountDetailSheet extends StatelessWidget {
                           fontSize: 17, fontWeight: FontWeight.w800),
                     ),
                     Text(
-                      '${acct.type.label} • Created ${DateFormat('MMM d, yyyy').format(acct.createdAt)}',
+                      l10n.tr('created', {'acct_label': acct.type.label, 'l10n_yyyy': l10n.formatDate(acct.createdAt, 'MMM d, yyyy')}),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(context),
@@ -687,7 +725,7 @@ class _AccountDetailSheet extends StatelessWidget {
                       fontSize: 22, fontWeight: FontWeight.w900),
                 ),
                 Text(
-                  'Opening initial balance: ${provider.formatAmount(acct.initialBalanceMinor)}',
+                  l10n.tr('opening_initial_balance', {'provider_initialBalanceMinor': provider.formatAmount(acct.initialBalanceMinor)}),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
@@ -709,7 +747,7 @@ class _AccountDetailSheet extends StatelessWidget {
                       onPressed: () =>
                           showMoneyAccountDialog(context, existing: acct),
                       icon: const Icon(Icons.edit_outlined, size: 15),
-                      label: const Text('Edit'),
+                      label: Text(l10n.tr('edit')),
                     ),
                     OutlinedButton.icon(
                       onPressed: () async {
@@ -722,7 +760,11 @@ class _AccountDetailSheet extends StatelessWidget {
                             : Icons.archive_outlined,
                         size: 15,
                       ),
-                      label: Text(acct.isArchived ? 'Restore' : 'Archive'),
+                      label: Text(
+                        acct.isArchived
+                            ? l10n.tr('restore')
+                            : l10n.tr('archive'),
+                      ),
                     ),
                     if (!acct.isArchived)
                       OutlinedButton.icon(
@@ -734,7 +776,7 @@ class _AccountDetailSheet extends StatelessWidget {
                           );
                         },
                         icon: const Icon(Icons.add_rounded, size: 15),
-                        label: const Text('Add Entry'),
+                        label: Text(l10n.tr('add_entry_2')),
                       ),
                   ],
                 ),
@@ -743,7 +785,7 @@ class _AccountDetailSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Account History (${history.length})',
+            l10n.tr('account_history', {'history_length': history.length}),
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
@@ -751,7 +793,7 @@ class _AccountDetailSheet extends StatelessWidget {
             child: history.isEmpty
                 ? Center(
                     child: Text(
-                      'No transactions on this account yet.',
+                      l10n.tr('no_transactions_on_this_account_yet'),
                       style: TextStyle(
                         color: AppColors.textSecondary(context),
                       ),

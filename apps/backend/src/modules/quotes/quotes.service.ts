@@ -19,7 +19,7 @@ const STARTER_QUOTES: QuoteView[] = [
     id: '10000000-0000-0000-0000-000000000001',
     quoteText:
       'Start small, keep the rhythm steady, and let your mornings belong to you.',
-    author: 'Roo • Time & Planning',
+    author: 'Roo • Time, Planning & Habits',
     category: 'morning',
     locale: 'en',
     mascotDomain: 'roo',
@@ -30,7 +30,7 @@ const STARTER_QUOTES: QuoteView[] = [
     id: '10000000-0000-0000-0000-000000000002',
     quoteText:
       'Mulai dari langkah kecil, jaga ritmemu tetap stabil, dan miliki pagimu dengan tenang.',
-    author: 'Roo • Waktu & Perencanaan',
+    author: 'Roo • Waktu, Rencana & Kebiasaan',
     category: 'morning',
     locale: 'id',
     mascotDomain: 'roo',

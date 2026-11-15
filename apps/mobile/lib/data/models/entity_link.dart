@@ -10,6 +10,7 @@ enum LinkEntityType {
   memory,
   hobby,
   readingBook,
+  bucketList,
   medication,
   beforeYouGoPreset,
   automationRule,
@@ -34,6 +35,8 @@ extension LinkEntityTypeExt on LinkEntityType {
         return 'Hobby';
       case LinkEntityType.readingBook:
         return 'Reading Book';
+      case LinkEntityType.bucketList:
+        return 'Bucket List Dream';
       case LinkEntityType.medication:
         return 'Medication';
       case LinkEntityType.beforeYouGoPreset:
@@ -56,6 +59,7 @@ extension LinkEntityTypeExt on LinkEntityType {
         return 'Seren';
       case LinkEntityType.hobby:
       case LinkEntityType.readingBook:
+      case LinkEntityType.bucketList:
         return 'Pippin';
       case LinkEntityType.note:
         return 'Twill';

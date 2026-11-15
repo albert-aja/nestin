@@ -977,7 +977,7 @@ class InspirationService {
   static const List<InspirationAuthor> starterAuthors = [
     InspirationAuthor(
       id: '52000000-0000-0000-0000-000000000001',
-      name: 'Roo • Time & Planning',
+      name: 'Roo • Time, Planning & Habits',
       slug: 'roo-time-planning',
       mascotDomain: 'roo',
     ),
@@ -1005,7 +1005,7 @@ class InspirationService {
     InspirationQuote(
       id: '10000000-0000-0000-0000-000000000001',
       quoteText: 'Small progress is still progress. Keep moving forward.',
-      author: 'Roo • Time & Planning',
+      author: 'Roo • Time, Planning & Habits',
       authorId: '52000000-0000-0000-0000-000000000001',
       category: 'motivation',
       categoryId: '51000000-0000-0000-0000-000000000001',
@@ -1019,7 +1019,7 @@ class InspirationService {
       id: '10000000-0000-0000-0000-000000000002',
       quoteText:
           'Langkah kecil tetaplah sebuah kemajuan. Teruslah berjalan dengan tenang.',
-      author: 'Roo • Time & Planning',
+      author: 'Roo • Time, Planning & Habits',
       authorId: '52000000-0000-0000-0000-000000000001',
       category: 'motivation',
       categoryId: '51000000-0000-0000-0000-000000000001',

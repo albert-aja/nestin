@@ -371,23 +371,71 @@ class OemHardeningSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 36),
             child: isKeepAliveStep
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          step.actionLabel,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              step.actionLabel,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        ),
+                          Switch(
+                            value: isKeepAliveEnabled,
+                            activeColor: AppColors.accent,
+                            onChanged: (val) =>
+                                provider.toggleKeepAliveService(val),
+                          ),
+                        ],
                       ),
-                      Switch(
-                        value: isKeepAliveEnabled,
-                        activeColor: AppColors.accent,
-                        onChanged: (val) => provider.toggleKeepAliveService(val),
-                      ),
+                      if (provider.quickSettingsTileStatus.supported) ...[
+                        const SizedBox(height: 6),
+                        if (provider.quickSettingsTileStatus.canRequestAdd &&
+                            !provider.quickSettingsTileStatus.isTileAdded)
+                          OutlinedButton.icon(
+                            onPressed: () => provider.pinQuickSettingsTile(),
+                            icon: const Icon(
+                              Icons.dashboard_customize_rounded,
+                              size: 15,
+                            ),
+                            label: const Text('Pin Quick Settings Tile'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.adaptive(
+                                context,
+                                dark: AppColors.accent,
+                                light: const Color(0xFFC26A00),
+                              ),
+                              side: BorderSide(color: AppColors.border(context)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              minimumSize: const Size(0, 32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          )
+                        else
+                          Text(
+                            provider.quickSettingsTileStatus.isTileAdded
+                                ? 'Quick Settings tile "Nestin Guard" is active in shade.'
+                                : 'Tip: Add "Nestin Guard" from Android Quick Settings Edit.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: provider.quickSettingsTileStatus.isTileAdded
+                                  ? AppColors.success
+                                  : AppColors.textSecondary(context),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
                     ],
                   )
                 : OutlinedButton.icon(

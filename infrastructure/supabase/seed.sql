@@ -8,7 +8,7 @@ insert into public.quotes (
   (
     '10000000-0000-0000-0000-000000000001',
     'Start small, keep the rhythm steady, and let your mornings belong to you.',
-    'Roo • Time & Planning',
+    'Roo • Time, Planning & Habits',
     'morning',
     'en',
     'roo',
@@ -18,7 +18,7 @@ insert into public.quotes (
   (
     '10000000-0000-0000-0000-000000000002',
     'Mulai dari langkah kecil, jaga ritmemu tetap stabil, dan miliki pagimu dengan tenang.',
-    'Roo • Waktu & Perencanaan',
+    'Roo • Waktu, Rencana & Kebiasaan',
     'morning',
     'id',
     'roo',
@@ -278,7 +278,7 @@ insert into public.inspiration_authors (
 ) values
   (
     '52000000-0000-0000-0000-000000000001',
-    'Roo • Time & Planning',
+    'Roo • Time, Planning & Habits',
     'roo-time-planning',
     'Nestin morning companion for steady starts.',
     false,

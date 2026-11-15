@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/hydration_data.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/notification_service.dart';
+import '../data/services/widget_sync_service.dart';
 
 class HydrationProvider extends ChangeNotifier {
   final StorageService _storageService;
@@ -10,6 +13,7 @@ class HydrationProvider extends ChangeNotifier {
 
   late HydrationData _data;
   HydrationData get data => _data;
+  StreamSubscription<void>? _widgetUpdateSub;
 
   // Base notification ID range for hydration schedule (7100 - 7125)
   static const int baseNotificationId = 7100;
@@ -17,12 +21,32 @@ class HydrationProvider extends ChangeNotifier {
 
   HydrationProvider(this._storageService, this._notificationService) {
     _load();
+    _widgetUpdateSub = WidgetSyncService.instance.hydrationWidgetUpdates.listen(
+      (_) => unawaited(reloadFromStorage()),
+    );
   }
 
   void _load() {
     _data = _storageService.loadHydrationData();
     checkDailyRollover();
     _syncReminderSchedule();
+    unawaited(WidgetSyncService.instance.syncHydration(_data));
+  }
+
+  /// Syncs cached SharedPreferences written by Android home/lock screen widget +1 actions.
+  Future<void> reloadFromStorage() async {
+    await _storageService.reloadPrefs();
+    _data = _storageService.loadHydrationData();
+    checkDailyRollover();
+    await _syncReminderSchedule();
+    await WidgetSyncService.instance.syncHydration(_data);
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _widgetUpdateSub?.cancel();
+    super.dispose();
   }
 
   // Getters for convenient UI access
@@ -66,14 +90,16 @@ class HydrationProvider extends ChangeNotifier {
       );
       _storageService.saveHydrationData(_data);
       _syncReminderSchedule(now);
+      unawaited(WidgetSyncService.instance.syncHydration(_data));
       notifyListeners();
       return true;
     }
     return false;
   }
 
-  /// Increment consumed glasses (1 glass = 250ml)
-  Future<void> addGlass([int count = 1]) async {
+  /// Increment consumed glasses (1 glass = 250ml).
+  /// Returns `true` when this increment reaches the daily hydration goal.
+  Future<bool> addGlass([int count = 1]) async {
     checkDailyRollover();
     final updatedGlasses = _data.glassesConsumed + count;
     final previouslyMet = _data.isGoalMet;
@@ -84,14 +110,17 @@ class HydrationProvider extends ChangeNotifier {
       glassesConsumed: updatedGlasses,
       dailyHistory: updatedHistory,
     );
+    notifyListeners();
     await _storageService.saveHydrationData(_data);
 
+    final newlyReached = !previouslyMet && _data.isGoalMet;
     // If goal newly reached, cancel remaining reminder notifications for today
-    if (!previouslyMet && _data.isGoalMet) {
+    if (newlyReached) {
       await cancelAllReminders();
     }
 
-    notifyListeners();
+    await WidgetSyncService.instance.syncHydration(_data);
+    return newlyReached;
   }
 
   /// Decrement consumed glasses (min 0)
@@ -106,6 +135,7 @@ class HydrationProvider extends ChangeNotifier {
       glassesConsumed: updatedGlasses,
       dailyHistory: updatedHistory,
     );
+    notifyListeners();
     await _storageService.saveHydrationData(_data);
 
     // If dropped back below goal and reminders enabled, restore schedule
@@ -113,7 +143,7 @@ class HydrationProvider extends ChangeNotifier {
       await _syncReminderSchedule();
     }
 
-    notifyListeners();
+    await WidgetSyncService.instance.syncHydration(_data);
   }
 
   /// Record specific historical date intake (for testing / manual adjustments)
@@ -131,6 +161,7 @@ class HydrationProvider extends ChangeNotifier {
     _data = _data.copyWith(dailyGoalGlasses: clamped);
     await _storageService.saveHydrationData(_data);
     await _syncReminderSchedule();
+    await WidgetSyncService.instance.syncHydration(_data);
     notifyListeners();
   }
 
@@ -214,6 +245,8 @@ class HydrationProvider extends ChangeNotifier {
   }
 
   /// Synchronize scheduled notifications based on current goal progress & time
+  Future<void> refreshReminders() => _syncReminderSchedule();
+
   Future<void> _syncReminderSchedule([DateTime? currentTime]) async {
     final now = currentTime ?? DateTime.now();
 
@@ -227,15 +260,15 @@ class HydrationProvider extends ChangeNotifier {
     await cancelAllReminders();
 
     final allSlots = calculateReminderSlots(now);
+    final l10n = AppLocalizations.current;
     int slotIndex = 0;
 
     for (final slot in allSlots) {
       if (slot.isAfter(now) && slotIndex < maxSlots) {
         await _notificationService.scheduleWellnessNotification(
           id: baseNotificationId + slotIndex,
-          title: '💧 Seren — Hydration Reminder',
-          body:
-              'Time for a sip! Drink a fresh glass of water (250ml) to stay refreshed. Progress: ${_data.glassesConsumed}/${_data.dailyGoalGlasses} glasses.',
+          title: l10n.tr('seren_hydration_reminder'),
+          body: l10n.tr('time_for_a_sip_drink_a', {'data_glassesConsumed': _data.glassesConsumed, 'data_dailyGoalGlasses': _data.dailyGoalGlasses}),
           scheduledDate: slot,
         );
         slotIndex++;
@@ -245,11 +278,11 @@ class HydrationProvider extends ChangeNotifier {
 
   /// Test instant notification preview for user
   Future<void> testSendReminderNow() async {
+    final l10n = AppLocalizations.current;
     await _notificationService.showWellnessNotification(
       id: 7099,
-      title: '💧 Seren — Hydration Reminder',
-      body:
-          'Time for a sip! Drink a fresh glass of water (250ml) to stay refreshed. Progress: ${_data.glassesConsumed}/${_data.dailyGoalGlasses} glasses.',
+      title: l10n.tr('seren_hydration_reminder'),
+      body: l10n.tr('time_for_a_sip_drink_a', {'data_glassesConsumed': _data.glassesConsumed, 'data_dailyGoalGlasses': _data.dailyGoalGlasses}),
     );
   }
 }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/app_restriction.dart';
 import '../../../data/models/focus_session_log.dart';
 import '../../../data/services/ambient_sound_service.dart';
+import '../../../providers/device_control_provider.dart';
 import '../../../providers/timer_provider.dart';
+import '../discipline/digital_discipline_screen.dart';
 
 class PomodoroView extends StatelessWidget {
   const PomodoroView({super.key});
@@ -202,6 +206,12 @@ class PomodoroView extends StatelessWidget {
   Widget build(BuildContext context) {
     final timerProvider = Provider.of<TimerProvider>(context);
     final phaseColor = _getPhaseColor(timerProvider.pomodoroPhase);
+    DeviceControlProvider? dcProvider;
+    try {
+      dcProvider = Provider.of<DeviceControlProvider>(context);
+    } catch (_) {
+      dcProvider = null;
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -210,6 +220,10 @@ class PomodoroView extends StatelessWidget {
         children: [
           // 1. Hero Pomodoro Timer Card
           _buildHeroCard(context, timerProvider, phaseColor),
+          if (dcProvider != null) ...[
+            const SizedBox(height: 12),
+            _buildRooFocusLockStrip(context, dcProvider),
+          ],
           const SizedBox(height: 20),
 
           // 2. Ambient Noise Controls Bar
@@ -223,6 +237,75 @@ class PomodoroView extends StatelessWidget {
           // 4. Focus History Logs
           _buildHistoryLogs(context, timerProvider),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRooFocusLockStrip(
+    BuildContext context,
+    DeviceControlProvider dc,
+  ) {
+    final l10n = context.l10n;
+    final active = dc.activeFocusSession;
+    final config = dc.focusLockConfig;
+    final count = active?.restrictedPackages.length ??
+        config.restrictedPackages.length;
+    final isRestrictingNow =
+        active != null && active.isRestrictingPhaseNow(DateTime.now());
+    final accent = isRestrictingNow
+        ? const Color(0xFF10B981)
+        : (config.enabled ? AppColors.accent : AppColors.textMuted(context));
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const DigitalDisciplineScreen(initialTab: 2),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface(context),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: accent.withValues(alpha: 0.32)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isRestrictingNow
+                  ? Icons.lock_clock_rounded
+                  : Icons.shield_outlined,
+              size: 18,
+              color: accent,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isRestrictingNow
+                    ? l10n.tr('roo_focus_lock_active_count', {
+                        'count': count,
+                        'mode': active.enforcementMode.label,
+                      })
+                    : config.enabled
+                        ? l10n.tr('roo_focus_lock_armed_count', {'count': count})
+                        : l10n.tr('roo_focus_lock_disabled_tap'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: AppColors.textSecondary(context),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -755,7 +838,7 @@ class PomodoroView extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: logs.length > 5 ? 5 : logs.length,
-              separatorBuilder: (_, __) => Divider(
+              separatorBuilder: (_, _) => Divider(
                 color: AppColors.border(context),
                 height: 12,
               ),

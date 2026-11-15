@@ -1,3 +1,4 @@
+import '../../core/l10n/app_localizations.dart';
 import 'hobby_milestone.dart';
 
 class HobbyItem {
@@ -31,10 +32,11 @@ class HobbyItem {
 
   String get formattedHours {
     final hours = totalHoursPracticed;
+    final unit = AppLocalizations.current.tr('hrs');
     if (hours % 1 == 0) {
-      return '${hours.toInt()} hrs';
+      return '${hours.toInt()} $unit';
     }
-    return '${hours.toStringAsFixed(1)} hrs';
+    return '${hours.toStringAsFixed(1)} $unit';
   }
 
   double get progressToTarget {

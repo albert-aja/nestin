@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/reading_goal_data.dart';
 import '../data/models/reading_item.dart';
 import '../data/services/notification_service.dart';
@@ -467,14 +468,16 @@ class ReadingProvider extends ChangeNotifier {
   }
 
   String buildEveningReminderBody({DateTime? forDate}) {
+    final l10n = AppLocalizations.current;
     final now = _clock();
     final targetDate = forDate ?? computeNextReminderDateTime(now) ?? now;
     final isTodayTarget =
         ReadingGoalData.dateKey(targetDate) == ReadingGoalData.dateKey(now);
     final goal = _goalData.dailyPageGoal;
     final book = primaryActiveBook;
-    final bookSuffix =
-        book != null && !book.isCompleted ? ' in "${book.title}"' : '';
+    final bookSuffix = book != null && !book.isCompleted
+        ? l10n.tr('in', {'book_title': book.title})
+        : '';
     final streak = _goalData.getCurrentStreak(now);
 
     if (isTodayTarget) {
@@ -482,22 +485,22 @@ class ReadingProvider extends ChangeNotifier {
       final remaining = _goalData.pagesRemainingToday(now);
       if (todayRead <= 0) {
         if (streak > 0) {
-          return 'Read $goal pages today$bookSuffix to keep your $streak-day reading streak alive!';
+          return l10n.tr('read_pages_today_to_keep_your', {'goal': goal, 'bookSuffix': bookSuffix, 'streak': streak});
         }
-        return 'Read $goal pages today$bookSuffix!';
+        return l10n.tr('read_pages_today', {'goal': goal, 'bookSuffix': bookSuffix});
       }
       if (remaining > 0) {
         if (streak > 0) {
-          return '$remaining pages left to hit your $goal-page goal$bookSuffix & protect your $streak-day streak!';
+          return l10n.tr('pages_left_to_hit_your_page', {'remaining': remaining, 'goal': goal, 'bookSuffix': bookSuffix, 'streak': streak});
         }
-        return '$remaining pages left to hit your $goal-page goal today$bookSuffix!';
+        return l10n.tr('pages_left_to_hit_your_page_2', {'remaining': remaining, 'goal': goal, 'bookSuffix': bookSuffix});
       }
     }
 
     if (streak > 0) {
-      return 'Read $goal pages today$bookSuffix to keep your $streak-day reading streak going!';
+      return l10n.tr('read_pages_today_to_keep_your_2', {'goal': goal, 'bookSuffix': bookSuffix, 'streak': streak});
     }
-    return 'Read $goal pages today$bookSuffix!';
+    return l10n.tr('read_pages_today', {'goal': goal, 'bookSuffix': bookSuffix});
   }
 
   Future<void> syncEveningReminder([DateTime? referenceNow]) async {
@@ -514,9 +517,10 @@ class ReadingProvider extends ChangeNotifier {
       return;
     }
 
+    final l10n = AppLocalizations.current;
     await notif.scheduleReadingNotification(
       id: eveningReminderNotificationId,
-      title: '🦜 Pippin — Daily Reading Goal',
+      title: l10n.tr('pippin_daily_reading_goal'),
       body: body,
       scheduledDate: nextSlot,
       payload: reminderPayload,
@@ -527,9 +531,10 @@ class ReadingProvider extends ChangeNotifier {
     final notif = notificationService;
     if (notif == null) return;
     final now = _clock();
+    final l10n = AppLocalizations.current;
     await notif.showReadingNotification(
       id: previewReminderNotificationId,
-      title: '🦜 Pippin — Daily Reading Nudge',
+      title: l10n.tr('pippin_daily_reading_nudge'),
       body: buildEveningReminderBody(forDate: now),
       payload: reminderPayload,
     );

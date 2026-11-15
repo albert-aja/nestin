@@ -20,11 +20,11 @@ Status Legend:
 | **Twill** | Markdown Notes, Checklists, Collections, Wishlist | Implemented | `NoteProvider`, `CollectionProvider`, `NotesListScreen`, `WishlistScreen` |
 | **Twill** | Quick Capture & Home Widget | Implemented | `QuickCaptureSheet`, `QuickCaptureWidgetProvider` |
 | **Twill** | Basic Local Money Management | Implemented | `MoneyProvider`, `MoneyHubScreen`, atomic ledger rollback (`commitMoneyLedgerAtomically`) |
+| **Roo** | Digital Discipline, App Fast & Usage Limits | Device-Dependent | `DigitalDisciplineScreen`, `WellbeingAppFastTab`, Android `UsageStatsManager` (`PACKAGE_USAGE_STATS`); iOS reports `unsupported` honestly without `FamilyControls` |
+| **Roo** | Focus Lock & Pomodoro App Restrictions | Delegated / Partial | Shared `RestrictionEngine` + `FocusLockCoordinator`; delegates to OS Digital Wellbeing unless Android Accessibility shield (`NestinAppShieldService`) is opted in or iOS `FamilyControls` entitlement exists |
 | **Scout** | BeforeYouGo Departure Checklists | Implemented | `BeforeYouGoProvider`, `BeforeYouGoSheet`, `BeforeYouGoCard` |
 | **Scout** | Geofencing & Location Reminders | Device-Dependent | `GeofenceProvider`, `GeofencingPlugin.kt` (Android), `GeofenceManager` (iOS) |
-| **Scout** | App Usage Stats & 5-Level Guard | Device-Dependent | Android `UsageStatsManager` (`PACKAGE_USAGE_STATS`); iOS reports `unsupported` honestly without `FamilyControls` |
-| **Scout** | Hard Third-Party App Blocking Shield | Delegated / Partial | Delegates to OS Digital Wellbeing unless Android Accessibility shield is opted in or iOS `FamilyControls` entitlement exists |
-| **Scout** | Phone Modes (DND, Brightness, Timeout) | Device-Dependent | Android direct with `ACCESS_NOTIFICATION_POLICY` + `WRITE_SETTINGS`; iOS Focus delegated to System Settings, brightness/timeout unsupported |
+| **Scout** | Phone Modes (DND, Brightness, Timeout) | Device-Dependent | `PhoneModesScreen`; Android direct with `ACCESS_NOTIFICATION_POLICY` + `WRITE_SETTINGS`; iOS Focus delegated to System Settings, brightness/timeout unsupported |
 | **Scout** | Safe State Restoration & User Override Guard | Implemented | `StateRestorationSnapshot`, `DeviceControlProvider.endActivePhoneMode` |
 | **Scout** | Device Capability Registry & Permission Center | Implemented | `PermissionCenterScreen`, `DeviceControlPlugin.kt`, `DeviceControlManager` |
 | **Shared** | Shared Automation Engine | Implemented | `AutomationProvider`, `AutomationHubScreen` (triggers, conditions, locks, confirmation gate, retries, rollback) |

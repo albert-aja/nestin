@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/device_capability.dart';
 import '../models/digital_wellbeing.dart';
+import '../models/app_restriction.dart';
 import '../models/phone_mode.dart';
 
 class DeviceSystemState {
@@ -41,7 +42,19 @@ abstract class DeviceControlServiceInterface {
   Future<DeviceSystemState> readSystemState();
   Future<WellbeingDailySnapshot> fetchAppUsageToday({
     required List<TrackedAppRule> rules,
+    List<String> additionalPackages = const [],
+    int resetHour = 0,
+    int resetMinute = 0,
   });
+  Future<List<InstalledAppInfo>> discoverInstalledApps({
+    bool includeSystemApps = false,
+  });
+  Future<bool> syncRestrictionPolicy(
+    List<Map<String, dynamic>> policies, {
+    DateTime? focusExpiresAt,
+  });
+  Future<String?> getCurrentForegroundApp();
+  Future<bool> requestFamilyControlsAuthorization();
   Future<PhoneModeActionOutcome> setDndEnabled(bool enable);
   Future<PhoneModeActionOutcome> restoreRawDndFilter(int filter);
   Future<PhoneModeActionOutcome> setScreenBrightness(int percent);
@@ -122,14 +135,23 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
   @override
   Future<WellbeingDailySnapshot> fetchAppUsageToday({
     required List<TrackedAppRule> rules,
+    List<String> additionalPackages = const [],
+    int resetHour = 0,
+    int resetMinute = 0,
   }) async {
     final now = DateTime.now();
     final dateKey = _dateKey(now);
+    final targetPackages = {
+      ...rules.map((r) => r.packageName),
+      ...additionalPackages,
+    }.toList();
     try {
       final raw = await _channel.invokeMapMethod<String, dynamic>(
         'getAppUsageToday',
         {
-          'packages': rules.map((r) => r.packageName).toList(),
+          'packages': targetPackages,
+          'resetHour': resetHour,
+          'resetMinute': resetMinute,
         },
       );
       if (raw != null) {
@@ -154,11 +176,17 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
                   dataSource: granted ? 'usage_stats' : 'unavailable',
                 ))
             .toList();
+        final rawBypasses = raw['bypassedPackages'] as List<dynamic>?;
+        final bypassedPackages = rawBypasses
+                ?.map((e) => e.toString())
+                .toList() ??
+            const <String>[];
         return WellbeingDailySnapshot(
           dateKey: dateKey,
           records: records,
           permissionGranted: granted,
           honestBoundaryMessage: boundary,
+          bypassedPackages: bypassedPackages,
         );
       }
     } catch (_) {}
@@ -341,6 +369,74 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
     try {
       final ok =
           await _channel.invokeMethod<bool>('openSystemModesOrWellbeing');
+      return ok ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<List<InstalledAppInfo>> discoverInstalledApps({
+    bool includeSystemApps = false,
+  }) async {
+    try {
+      final rawList = await _channel.invokeListMethod<dynamic>(
+        'getInstalledApps',
+        {'includeSystemApps': includeSystemApps},
+      );
+      if (rawList != null) {
+        return rawList
+            .whereType<Map>()
+            .map(
+              (m) => InstalledAppInfo(
+                packageName: m['packageName'] as String? ?? '',
+                appName: m['appName'] as String? ?? 'App',
+                category: m['category'] as String? ?? 'other',
+                isSystemApp: m['isSystemApp'] as bool? ?? false,
+                iosBundleHint: m['iosBundleHint'] as String?,
+              ),
+            )
+            .where((a) => a.packageName.isNotEmpty)
+            .toList();
+      }
+    } catch (_) {}
+    return const [];
+  }
+
+  @override
+  Future<bool> syncRestrictionPolicy(
+    List<Map<String, dynamic>> policies, {
+    DateTime? focusExpiresAt,
+  }) async {
+    try {
+      final ok = await _channel.invokeMethod<bool>(
+        'syncRestrictionPolicy',
+        {
+          'policies': policies,
+          'focusExpiresAtMs': focusExpiresAt?.millisecondsSinceEpoch ?? 0,
+        },
+      );
+      return ok ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<String?> getCurrentForegroundApp() async {
+    try {
+      return await _channel.invokeMethod<String>('getCurrentForegroundApp');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> requestFamilyControlsAuthorization() async {
+    try {
+      final ok = await _channel.invokeMethod<bool>(
+        'requestFamilyControlsAuthorization',
+      );
       return ok ?? false;
     } catch (_) {
       return false;
@@ -531,7 +627,7 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
         affectsFeatures: const [
           'Roo Alarms & Timers',
           'Seren Dose & Hydration',
-          'Scout Pre-Limit Alerts',
+          'Roo Pre-Limit & Focus Alerts',
           'Automation Notifications',
         ],
         lastCheckedAt: now,
@@ -559,10 +655,10 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
               ? PermissionStatus.granted
               : PermissionStatus.denied,
           rationale:
-              'Lets Scout measure daily app time and trigger pre-limit warnings accurately offline.',
+              'Lets Roo Digital Discipline measure daily app time and trigger pre-limit warnings accurately offline.',
           enableInstructions:
               'Open Usage Data Access -> select Nestin -> Permit usage access.',
-          affectsFeatures: const ['Scout App Usage Stats', 'Daily App Limits'],
+          affectsFeatures: const ['Roo Digital Discipline', 'Daily Usage Limits'],
           lastCheckedAt: now,
         ),
         PermissionEntry(
@@ -708,7 +804,13 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
   bool isSamsungOneUi;
   Map<String, int> mockUsageMinutesByPackage;
   Map<String, int> mockLaunchCountsByPackage;
+  List<InstalledAppInfo> mockInstalledApps;
+  String? mockForegroundPackage;
+  List<Map<String, dynamic>> lastSyncedPolicies = [];
+  DateTime? lastSyncedFocusExpiresAt;
   final List<String> actionLog = [];
+  List<AppUsageRecord>? mockRecords;
+  List<String> mockBypassedPackages;
 
   MockDeviceControlService({
     this.systemState = const DeviceSystemState(
@@ -730,8 +832,41 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
     this.isSamsungOneUi = false,
     Map<String, int>? mockUsageMinutesByPackage,
     Map<String, int>? mockLaunchCountsByPackage,
+    List<InstalledAppInfo>? mockInstalledApps,
+    this.mockForegroundPackage,
+    this.mockRecords,
+    List<String>? mockBypassedPackages,
   })  : mockUsageMinutesByPackage = mockUsageMinutesByPackage ?? {},
-        mockLaunchCountsByPackage = mockLaunchCountsByPackage ?? {};
+        mockLaunchCountsByPackage = mockLaunchCountsByPackage ?? {},
+        mockBypassedPackages = mockBypassedPackages ?? const [],
+        mockInstalledApps = mockInstalledApps ??
+            const [
+              InstalledAppInfo(
+                packageName: 'com.instagram.android',
+                appName: 'Instagram',
+                category: 'social',
+              ),
+              InstalledAppInfo(
+                packageName: 'com.zhiliaoapp.musically',
+                appName: 'TikTok',
+                category: 'video',
+              ),
+              InstalledAppInfo(
+                packageName: 'com.google.android.youtube',
+                appName: 'YouTube',
+                category: 'video',
+              ),
+              InstalledAppInfo(
+                packageName: 'com.reddit.frontpage',
+                appName: 'Reddit',
+                category: 'social',
+              ),
+              InstalledAppInfo(
+                packageName: 'com.facebook.katana',
+                appName: 'Facebook',
+                category: 'social',
+              ),
+            ];
 
   @override
   Future<DeviceCapabilityRegistry> inspectCapabilities() async {
@@ -886,6 +1021,9 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
   @override
   Future<WellbeingDailySnapshot> fetchAppUsageToday({
     required List<TrackedAppRule> rules,
+    List<String> additionalPackages = const [],
+    int resetHour = 0,
+    int resetMinute = 0,
   }) async {
     final now = DateTime.now();
     final dateKey =
@@ -902,21 +1040,38 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
       );
     }
 
-    final records = rules
-        .map((r) => AppUsageRecord(
-              packageName: r.packageName,
-              appName: r.displayName,
-              usedMinutesToday: mockUsageMinutesByPackage[r.packageName] ?? 0,
-              launchCountToday: mockLaunchCountsByPackage[r.packageName] ?? 0,
-              dateKey: dateKey,
-              dataSource: 'usage_stats',
-            ))
+    if (mockRecords != null) {
+      return WellbeingDailySnapshot(
+        dateKey: dateKey,
+        records: mockRecords!,
+        permissionGranted: true,
+        bypassedPackages: mockBypassedPackages,
+      );
+    }
+
+    final allPackages = {
+      ...rules.map((r) => r.packageName),
+      ...additionalPackages,
+    };
+    final records = allPackages
+        .map((pkg) {
+          final rule = rules.where((r) => r.packageName == pkg).firstOrNull;
+          return AppUsageRecord(
+            packageName: pkg,
+            appName: rule?.displayName ?? pkg,
+            usedMinutesToday: mockUsageMinutesByPackage[pkg] ?? 0,
+            launchCountToday: mockLaunchCountsByPackage[pkg] ?? 0,
+            dateKey: dateKey,
+            dataSource: 'usage_stats',
+          );
+        })
         .toList();
 
     return WellbeingDailySnapshot(
       dateKey: dateKey,
       records: records,
       permissionGranted: true,
+      bypassedPackages: mockBypassedPackages,
     );
   }
 
@@ -1188,5 +1343,37 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
   Future<bool> openSystemModesOrWellbeing() async {
     actionLog.add('openSystemModesOrWellbeing');
     return true;
+  }
+
+  @override
+  Future<List<InstalledAppInfo>> discoverInstalledApps({
+    bool includeSystemApps = false,
+  }) async {
+    if (platform == 'ios' && !systemState.hasFamilyControlsEntitlement) {
+      return const [];
+    }
+    return mockInstalledApps
+        .where((a) => includeSystemApps || !a.isSystemApp)
+        .toList();
+  }
+
+  @override
+  Future<bool> syncRestrictionPolicy(
+    List<Map<String, dynamic>> policies, {
+    DateTime? focusExpiresAt,
+  }) async {
+    lastSyncedPolicies = policies;
+    lastSyncedFocusExpiresAt = focusExpiresAt;
+    actionLog.add('syncRestrictionPolicy:${policies.length}');
+    return true;
+  }
+
+  @override
+  Future<String?> getCurrentForegroundApp() async => mockForegroundPackage;
+
+  @override
+  Future<bool> requestFamilyControlsAuthorization() async {
+    actionLog.add('requestFamilyControlsAuthorization');
+    return systemState.hasFamilyControlsEntitlement;
   }
 }

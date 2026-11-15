@@ -96,6 +96,7 @@ enum AutomationActionType {
   setDndEnabled,
   setBrightness,
   delegateToSystemSettings,
+  applyAppRestriction,
 }
 
 extension AutomationActionTypeExt on AutomationActionType {
@@ -119,6 +120,8 @@ extension AutomationActionTypeExt on AutomationActionType {
         return 'Adjust Screen Brightness';
       case AutomationActionType.delegateToSystemSettings:
         return 'Open OS Modes / Settings';
+      case AutomationActionType.applyAppRestriction:
+        return 'Apply Roo App Restriction';
     }
   }
 

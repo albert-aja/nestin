@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.nestin.app.MainActivity
+import com.nestin.app.oem.KeepAliveGuardState
 
 class NestinKeepAliveService : Service() {
 
@@ -24,18 +25,20 @@ class NestinKeepAliveService : Service() {
         var isRunning: Boolean = false
             private set
 
-        fun startService(context: Context) {
+        fun startService(context: Context): Boolean {
             val intent = Intent(context, NestinKeepAliveService::class.java).apply {
                 action = ACTION_START
             }
-            try {
+            return try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(intent)
                 } else {
                     context.startService(intent)
                 }
+                true
             } catch (e: Exception) {
                 e.printStackTrace()
+                false
             }
         }
 
@@ -58,9 +61,15 @@ class NestinKeepAliveService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
-            stopForeground(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
+            }
             stopSelf()
             isRunning = false
+            KeepAliveGuardState.syncRuntimeState(this, false)
             return START_NOT_STICKY
         }
 
@@ -68,9 +77,11 @@ class NestinKeepAliveService : Service() {
         try {
             startForeground(NOTIFICATION_ID, notification)
             isRunning = true
+            KeepAliveGuardState.syncRuntimeState(this, true)
         } catch (e: Exception) {
             e.printStackTrace()
             isRunning = false
+            KeepAliveGuardState.syncRuntimeState(this, false)
         }
 
         return START_STICKY
@@ -78,6 +89,7 @@ class NestinKeepAliveService : Service() {
 
     override fun onDestroy() {
         isRunning = false
+        KeepAliveGuardState.syncRuntimeState(this, false)
         super.onDestroy()
     }
 

@@ -1,3 +1,4 @@
+import '../../core/l10n/app_localizations.dart';
 import '../../domain/security/diary_lock_helper.dart';
 
 enum JournalMood {
@@ -25,17 +26,18 @@ extension JournalMoodExt on JournalMood {
   }
 
   String get label {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case JournalMood.great:
-        return 'Great';
+        return l10n.tr('great');
       case JournalMood.good:
-        return 'Good';
+        return l10n.tr('good');
       case JournalMood.neutral:
-        return 'Neutral';
+        return l10n.tr('neutral');
       case JournalMood.low:
-        return 'Low Energy';
+        return l10n.tr('low_energy');
       case JournalMood.tough:
-        return 'Tough Day';
+        return l10n.tr('tough_day');
     }
   }
 }

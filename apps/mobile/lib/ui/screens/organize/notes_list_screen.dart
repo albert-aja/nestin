@@ -618,20 +618,14 @@ class _NotesListScreenState extends State<NotesListScreen> {
               children: [
                 Expanded(
                   child: _buildFilterTab(
-                    l10n.pick(
-                      'Active (${activeNotes.length})',
-                      'Aktif (${activeNotes.length})',
-                    ),
+                    l10n.tr('active_2', {'activeNotes_length': activeNotes.length}),
                     0,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildFilterTab(
-                    l10n.pick(
-                      'Archived (${archivedNotes.length})',
-                      'Diarsipkan (${archivedNotes.length})',
-                    ),
+                    l10n.tr('archived', {'archivedNotes_length': archivedNotes.length}),
                     1,
                   ),
                 ),
@@ -654,28 +648,16 @@ class _NotesListScreenState extends State<NotesListScreen> {
                         const SizedBox(height: 12),
                         Text(
                           isArchivedView
-                              ? l10n.pick(
-                                  'No archived notes',
-                                  'Belum ada catatan terarsip',
-                                )
-                              : l10n.pick(
-                                  'No notes yet',
-                                  'Belum ada catatan',
-                                ),
+                              ? l10n.tr('no_archived_notes')
+                              : l10n.tr('no_notes_yet'),
                           style: const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           isArchivedView
-                              ? l10n.pick(
-                                  'Swipe left on any active note to archive it',
-                                  'Geser kiri pada catatan aktif untuk mengarsipkannya',
-                                )
-                              : l10n.pick(
-                                  'Tap + to jot down thoughts, ideas, or references',
-                                  'Ketuk + untuk mencatat ide, pikiran, atau referensi',
-                                ),
+                              ? l10n.tr('swipe_left_on_any_active_note')
+                              : l10n.tr('tap_to_jot_down_thoughts_ideas'),
                           style: TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary(context)),

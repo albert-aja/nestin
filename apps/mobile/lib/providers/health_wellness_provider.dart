@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/daily_health_activity.dart';
 import '../data/models/sleep_log.dart';
 import '../data/models/vital_log.dart';
@@ -304,6 +305,8 @@ class HealthWellnessProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refreshMoveReminder() => _syncMoveReminder();
+
   Future<void> _syncMoveReminder() async {
     final notif = _notificationService;
     if (notif == null) return;
@@ -317,11 +320,11 @@ class HealthWellnessProvider extends ChangeNotifier {
       target = target.add(const Duration(days: 1));
     }
 
+    final l10n = AppLocalizations.current;
     await notif.scheduleWellnessNotification(
       id: moveReminderNotificationId,
-      title: '🌿 Seren — Gentle Movement Stretch',
-      body:
-          'Time for a mindful 5-minute walk! Check your daily step progress toward ${_goals.dailyStepGoal} steps.',
+      title: l10n.tr('seren_gentle_movement_stretch'),
+      body: l10n.tr('time_for_a_mindful_5_minute', {'goals_dailyStepGoal': _goals.dailyStepGoal}),
       scheduledDate: target,
       payload: 'seren_health_move',
     );

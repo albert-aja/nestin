@@ -6,6 +6,7 @@ import '../data/models/user_preferences.dart';
 import '../data/models/challenge_profile.dart';
 import '../data/models/journal_entry.dart';
 import '../data/services/storage_service.dart';
+import '../data/services/widget_sync_service.dart';
 import '../domain/security/diary_lock_helper.dart';
 
 class SettingsProvider extends ChangeNotifier {
@@ -17,6 +18,8 @@ class SettingsProvider extends ChangeNotifier {
       : _clock = clock ?? DateTime.now {
     _preferences = _storageService.loadPreferences();
     AppLocalizations.currentLanguage = _preferences.language;
+    WidgetSyncService.instance
+        .setShowMascotsEnabled(_preferences.showWidgetMascots);
     unawaited(AppLocalizations.ensureDateFormatting());
   }
 
@@ -32,6 +35,8 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> updatePreferences(UserPreferences newPrefs) async {
     _preferences = newPrefs;
     AppLocalizations.currentLanguage = _preferences.language;
+    WidgetSyncService.instance
+        .setShowMascotsEnabled(_preferences.showWidgetMascots);
     await _storageService.savePreferences(_preferences);
     notifyListeners();
   }
@@ -89,6 +94,8 @@ class SettingsProvider extends ChangeNotifier {
       _preferences.securityPin != null && _preferences.securityPin!.isNotEmpty;
   bool get showJournalPrompts => _preferences.showJournalPrompts;
   bool get showThrowbacks => _preferences.showThrowbacks;
+  bool get hasCompletedOnboarding => _preferences.hasCompletedOnboarding;
+  bool get showWidgetMascots => _preferences.showWidgetMascots;
 
   // Ephemeral in-session unlock state
   bool _isDiaryUnlocked = false;
@@ -296,6 +303,26 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> toggleThrowbacks(bool enabled) async {
     await updatePreferences(_preferences.copyWith(showThrowbacks: enabled));
+  }
+
+  Future<void> completeMascotOnboarding() async {
+    if (_preferences.hasCompletedOnboarding) return;
+    await updatePreferences(
+      _preferences.copyWith(hasCompletedOnboarding: true),
+    );
+  }
+
+  Future<void> resetMascotOnboarding() async {
+    if (!_preferences.hasCompletedOnboarding) return;
+    await updatePreferences(
+      _preferences.copyWith(hasCompletedOnboarding: false),
+    );
+  }
+
+  Future<void> toggleWidgetMascots(bool enabled) async {
+    WidgetSyncService.instance.setShowMascotsEnabled(enabled);
+    await updatePreferences(_preferences.copyWith(showWidgetMascots: enabled));
+    await WidgetSyncService.instance.syncQuickCapture(showMascots: enabled);
   }
 
   @override

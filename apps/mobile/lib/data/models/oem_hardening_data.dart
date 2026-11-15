@@ -455,3 +455,41 @@ class OemHardeningConfig {
   }
 }
 
+/// Capabilities & pin state of Android 7.0+ Quick Settings Keep-Alive Tile.
+class QuickSettingsTileStatus {
+  final bool supported;
+  final bool canRequestAdd;
+  final bool isTileAdded;
+
+  const QuickSettingsTileStatus({
+    required this.supported,
+    required this.canRequestAdd,
+    required this.isTileAdded,
+  });
+
+  const QuickSettingsTileStatus.unsupported()
+      : supported = false,
+        canRequestAdd = false,
+        isTileAdded = false;
+
+  factory QuickSettingsTileStatus.fromPlatformMap(Map<dynamic, dynamic> map) {
+    return QuickSettingsTileStatus(
+      supported: map['supported'] as bool? ?? false,
+      canRequestAdd: map['canRequestAdd'] as bool? ?? false,
+      isTileAdded: map['isTileAdded'] as bool? ?? false,
+    );
+  }
+
+  QuickSettingsTileStatus copyWith({
+    bool? supported,
+    bool? canRequestAdd,
+    bool? isTileAdded,
+  }) {
+    return QuickSettingsTileStatus(
+      supported: supported ?? this.supported,
+      canRequestAdd: canRequestAdd ?? this.canRequestAdd,
+      isTileAdded: isTileAdded ?? this.isTileAdded,
+    );
+  }
+}
+

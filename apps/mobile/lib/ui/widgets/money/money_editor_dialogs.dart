@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/money_account.dart';
 import '../../../data/models/money_budget.dart';
@@ -192,14 +192,15 @@ class _MoneyTransactionEditorSheetState
 
   Future<void> _submit() async {
     if (_saving) return;
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context, listen: false);
     final amountMinor = MoneyAmount.tryParseToMinor(_amountCtrl.text);
     if (amountMinor == null || amountMinor <= 0) {
-      setState(() => _errorText = 'Enter a valid positive amount (> 0).');
+      setState(() => _errorText = l10n.tr('enter_a_valid_positive_amount_0'));
       return;
     }
     if (_accountId == null) {
-      setState(() => _errorText = 'Create an active wallet or account first.');
+      setState(() => _errorText = l10n.tr('create_an_active_wallet_or_account'));
       return;
     }
 
@@ -222,8 +223,9 @@ class _MoneyTransactionEditorSheetState
         );
       } else if (_type == MoneyTransactionType.transfer) {
         if (_toAccountId == null) {
-          throw const MoneyValidationException(
-              'Select a destination account for transfer.');
+          throw MoneyValidationException(
+            l10n.tr('select_a_destination_account_for_transfer'),
+          );
         }
         await provider.executeTransfer(
           fromAccountId: _accountId!,
@@ -234,7 +236,9 @@ class _MoneyTransactionEditorSheetState
         );
       } else {
         if (_categoryId == null) {
-          throw const MoneyValidationException('Select a category.');
+          throw MoneyValidationException(
+            l10n.tr('select_a_category'),
+          );
         }
         await provider.addTransaction(
           type: _type,
@@ -261,6 +265,7 @@ class _MoneyTransactionEditorSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final activeAccts = provider.activeAccounts;
     final existingAcct = _accountId != null ? provider.findAccountById(_accountId!) : null;
@@ -301,8 +306,8 @@ class _MoneyTransactionEditorSheetState
                 Expanded(
                   child: Text(
                     widget.existing == null
-                        ? 'Record Transaction'
-                        : 'Edit Transaction',
+                        ? l10n.tr('record_transaction')
+                        : l10n.tr('edit_transaction'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -364,7 +369,7 @@ class _MoneyTransactionEditorSheetState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'No Wallets Yet',
+                      l10n.tr('no_wallets_yet'),
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         color: AppColors.adaptive(
@@ -376,7 +381,7 @@ class _MoneyTransactionEditorSheetState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Create a Cash, Bank, or E-Wallet account before logging transactions.',
+                      l10n.tr('create_a_cash_bank_or_e'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
@@ -389,7 +394,9 @@ class _MoneyTransactionEditorSheetState
                         showMoneyAccountDialog(context);
                       },
                       icon: const Icon(Icons.add_rounded, size: 16),
-                      label: const Text('Create First Account'),
+                      label: Text(
+                        l10n.tr('create_first_account'),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kTwillAmber,
                         foregroundColor: Colors.black,
@@ -410,7 +417,7 @@ class _MoneyTransactionEditorSheetState
                   color: AppColors.textPrimary(context),
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Amount (${provider.currency.code})',
+                  labelText: l10n.tr('amount', {'provider_code': provider.currency.code}),
                   prefixText: '${provider.currency.symbol} ',
                   prefixIcon: Icon(_type.icon, color: _type.color),
                 ),
@@ -424,8 +431,8 @@ class _MoneyTransactionEditorSheetState
                 dropdownColor: AppColors.elevatedSurface(context),
                 decoration: InputDecoration(
                   labelText: _type == MoneyTransactionType.transfer
-                      ? 'From Account (Source)'
-                      : 'Account',
+                      ? l10n.tr('from_account_source')
+                      : l10n.tr('account_4'),
                   prefixIcon: const Icon(Icons.account_balance_wallet_rounded),
                 ),
                 items: selectableAccounts
@@ -450,9 +457,9 @@ class _MoneyTransactionEditorSheetState
                           ? _toAccountId
                           : null,
                   dropdownColor: AppColors.elevatedSurface(context),
-                  decoration: const InputDecoration(
-                    labelText: 'To Account (Destination)',
-                    prefixIcon: Icon(Icons.swap_horiz_rounded),
+                  decoration: InputDecoration(
+                    labelText: l10n.tr('to_account_destination'),
+                    prefixIcon: const Icon(Icons.swap_horiz_rounded),
                   ),
                   items: activeAccts
                       .map(
@@ -479,9 +486,9 @@ class _MoneyTransactionEditorSheetState
                                 ? _categoryId
                                 : null,
                         dropdownColor: AppColors.elevatedSurface(context),
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                          prefixIcon: Icon(Icons.category_rounded),
+                        decoration: InputDecoration(
+                          labelText: l10n.tr('category'),
+                          prefixIcon: const Icon(Icons.category_rounded),
                         ),
                         items: categories
                             .map(
@@ -494,7 +501,7 @@ class _MoneyTransactionEditorSheetState
                                     const SizedBox(width: 8),
                                     Flexible(
                                       child: Text(
-                                        c.name,
+                                        c.displayName,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -508,7 +515,7 @@ class _MoneyTransactionEditorSheetState
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      tooltip: 'Manage Categories',
+                      tooltip: l10n.tr('manage_categories'),
                       onPressed: () => showMoneyCategoriesSheet(context),
                       icon: const Icon(Icons.tune_rounded, color: kTwillAmber),
                     ),
@@ -520,19 +527,19 @@ class _MoneyTransactionEditorSheetState
                 onTap: _pickDate,
                 borderRadius: BorderRadius.circular(12),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date',
-                    prefixIcon: Icon(Icons.calendar_today_rounded),
+                  decoration: InputDecoration(
+                    labelText: l10n.tr('date_2'),
+                    prefixIcon: const Icon(Icons.calendar_today_rounded),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        DateFormat('EEE, MMM d, yyyy').format(_selectedDate),
+                        l10n.formatDate(_selectedDate, 'EEE, MMM d, yyyy'),
                         style: TextStyle(color: AppColors.textPrimary(context)),
                       ),
                       Text(
-                        'Change',
+                        l10n.tr('change'),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.adaptive(
@@ -551,10 +558,10 @@ class _MoneyTransactionEditorSheetState
               TextField(
                 controller: _noteCtrl,
                 decoration: InputDecoration(
-                  labelText: 'Description / Note',
+                  labelText: l10n.tr('description_note'),
                   hintText: _type == MoneyTransactionType.transfer
-                      ? 'e.g. Move cash to E-Wallet'
-                      : 'e.g. Lunch, Monthly salary, Groceries',
+                      ? l10n.tr('e_g_move_cash_to_e')
+                      : l10n.tr('e_g_lunch_monthly_salary_groceries'),
                   prefixIcon: const Icon(Icons.notes_rounded),
                 ),
               ),
@@ -582,9 +589,9 @@ class _MoneyTransactionEditorSheetState
                 child: Text(
                   widget.existing == null
                       ? (_type == MoneyTransactionType.transfer
-                          ? 'Transfer Money'
-                          : 'Save ${_type.label}')
-                      : 'Update Transaction',
+                          ? l10n.tr('transfer_money')
+                          : l10n.tr('save_2', {'type_label': _type.label}))
+                      : l10n.tr('update_transaction'),
                   style: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w800),
                 ),
@@ -652,12 +659,13 @@ class _MoneyAccountEditorSheetState extends State<_MoneyAccountEditorSheet> {
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context, listen: false);
     final initialMinor = _balanceCtrl.text.trim().isEmpty
         ? 0
         : MoneyAmount.tryParseToMinor(_balanceCtrl.text);
     if (initialMinor == null || initialMinor < 0) {
-      setState(() => _errorText = 'Initial balance must be 0 or higher.');
+      setState(() => _errorText = l10n.tr('initial_balance_must_be_0_or'));
       return;
     }
 
@@ -696,6 +704,7 @@ class _MoneyAccountEditorSheetState extends State<_MoneyAccountEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currency = Provider.of<MoneyProvider>(context).currency;
     return Container(
       padding: EdgeInsets.only(
@@ -718,8 +727,8 @@ class _MoneyAccountEditorSheetState extends State<_MoneyAccountEditorSheet> {
                 Expanded(
                   child: Text(
                     widget.existing == null
-                        ? 'Create Wallet / Account'
-                        : 'Edit Account',
+                        ? l10n.tr('create_wallet_account')
+                        : l10n.tr('edit_account'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -737,10 +746,10 @@ class _MoneyAccountEditorSheetState extends State<_MoneyAccountEditorSheet> {
             TextField(
               controller: _nameCtrl,
               autofocus: widget.existing == null,
-              decoration: const InputDecoration(
-                labelText: 'Account Name',
-                hintText: 'e.g. Daily Cash, Main Bank, GoPay',
-                prefixIcon: Icon(Icons.account_balance_wallet_rounded),
+              decoration: InputDecoration(
+                labelText: l10n.tr('account_name'),
+                hintText: l10n.tr('e_g_daily_cash_main_bank'),
+                prefixIcon: const Icon(Icons.account_balance_wallet_rounded),
               ),
             ),
             const SizedBox(height: 12),
@@ -784,17 +793,16 @@ class _MoneyAccountEditorSheetState extends State<_MoneyAccountEditorSheet> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                labelText: 'Opening Initial Balance (${currency.code})',
-                helperText:
-                    'Tracked separately from monthly income transactions',
+                labelText: l10n.tr('opening_initial_balance_2', {'currency_code': currency.code}),
+                helperText: l10n.tr('tracked_separately_from_monthly_income_transactions'),
                 prefixText: '${currency.symbol} ',
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _descCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
+              decoration: InputDecoration(
+                labelText: l10n.tr('description_optional_2'),
               ),
             ),
             const SizedBox(height: 12),
@@ -839,7 +847,9 @@ class _MoneyAccountEditorSheetState extends State<_MoneyAccountEditorSheet> {
                     borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(
-                widget.existing == null ? 'Create Account' : 'Save Changes',
+                widget.existing == null
+                    ? l10n.tr('create_account')
+                    : l10n.tr('save_changes'),
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -900,10 +910,11 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context, listen: false);
     final limitMinor = MoneyAmount.tryParseToMinor(_limitCtrl.text);
     if (limitMinor == null || limitMinor <= 0) {
-      setState(() => _errorText = 'Budget limit must be greater than zero.');
+      setState(() => _errorText = l10n.tr('budget_limit_must_be_greater_than'));
       return;
     }
 
@@ -930,11 +941,14 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final expenseCategories =
         provider.categoriesByType(MoneyCategoryType.expense);
-    final monthLabel = DateFormat('MMMM yyyy')
-        .format(DateTime(widget.year, widget.month));
+    final monthLabel = l10n.formatDate(
+      DateTime(widget.year, widget.month),
+      'MMMM yyyy',
+    );
 
     return Container(
       padding: EdgeInsets.only(
@@ -956,7 +970,7 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Budget • $monthLabel',
+                    l10n.tr('budget_2', {'monthLabel': monthLabel}),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -978,19 +992,21 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
                   ? _categoryId
                   : null,
               dropdownColor: AppColors.elevatedSurface(context),
-              decoration: const InputDecoration(
-                labelText: 'Budget Scope',
-                prefixIcon: Icon(Icons.pie_chart_outline_rounded),
+              decoration: InputDecoration(
+                labelText: l10n.tr('budget_scope'),
+                prefixIcon: const Icon(Icons.pie_chart_outline_rounded),
               ),
               items: [
-                const DropdownMenuItem<String?>(
+                DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Overall Monthly Spending Limit'),
+                  child: Text(
+                    l10n.tr('overall_monthly_spending_limit'),
+                  ),
                 ),
                 ...expenseCategories.map(
                   (c) => DropdownMenuItem<String?>(
                     value: c.id,
-                    child: Text(c.name),
+                    child: Text(c.displayName),
                   ),
                 ),
               ],
@@ -1005,7 +1021,7 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                labelText: 'Monthly Limit (${provider.currency.code})',
+                labelText: l10n.tr('monthly_limit', {'provider_code': provider.currency.code}),
                 prefixText: '${provider.currency.symbol} ',
               ),
             ),
@@ -1014,7 +1030,7 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Warning Alert Threshold',
+                    l10n.tr('warning_alert_threshold'),
                     style: TextStyle(
                         fontSize: 12, color: AppColors.textSecondary(context)),
                   ),
@@ -1042,8 +1058,8 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
             ),
             TextField(
               controller: _noteCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Note (optional)',
+              decoration: InputDecoration(
+                labelText: l10n.tr('note_optional'),
               ),
             ),
             if (_errorText != null) ...[
@@ -1061,9 +1077,9 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text(
-                'Save Budget Limit',
-                style: TextStyle(fontWeight: FontWeight.w800),
+              child: Text(
+                l10n.tr('save_budget_limit'),
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -1130,14 +1146,15 @@ class _MoneyRecurringEditorSheetState
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context, listen: false);
     final minor = MoneyAmount.tryParseToMinor(_amountCtrl.text);
     if (minor == null || minor <= 0) {
-      setState(() => _errorText = 'Amount must be greater than zero.');
+      setState(() => _errorText = l10n.tr('amount_must_be_greater_than_zero'));
       return;
     }
     if (_accountId == null || _categoryId == null) {
-      setState(() => _errorText = 'Account and category are required.');
+      setState(() => _errorText = l10n.tr('account_and_category_are_required'));
       return;
     }
 
@@ -1167,6 +1184,7 @@ class _MoneyRecurringEditorSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final activeAccts = provider.activeAccounts;
     final cats = provider.categoriesByType(
@@ -1198,7 +1216,7 @@ class _MoneyRecurringEditorSheetState
               children: [
                 Expanded(
                   child: Text(
-                    'New Recurring Schedule',
+                    l10n.tr('new_recurring_schedule'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -1213,7 +1231,7 @@ class _MoneyRecurringEditorSheetState
               ],
             ),
             Text(
-              'Templates queue upcoming entries for your explicit confirmation and never silently change balances.',
+              l10n.tr('templates_queue_upcoming_entries_for_your'),
               style: TextStyle(
                   fontSize: 11, color: AppColors.textSecondary(context)),
             ),
@@ -1227,7 +1245,7 @@ class _MoneyRecurringEditorSheetState
                     backgroundColor: AppColors.elevatedSurface(context),
                     label: Center(
                       child: Text(
-                        'Expense',
+                        MoneyTransactionType.expense.label,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: _type == MoneyTransactionType.expense
@@ -1250,7 +1268,7 @@ class _MoneyRecurringEditorSheetState
                     backgroundColor: AppColors.elevatedSurface(context),
                     label: Center(
                       child: Text(
-                        'Income',
+                        MoneyTransactionType.income.label,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: _type == MoneyTransactionType.income
@@ -1271,8 +1289,8 @@ class _MoneyRecurringEditorSheetState
             TextField(
               controller: _titleCtrl,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Title (e.g. Monthly Salary, Internet Bill)',
+              decoration: InputDecoration(
+                labelText: l10n.tr('title_e_g_monthly_salary_internet'),
               ),
             ),
             const SizedBox(height: 10),
@@ -1281,7 +1299,7 @@ class _MoneyRecurringEditorSheetState
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                labelText: 'Amount (${provider.currency.code})',
+                labelText: l10n.tr('amount', {'provider_code': provider.currency.code}),
                 prefixText: '${provider.currency.symbol} ',
               ),
             ),
@@ -1292,7 +1310,9 @@ class _MoneyRecurringEditorSheetState
                   ? _accountId
                   : null,
               dropdownColor: AppColors.elevatedSurface(context),
-              decoration: const InputDecoration(labelText: 'Account'),
+              decoration: InputDecoration(
+                labelText: l10n.tr('account_4'),
+              ),
               items: activeAccts
                   .map((a) => DropdownMenuItem(value: a.id, child: Text(a.name)))
                   .toList(),
@@ -1304,9 +1324,11 @@ class _MoneyRecurringEditorSheetState
               initialValue:
                   cats.any((c) => c.id == _categoryId) ? _categoryId : null,
               dropdownColor: AppColors.elevatedSurface(context),
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: InputDecoration(
+                labelText: l10n.tr('category'),
+              ),
               items: cats
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.displayName)))
                   .toList(),
               onChanged: (v) => setState(() => _categoryId = v),
             ),
@@ -1315,7 +1337,9 @@ class _MoneyRecurringEditorSheetState
               isExpanded: true,
               initialValue: _frequency,
               dropdownColor: AppColors.elevatedSurface(context),
-              decoration: const InputDecoration(labelText: 'Frequency'),
+              decoration: InputDecoration(
+                labelText: l10n.tr('frequency'),
+              ),
               items: RecurrenceFrequency.values
                   .map(
                       (f) => DropdownMenuItem(value: f, child: Text(f.label)))
@@ -1342,7 +1366,7 @@ class _MoneyRecurringEditorSheetState
                     },
                     icon: const Icon(Icons.event_rounded, size: 16),
                     label: Text(
-                      'Start: ${DateFormat('MMM d, yy').format(_startDate)}',
+                      l10n.tr('start', {'l10n_yy': l10n.formatDate(_startDate, 'MMM d, yy')}),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -1374,8 +1398,8 @@ class _MoneyRecurringEditorSheetState
                     ),
                     label: Text(
                       _endDate == null
-                          ? 'End: Optional'
-                          : 'End: ${DateFormat('MMM d, yy').format(_endDate!)}',
+                          ? l10n.tr('end_optional')
+                          : l10n.tr('end', {'l10n_yy': l10n.formatDate(_endDate!, 'MMM d, yy')}),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -1397,9 +1421,9 @@ class _MoneyRecurringEditorSheetState
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text(
-                'Save Recurring Rule',
-                style: TextStyle(fontWeight: FontWeight.w800),
+              child: Text(
+                l10n.tr('save_recurring_rule'),
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -1435,6 +1459,7 @@ class _MoneyCategoriesSheetState extends State<_MoneyCategoriesSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
     final items = provider.categoriesByType(_type);
 
@@ -1452,7 +1477,7 @@ class _MoneyCategoriesSheetState extends State<_MoneyCategoriesSheet> {
             children: [
               Expanded(
                 child: Text(
-                  'Transaction Categories',
+                  l10n.tr('transaction_categories'),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -1470,7 +1495,7 @@ class _MoneyCategoriesSheetState extends State<_MoneyCategoriesSheet> {
                     light: const Color(0xFFB45309),
                   ),
                 ),
-                tooltip: 'New Category',
+                tooltip: l10n.tr('new_category'),
               ),
               IconButton(
                 icon: const Icon(Icons.close_rounded),
@@ -1521,14 +1546,16 @@ class _MoneyCategoriesSheetState extends State<_MoneyCategoriesSheet> {
                       child: Icon(cat.icon, color: cat.color, size: 18),
                     ),
                     title: Text(
-                      cat.name,
+                      cat.displayName,
                       style: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 14),
                     ),
                     subtitle: Text(
                       inUse
-                          ? 'In use (protected from deletion)'
-                          : (cat.isDefault ? 'Default category' : 'Custom'),
+                          ? l10n.tr('in_use_protected_from_deletion')
+                          : (cat.isDefault
+                              ? l10n.tr('default_category')
+                              : l10n.tr('custom')),
                       style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary(context)),
@@ -1639,13 +1666,14 @@ class _MoneyCategoryEditorDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context, listen: false);
     return AlertDialog(
       backgroundColor: AppColors.cardSurface(context),
       title: Text(
         widget.existing == null
-            ? 'New ${widget.type.label} Category'
-            : 'Edit Category',
+            ? l10n.tr('new_category_2', {'widget_label': widget.type.label})
+            : l10n.tr('edit_category'),
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -1655,10 +1683,15 @@ class _MoneyCategoryEditorDialogState
             TextField(
               controller: _nameCtrl,
               autofocus: true,
-              decoration: const InputDecoration(labelText: 'Category Name'),
+              decoration: InputDecoration(
+                labelText: l10n.tr('category_name'),
+              ),
             ),
             const SizedBox(height: 12),
-            const Text('Icon', style: TextStyle(fontSize: 12)),
+            Text(
+              l10n.tr('icon'),
+              style: const TextStyle(fontSize: 12),
+            ),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,
@@ -1685,7 +1718,10 @@ class _MoneyCategoryEditorDialogState
               }).toList(),
             ),
             const SizedBox(height: 12),
-            const Text('Color', style: TextStyle(fontSize: 12)),
+            Text(
+              l10n.tr('color'),
+              style: const TextStyle(fontSize: 12),
+            ),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,
@@ -1719,7 +1755,7 @@ class _MoneyCategoryEditorDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.tr('cancel')),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -1754,7 +1790,7 @@ class _MoneyCategoryEditorDialogState
             backgroundColor: kTwillAmber,
             foregroundColor: Colors.black,
           ),
-          child: const Text('Save'),
+          child: Text(l10n.tr('save')),
         ),
       ],
     );
@@ -1770,6 +1806,7 @@ class _MoneySettingsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final money = Provider.of<MoneyProvider>(context);
     SettingsProvider? settings;
     try {
@@ -1778,7 +1815,7 @@ class _MoneySettingsDialog extends StatelessWidget {
 
     return AlertDialog(
       backgroundColor: AppColors.cardSurface(context),
-      title: const Text('Twill Money Settings'),
+      title: Text(l10n.tr('twill_money_settings')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1787,12 +1824,14 @@ class _MoneySettingsDialog extends StatelessWidget {
             isExpanded: true,
             initialValue: money.currency,
             dropdownColor: AppColors.elevatedSurface(context),
-            decoration: const InputDecoration(labelText: 'Display Currency'),
+            decoration: InputDecoration(
+              labelText: l10n.tr('display_currency'),
+            ),
             items: MoneyCurrency.values
                 .map(
                   (c) => DropdownMenuItem(
                     value: c,
-                    child: Text('${c.symbol} (${c.code}) • ${c.displayName}'),
+                    child: Text('${c.symbol} (${c.code}) • ${c.localizedName}'),
                   ),
                 )
                 .toList(),
@@ -1804,12 +1843,12 @@ class _MoneySettingsDialog extends StatelessWidget {
             const SizedBox(height: 12),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text(
-                'Require PIN for Money Hub',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              title: Text(
+                l10n.tr('require_pin_for_money_hub'),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
               ),
               subtitle: Text(
-                'Uses your Nestin security PIN before showing balances',
+                l10n.tr('uses_your_nestin_security_pin_before'),
                 style: TextStyle(
                     fontSize: 11, color: AppColors.textSecondary(context)),
               ),
@@ -1822,7 +1861,7 @@ class _MoneySettingsDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Done'),
+          child: Text(l10n.tr('done')),
         ),
       ],
     );

@@ -105,7 +105,7 @@ void main() {
             'quote': {
               'id': '99990000-0000-0000-0000-000000000099',
               'quoteText': 'Fresh from backend featured slot.',
-              'author': 'Roo • Time & Planning',
+              'author': 'Roo • Time, Planning & Habits',
               'category': 'motivation',
               'locale': 'en',
               'isFeatured': true,
@@ -294,18 +294,20 @@ void main() {
       expect(find.text('New Personal Quote'), findsOneWidget);
     });
 
-    testWidgets('QuoteCardStudioScreen renders preview, lock screen safe zone, and exports PNG bytes',
-        (tester) async {
+    testWidgets(
+      'QuoteCardStudioScreen renders preview, lock screen safe zone, and exports PNG bytes',
+      timeout: const Timeout(Duration(seconds: 20)),
+      (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final gateway = BackendGatewayService(prefs, config: testConfig);
       final provider = InspirationProvider(
         InspirationService(prefs, gateway, config: testConfig),
       );
-      final tempDir = await Directory.systemTemp.createTemp('nestin_card_test_');
-      addTearDown(() async {
-        if (await tempDir.exists()) {
-          await tempDir.delete(recursive: true);
+      final tempDir = Directory.systemTemp.createTempSync('nestin_card_test_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
         }
       });
 
@@ -326,7 +328,6 @@ void main() {
         },
       );
 
-      debugPrint('STEP 1: pumping widget');
       await tester.pumpWidget(
         ChangeNotifierProvider.value(
           value: provider,
@@ -342,47 +343,48 @@ void main() {
           ),
         ),
       );
-      debugPrint('STEP 2: settle after mount');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Quiet steps compound cleanly'), findsOneWidget);
 
-      debugPrint('STEP 3: tap Lock Screen');
       await tester.tap(find.text('Lock Screen 9:16'));
       await tester.pumpAndSettle();
       expect(find.text('Lock Screen Clock Safe Zone'), findsOneWidget);
 
-      debugPrint('STEP 4: ensureVisible Export PNG');
-      await tester.ensureVisible(find.text('Export PNG'));
+      final verticalListScrollable = find.descendant(
+        of: find.byType(ListView).first,
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        find.text('Export PNG'),
+        220,
+        scrollable: verticalListScrollable.first,
+      );
       await tester.pumpAndSettle();
-      debugPrint('STEP 5: tap Export PNG');
       await tester.tap(find.text('Export PNG'));
       await tester.pump();
-      debugPrint('STEP 6: runAsync io wait');
-      await tester.runAsync(() async {
-        final deadline = DateTime.now().add(const Duration(seconds: 3));
-        final cardsDir = Directory(
-          '${tempDir.path}${Platform.pathSeparator}nestin_quote_cards',
+      final cardsDir = Directory(
+        '${tempDir.path}${Platform.pathSeparator}nestin_quote_cards',
+      );
+      for (var i = 0; i < 40; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 25)),
         );
-        while (DateTime.now().isBefore(deadline)) {
-          if (cardsDir.existsSync() &&
-              cardsDir.listSync().any((f) => File(f.path).lengthSync() > 0)) {
-            break;
-          }
-          await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump(const Duration(milliseconds: 50));
+        if (find.byType(CircularProgressIndicator).evaluate().isEmpty &&
+            cardsDir.existsSync() &&
+            cardsDir.listSync().isNotEmpty) {
+          break;
         }
-      });
-      debugPrint('STEP 7: settle after export');
-      await tester.pumpAndSettle();
+      }
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(capturedRenderObjectMounted, isTrue);
-      final savedFiles = Directory(
-        '${tempDir.path}${Platform.pathSeparator}nestin_quote_cards',
-      ).listSync();
+      final savedFiles = cardsDir.listSync();
       expect(savedFiles.length, 1);
       final bytes = File(savedFiles.first.path).readAsBytesSync();
       expect(bytes.take(4).toList(), [137, 80, 78, 71]);
-      await tester.drag(find.byType(ListView), const Offset(0, 600));
+      await tester.drag(find.byType(ListView).first, const Offset(0, 600));
       await tester.pumpAndSettle();
       expect(find.textContaining('Saved:'), findsOneWidget);
     });

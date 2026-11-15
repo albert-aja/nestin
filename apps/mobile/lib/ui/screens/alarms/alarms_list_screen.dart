@@ -5,6 +5,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../data/models/alarm.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/settings_provider.dart';
+import '../../widgets/alarm_next_ring_snackbar.dart';
 import '../../widgets/category_badge.dart';
 import 'alarm_edit_screen.dart';
 
@@ -21,7 +22,7 @@ class AlarmsListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.pick('Alarms', 'Alarm')),
+        title: Text(l10n.tr('metric_alarms')),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded, size: 28),
@@ -59,7 +60,7 @@ class AlarmsListScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_alarm_rounded, color: Colors.white),
         label: Text(
-          l10n.pick('New Alarm', 'Alarm Baru'),
+          l10n.tr('new_alarm'),
           style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
         ),
       ),
@@ -130,6 +131,15 @@ class AlarmsListScreen extends StatelessWidget {
                       value: alarm.isEnabled,
                       onChanged: (val) {
                         provider.toggleAlarm(alarm.id, val);
+                        if (val) {
+                          showAlarmNextRingSnackBar(
+                            context,
+                            alarm.copyWith(isEnabled: true),
+                          );
+                        } else {
+                          ScaffoldMessenger.maybeOf(context)
+                              ?.hideCurrentSnackBar();
+                        }
                       },
                     ),
                   ),
@@ -215,7 +225,7 @@ class AlarmsListScreen extends StatelessWidget {
                     icon: const Icon(Icons.play_circle_outline_rounded,
                         size: 16, color: AppColors.primary),
                     label: Text(
-                      context.l10n.pick('Test Ring', 'Uji Dering'),
+                      context.l10n.tr('test_ring'),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -231,7 +241,7 @@ class AlarmsListScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.copy_rounded, size: 18),
-                        tooltip: context.l10n.pick('Duplicate', 'Duplikat'),
+                        tooltip: context.l10n.tr('duplicate'),
                         onPressed: () => provider.duplicateAlarm(alarm.id),
                         visualDensity: VisualDensity.compact,
                       ),
@@ -272,15 +282,12 @@ class AlarmsListScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            context.l10n.pick('No Alarms Configured', 'Belum Ada Alarm'),
+            context.l10n.tr('no_alarms_configured'),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
-            context.l10n.pick(
-              'Tap the button below to create your first alarm',
-              'Ketuk tombol di bawah untuk membuat alarm pertamamu',
-            ),
+            context.l10n.tr('tap_the_button_below_to_create'),
             style: TextStyle(
                 fontSize: 13, color: AppColors.textSecondary(context)),
           ),

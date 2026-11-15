@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../../core/l10n/app_localizations.dart';
 
 enum PlaceCategory {
   home,
@@ -12,21 +13,22 @@ enum PlaceCategory {
 
 extension PlaceCategoryExt on PlaceCategory {
   String get displayName {
+    final l10n = AppLocalizations.current;
     switch (this) {
       case PlaceCategory.home:
-        return 'Home';
+        return l10n.tr('home');
       case PlaceCategory.work:
-        return 'Work';
+        return l10n.tr('work');
       case PlaceCategory.store:
-        return 'Store';
+        return l10n.tr('store');
       case PlaceCategory.gym:
-        return 'Gym';
+        return l10n.tr('gym');
       case PlaceCategory.transit:
-        return 'Transit';
+        return l10n.tr('transit');
       case PlaceCategory.school:
-        return 'Campus';
+        return l10n.tr('campus');
       case PlaceCategory.custom:
-        return 'Custom';
+        return l10n.tr('custom');
     }
   }
 

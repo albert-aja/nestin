@@ -83,29 +83,45 @@ class RoutineProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleStep(String routineId, int stepIndex) async {
+  /// Toggles [stepIndex] inside [routineId].
+  /// Returns the new streak count when completing the step reaches a 7-day
+  /// milestone (7, 14, 21, ...), or `null` otherwise.
+  Future<int?> toggleStep(String routineId, int stepIndex) async {
     final index = _routines.indexWhere((r) => r.id == routineId);
-    if (index != -1) {
-      final r = _routines[index];
-      final currentIndices = Set<int>.from(r.completedStepIndices);
+    if (index == -1) return null;
 
-      if (currentIndices.contains(stepIndex)) {
-        currentIndices.remove(stepIndex);
-      } else {
-        currentIndices.add(stepIndex);
-      }
+    final r = _routines[index];
+    final wasDone = r.steps.isNotEmpty &&
+        r.completedStepIndices.length >= r.steps.length;
+    final prevStreak = r.streakCount;
+    final currentIndices = Set<int>.from(r.completedStepIndices);
 
-      final now = DateTime.now();
-      final allDone = currentIndices.length >= r.steps.length;
-      final newStreak = allDone ? r.streakCount + 1 : r.streakCount;
-
-      _routines[index] = r.copyWith(
-        completedStepIndices: currentIndices,
-        lastCompletedDate: allDone ? now : r.lastCompletedDate,
-        streakCount: newStreak,
-      );
-      await _save();
+    if (currentIndices.contains(stepIndex)) {
+      currentIndices.remove(stepIndex);
+    } else {
+      currentIndices.add(stepIndex);
     }
+
+    final now = DateTime.now();
+    final allDone = r.steps.isNotEmpty &&
+        currentIndices.length >= r.steps.length;
+    final newStreak = !wasDone && allDone ? prevStreak + 1 : prevStreak;
+
+    _routines[index] = r.copyWith(
+      completedStepIndices: currentIndices,
+      lastCompletedDate: allDone ? now : r.lastCompletedDate,
+      streakCount: newStreak,
+    );
+    await _save();
+
+    if (!wasDone &&
+        allDone &&
+        newStreak > prevStreak &&
+        newStreak >= 7 &&
+        newStreak % 7 == 0) {
+      return newStreak;
+    }
+    return null;
   }
 
   Future<void> addRoutine(RoutineItem routine) async {

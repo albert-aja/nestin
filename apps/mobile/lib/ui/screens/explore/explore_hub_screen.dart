@@ -23,14 +23,18 @@ import '../../widgets/medication_tracker_sheet.dart';
 import '../../widgets/hobby_practice_sheet.dart';
 import '../../widgets/seren_wellness_summary_card.dart';
 import '../../widgets/reading_progress_card.dart';
+import '../../widgets/bucket_list_summary_card.dart';
 import '../../widgets/location_reminders_card.dart';
 import '../../widgets/before_you_go_card.dart';
+import '../../widgets/before_you_go_weather_banner.dart';
 import '../../widgets/money_summary_card.dart';
+import '../../widgets/mascot_milestone_stamp_overlay.dart';
 import '../settings/settings_screen.dart';
 import '../settings/permission_center_screen.dart';
 import '../search/universal_search_screen.dart';
-import '../scout/digital_wellbeing_screen.dart';
 import '../automation/automation_hub_screen.dart';
+import '../scout/phone_modes_screen.dart';
+import '../seren/seren_relaxation_screen.dart';
 import '../../../providers/device_control_provider.dart';
 import '../../../providers/automation_provider.dart';
 
@@ -42,17 +46,41 @@ class ExploreHubScreen extends StatefulWidget {
 }
 
 class _ExploreHubScreenState extends State<ExploreHubScreen> {
-  final WeatherProviderInterface _weatherService = LocalWeatherService();
+  WeatherProviderInterface? _weatherService;
   WeatherInfo? _weatherInfo;
 
   @override
   void initState() {
     super.initState();
+    try {
+      _weatherService =
+          Provider.of<WeatherProviderInterface>(context, listen: false);
+    } on ProviderNotFoundException {
+      _weatherService = LocalWeatherService();
+    }
+    final service = _weatherService;
+    if (service is LocalWeatherService) {
+      service.addWeatherListener(_onWeatherUpdated);
+    }
     _loadWeather();
   }
 
+  void _onWeatherUpdated() {
+    if (mounted) _loadWeather();
+  }
+
+  @override
+  void dispose() {
+    final service = _weatherService;
+    if (service is LocalWeatherService) {
+      service.removeWeatherListener(_onWeatherUpdated);
+    }
+    super.dispose();
+  }
+
   Future<void> _loadWeather() async {
-    final info = await _weatherService.getCurrentWeather();
+    final service = _weatherService ?? LocalWeatherService();
+    final info = await service.getCurrentWeather();
     if (mounted) setState(() => _weatherInfo = info);
   }
 
@@ -69,16 +97,13 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.pick('Local Backup Export', 'Ekspor Cadangan Lokal')),
+        title: Text(l10n.tr('local_backup_export')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.pick(
-                'Full application state exported as local-first JSON format. All modules, alarms, and settings included:',
-                'Seluruh status aplikasi diekspor ke format JSON lokal. Semua modul, alarm, dan pengaturan disertakan:',
-              ),
+              l10n.tr('full_application_state_exported_as_local'),
             ),
             const SizedBox(height: 12),
             Container(
@@ -114,11 +139,11 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.pick('Everyday Life & Wellness', 'Keseharian & Kebugaran')),
+        title: Text(l10n.tr('explore_hub_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded),
-            tooltip: l10n.pick('Universal Search', 'Pencarian Universal'),
+            tooltip: l10n.tr('universal_search_2'),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const UniversalSearchScreen()),
             ),
@@ -137,54 +162,73 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
         children: [
           // Weather & Context Card
           if (_weatherInfo != null)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(Icons.wb_sunny_rounded, color: AppColors.accent, size: 32),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+            Builder(
+              builder: (context) {
+                final visual = BeforeYouGoWeatherBanner.resolveWeatherVisual(
+                  context,
+                  _weatherInfo!,
+                );
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: visual.color.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            visual.icon,
+                            color: visual.color,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '${_weatherInfo!.temperatureCelsius.round()}°C',
-                                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${_weatherInfo!.temperatureCelsius.round()}°C',
+                                    style: const TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _weatherInfo!.condition,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary(context),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
                               Text(
-                                _weatherInfo!.condition,
+                                _weatherInfo!.advice,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary(context),
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary(context),
                                 ),
                               ),
                             ],
                           ),
-                          Text(
-                            _weatherInfo!.advice,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary(context),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           const SizedBox(height: 16),
 
@@ -320,19 +364,19 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               _miniMetric(
                                 icon: Icons.directions_walk_rounded,
                                 color: const Color(0xFF10B981),
-                                label: l10n.pick('Steps', 'Langkah'),
+                                label: l10n.tr('steps'),
                                 value: '${record.stepCount ?? 0}',
                               ),
                               _miniMetric(
                                 icon: Icons.water_drop_rounded,
                                 color: const Color(0xFF3A86FF),
-                                label: l10n.pick('Hydration', 'Hidrasi'),
+                                label: l10n.tr('hydration'),
                                 value: '${record.waterIntakeMl ?? 0}ml',
                               ),
                               _miniMetric(
                                 icon: Icons.favorite_rounded,
                                 color: const Color(0xFFEF4444),
-                                label: l10n.pick('Resting HR', 'Detak Istirahat'),
+                                label: l10n.tr('resting_hr'),
                                 value: '${record.restingHeartRate ?? 0} bpm',
                               ),
                             ],
@@ -348,7 +392,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // Wellness Row
           Text(
-            l10n.pick('Personal Wellness & Sleep', 'Kebugaran Pribadi & Tidur'),
+            l10n.tr('personal_wellness_sleep'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
@@ -403,8 +447,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                   ),
                                   child: Text(
                                     sleepWellness.isEnabled
-                                        ? l10n.pick('Alert On', 'Aktif')
-                                        : l10n.pick('Alert Off', 'Nonaktif'),
+                                        ? l10n.tr('alert_on')
+                                        : l10n.tr('alert_off'),
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -419,19 +463,16 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             const SizedBox(height: 10),
                             Text(
                               sleepWellness.isEnabled
-                                  ? l10n.pick('Bedtime $bedH:$bedM', 'Tidur $bedH:$bedM')
-                                  : l10n.pick('Sleep Cycles', 'Siklus Tidur'),
+                                  ? l10n.tr('bedtime', {'bedH': bedH, 'bedM': bedM})
+                                  : l10n.tr('sleep_cycles'),
                               style: const TextStyle(
                                   fontSize: 14, fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               sleepWellness.isEnabled
-                                  ? l10n.pick(
-                                      '${sleepWellness.windDownLeadMinutes}m wind-down',
-                                      '${sleepWellness.windDownLeadMinutes}m relaksasi',
-                                    )
-                                  : l10n.pick('Optimal Bedtime', 'Jam Tidur Optimal'),
+                                  ? l10n.tr('m_wind_down', {'sleepWellness_windDownLeadMinutes': sleepWellness.windDownLeadMinutes})
+                                  : l10n.tr('optimal_bedtime'),
                               style: TextStyle(
                                   fontSize: 11, color: AppColors.textSecondary(context)),
                             ),
@@ -506,7 +547,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                l10n.pick('Water Goal', 'Target Minum'),
+                                l10n.tr('water_goal'),
                                 style: const TextStyle(
                                     fontSize: 14, fontWeight: FontWeight.w700),
                               ),
@@ -528,12 +569,24 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                       ),
                                     ),
                                   InkWell(
-                                    onTap: () {
-                                      hydration.addGlass();
+                                    onTap: () async {
+                                      final goalJustMet =
+                                          await hydration.addGlass();
+                                      if (!context.mounted) return;
                                       Provider.of<WearableProvider>(context,
                                               listen: false)
                                           .syncHydrationToWearable(
                                               hydration.currentMilliliters);
+                                      if (goalJustMet) {
+                                        MascotMilestoneStampOverlay
+                                            .showSerenRefreshed(
+                                          context,
+                                          currentMl:
+                                              hydration.currentMilliliters,
+                                          targetMl:
+                                              hydration.targetMilliliters,
+                                        );
+                                      }
                                     },
                                     child: const Icon(Icons.add_circle_rounded,
                                         color: Color(0xFF8B5CF6), size: 20),
@@ -562,16 +615,13 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                l10n.pick(
-                                  '${hydration.glassesConsumed} / ${hydration.dailyGoalGlasses} glasses',
-                                  '${hydration.glassesConsumed} / ${hydration.dailyGoalGlasses} gelas',
-                                ),
+                                l10n.tr('glasses', {'hydration_glassesConsumed': hydration.glassesConsumed, 'hydration_dailyGoalGlasses': hydration.dailyGoalGlasses}),
                                 style: TextStyle(
                                     fontSize: 11, color: AppColors.textSecondary(context)),
                               ),
                               if (hydration.isGoalMet)
                                 Text(
-                                  l10n.pick('Met! 🌿', 'Tercapai! 🌿'),
+                                  l10n.tr('met'),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -592,6 +642,59 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // Seren Health & Activity Card (Steps, Sleep Tracking, Vitals, Breathing)
           const SerenWellnessSummaryCard(),
+          const SizedBox(height: 12),
+
+          // Seren Daily Relaxation & Ambient Soundscape Studio Card
+          Card(
+            margin: EdgeInsets.zero,
+            color: AppColors.cardSurface(context),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+              ),
+            ),
+            child: ListTile(
+              key: const Key('explore_seren_relaxation_card'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SerenRelaxationScreen(),
+                  ),
+                );
+              },
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.surround_sound_rounded,
+                  color: Color(0xFF8B5CF6),
+                ),
+              ),
+              title: Text(
+                l10n.tr('seren_explore_card_title'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: Text(
+                l10n.tr('seren_explore_card_subtitle'),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary(context),
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded),
+            ),
+          ),
           const SizedBox(height: 12),
 
           // Medication & Dosage Tracker Card (Seren's Pill Companion)
@@ -646,10 +749,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             Row(
                               children: [
                                 Text(
-                                  l10n.pick(
-                                    'Medication & Pill Tracker',
-                                    'Pelacak Obat & Vitamin',
-                                  ),
+                                  l10n.tr('medication_pill_tracker'),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
@@ -683,19 +783,10 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             const SizedBox(height: 3),
                             Text(
                               hasWarnings
-                                  ? l10n.pick(
-                                      '⚠️ Refill needed for low stock',
-                                      '⚠️ Stok menipis, perlu isi ulang',
-                                    )
+                                  ? l10n.tr('refill_needed_for_low_stock')
                                   : (totalCount == 0
-                                      ? l10n.pick(
-                                          'No doses scheduled today • Tap to manage',
-                                          'Belum ada jadwal hari ini • Ketuk untuk kelola',
-                                        )
-                                      : l10n.pick(
-                                          '$takenCount of $totalCount doses taken today${snoozedCount > 0 ? ' • $snoozedCount snoozed' : ''}',
-                                          '$takenCount dari $totalCount dosis diminum hari ini${snoozedCount > 0 ? ' • $snoozedCount ditunda' : ''}',
-                                        )),
+                                      ? l10n.tr('no_doses_scheduled_today_tap_to')
+                                      : l10n.tr('of_doses_taken_today', {'takenCount': takenCount, 'totalCount': totalCount, 'snoozedCount_snoozed': snoozedCount > 0 ? ' • $snoozedCount snoozed' : '', 'snoozedCount_ditunda': snoozedCount > 0 ? ' • $snoozedCount ditunda' : ''})),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: hasWarnings
@@ -765,10 +856,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    l10n.pick(
-                                      'Wind-Down: ${sleepWellness.activeAmbientSound.label}',
-                                      'Relaksasi: ${sleepWellness.activeAmbientSound.label}',
-                                    ),
+                                    l10n.tr('wind_down', {'sleepWellness_label': sleepWellness.activeAmbientSound.label}),
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -796,10 +884,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                 ],
                               ),
                               Text(
-                                l10n.pick(
-                                  '${sleepWellness.formattedRemainingTime} remaining • Tap for sheet',
-                                  'Tersisa ${sleepWellness.formattedRemainingTime} • Ketuk untuk buka',
-                                ),
+                                l10n.tr('remaining_tap_for_sheet', {'sleepWellness_formattedRemainingTime': sleepWellness.formattedRemainingTime}),
                                 style: TextStyle(
                                     fontSize: 11, color: AppColors.textSecondary(context)),
                               ),
@@ -810,7 +895,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                       IconButton(
                         icon: const Icon(Icons.stop_circle_rounded,
                             color: Color(0xFFEF4444)),
-                        tooltip: l10n.pick('Stop Audio', 'Hentikan Audio'),
+                        tooltip: l10n.tr('stop_audio'),
                         onPressed: () => sleepWellness.stopWindDownAudio(),
                       ),
                     ],
@@ -833,10 +918,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                l10n.pick(
-                                  '🌧️ Playing 30m soothing rainfall for bedtime wind-down...',
-                                  '🌧️ Memutar 30m suara hujan untuk pengantar tidur...',
-                                ),
+                                l10n.tr('playing_30m_soothing_rainfall_for_bedtime'),
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -850,7 +932,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               light: const Color(0xFF0284C7),
                             )),
                         label: Text(
-                            l10n.pick('1-Tap: 30m Rain', '1-Ketuk: 30m Hujan'),
+                            l10n.tr('k_1_tap_30m_rain'),
                             style: const TextStyle(
                                 fontSize: 12, fontWeight: FontWeight.w700)),
                         style: OutlinedButton.styleFrom(
@@ -874,10 +956,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                l10n.pick(
-                                  '🌲 Playing 30m forest breeze for bedtime wind-down...',
-                                  '🌲 Memutar 30m angin hutan untuk pengantar tidur...',
-                                ),
+                                l10n.tr('playing_30m_forest_breeze_for_bedtime'),
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -891,7 +970,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               light: const Color(0xFF059669),
                             )),
                         label: Text(
-                            l10n.pick('1-Tap: 30m Forest', '1-Ketuk: 30m Hutan'),
+                            l10n.tr('k_1_tap_30m_forest'),
                             style: const TextStyle(
                                 fontSize: 12, fontWeight: FontWeight.w700)),
                         style: OutlinedButton.styleFrom(
@@ -918,13 +997,12 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // Personal Interests & Hobbies (Pippin's Domain)
           Text(
-            l10n.pick(
-              'Personal Interests & Skill Milestones',
-              'Minat Pribadi & Pencapaian Keahlian',
-            ),
+            l10n.tr('personal_interests_skill_milestones'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
+          const NestinDiscoverBannerCard(),
+          const SizedBox(height: 12),
           Consumer<HobbyProvider>(
             builder: (context, hobbyProvider, _) {
               final activeHobbies = hobbyProvider.activeHobbies;
@@ -968,10 +1046,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      l10n.pick(
-                                        'Hobby Practice Tracker',
-                                        'Pelacak Latihan Hobi',
-                                      ),
+                                      l10n.tr('hobby_practice_tracker'),
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
@@ -989,10 +1064,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                             BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        l10n.pick(
-                                          '🎖️ $badgesCount Badges',
-                                          '🎖️ $badgesCount Lencana',
-                                        ),
+                                        l10n.tr('badges', {'badgesCount': badgesCount}),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
@@ -1008,10 +1080,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  l10n.pick(
-                                    '${totalHours.toStringAsFixed(1)} cumulative practice hrs • $sessionsCount sessions',
-                                    '${totalHours.toStringAsFixed(1)} jam latihan kumulatif • $sessionsCount sesi',
-                                  ),
+                                  l10n.tr('cumulative_practice_hrs_sessions', {'totalHours_1': totalHours.toStringAsFixed(1), 'sessionsCount': sessionsCount}),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary(context),
@@ -1093,26 +1162,22 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
           ),
           const SizedBox(height: 12),
           const ReadingProgressCard(),
+          const SizedBox(height: 12),
+          const BucketListSummaryCard(),
           const SizedBox(height: 20),
 
           // Everyday Assistance & Location Geofences (Scout's Domain)
           Text(
-            l10n.pick(
-              'Scout — Location Reminders & Departures',
-              'Scout — Pengingat Lokasi & Keberangkatan',
-            ),
+            l10n.tr('scout_location_reminders_departures'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
           const LocationRemindersCard(),
           const SizedBox(height: 20),
 
-          // Scout Digital Wellbeing, Phone Modes & Automations
+          // Scout Automations & Device Utilities
           Text(
-            l10n.pick(
-              'Scout — Digital Wellbeing & Automations',
-              'Scout — Kesejahteraan Digital & Otomasi',
-            ),
+            l10n.tr('scout_digital_wellbeing_automations'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
@@ -1131,24 +1196,19 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                   Card(
                     child: ListTile(
                       leading: const Icon(
-                        Icons.phonelink_lock_rounded,
-                        color: Color(0xFF3B82F6),
+                        Icons.shield_moon_rounded,
+                        color: AppColors.info,
                       ),
                       title: Text(
-                        l10n.pick(
-                          'Digital Wellbeing & Phone Modes',
-                          'Kesejahteraan Digital & Mode Ponsel',
-                        ),
+                        l10n.tr('phone_modes_controls'),
                         style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       subtitle: Text(
                         dc?.activePhoneMode != null
-                            ? '${dc!.activePhoneMode!.name} active · ${dc.appRules.where((r) => r.isEnabled).length} app limits'
-                            : l10n.pick(
-                                'App usage limits, Sleep/Work/Study modes & state restore',
-                                'Batas aplikasi, mode Tidur/Kerja/Belajar & pemulihan status',
-                              ),
+                            ? l10n.tr('mode_active_label',
+                                {'name': dc!.activePhoneMode!.name})
+                            : l10n.tr('app_usage_limits_sleep_work_study'),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary(ctx),
@@ -1158,7 +1218,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                       onTap: () {
                         Navigator.of(ctx).push(
                           MaterialPageRoute(
-                            builder: (_) => const DigitalWellbeingScreen(),
+                            builder: (_) => const PhoneModesScreen(),
                           ),
                         );
                       },
@@ -1172,20 +1232,14 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                         color: AppColors.accent,
                       ),
                       title: Text(
-                        l10n.pick(
-                          'Nestin Automation Engine',
-                          'Mesin Otomasi Nestin',
-                        ),
+                        l10n.tr('nestin_automation_engine'),
                         style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       subtitle: Text(
                         auto != null
                             ? '${auto.rules.where((r) => r.isEnabled).length} active rules • ${auto.pendingConfirmations.length} awaiting confirm'
-                            : l10n.pick(
-                                'Cross-family local triggers, locks & safe rollback',
-                                'Pemicu lintas modul, kunci konflik & pembatalan aman',
-                              ),
+                            : l10n.tr('cross_family_local_triggers_locks_safe'),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary(ctx),
@@ -1209,20 +1263,14 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                         color: AppColors.success,
                       ),
                       title: Text(
-                        l10n.pick(
-                          'Permission & Capability Center',
-                          'Pusat Izin & Kapabilitas',
-                        ),
+                        l10n.tr('permission_capability_center'),
                         style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       subtitle: Text(
                         dc != null && dc.registry.revokedPermissions.isNotEmpty
                             ? '${dc.registry.revokedPermissions.length} revoked permission(s) detected'
-                            : l10n.pick(
-                                'Inspect device support, rationales & OS settings',
-                                'Periksa dukungan perangkat, alasan izin & pengaturan OS',
-                              ),
+                            : l10n.tr('inspect_device_support_rationales_os_settings'),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary(ctx),
@@ -1246,10 +1294,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // Organization & Money Management (Twill's Domain)
           Text(
-            l10n.pick(
-              'Twill — Personal Money & Resources',
-              'Twill — Keuangan Pribadi & Sumber Daya',
-            ),
+            l10n.tr('twill_personal_money_resources'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
@@ -1258,10 +1303,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // BeforeYouGo Departure Assistant
           Text(
-            l10n.pick(
-              'BeforeYouGo — Departure Assistant',
-              'BeforeYouGo — Asisten Keberangkatan',
-            ),
+            l10n.tr('beforeyougo_departure_assistant'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
@@ -1270,10 +1312,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // Local-First Data Export
           Text(
-            l10n.pick(
-              'Local-First Data Portability',
-              'Portabilitas Data Lokal',
-            ),
+            l10n.tr('local_first_data_portability'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
@@ -1281,17 +1320,11 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
             child: ListTile(
               leading: const Icon(Icons.file_download_outlined, color: AppColors.success),
               title: Text(
-                l10n.pick(
-                  'Export Local Backup (JSON)',
-                  'Ekspor Cadangan Lokal (JSON)',
-                ),
+                l10n.tr('export_local_backup_json'),
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
               ),
               subtitle: Text(
-                l10n.pick(
-                  'Download all alarms, tasks, notes, journal & settings',
-                  'Unduh semua alarm, tugas, catatan, jurnal & pengaturan',
-                ),
+                l10n.tr('download_all_alarms_tasks_notes_journal'),
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary(context)),
               ),
               trailing: const Icon(Icons.chevron_right_rounded),

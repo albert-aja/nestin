@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../alarms/alarms_list_screen.dart';
+import '../discipline/digital_discipline_screen.dart';
 import '../reminders/reminders_list_screen.dart';
 import '../timers/timers_screen.dart';
 import 'calendar_screen.dart';
@@ -17,7 +18,7 @@ class TimeHubScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return DefaultTabController(
-      length: 6,
+      length: 7,
       initialIndex: initialTabIndex,
       child: Scaffold(
         appBar: AppBar(
@@ -42,6 +43,7 @@ class TimeHubScreen extends StatelessWidget {
               Tab(icon: const Icon(Icons.checklist_rounded, size: 18), text: l10n.tr('tab_tasks')),
               Tab(icon: const Icon(Icons.repeat_rounded, size: 18), text: l10n.tr('tab_routines')),
               Tab(icon: const Icon(Icons.timer_outlined, size: 18), text: l10n.tr('tab_timers')),
+              Tab(icon: const Icon(Icons.phonelink_lock_rounded, size: 18), text: l10n.tr('tab_digital_discipline')),
             ],
           ),
         ),
@@ -53,6 +55,7 @@ class TimeHubScreen extends StatelessWidget {
             TasksScreen(),
             RoutinesScreen(),
             TimersScreen(),
+            DigitalDisciplineScreen(embedded: true),
           ],
         ),
       ),

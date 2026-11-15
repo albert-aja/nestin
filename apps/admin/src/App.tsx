@@ -4,6 +4,7 @@ import {
   InspirationAdminClient,
 } from './api/inspirationAdminClient';
 import { QuoteCardPreviewModal } from './components/QuoteCardPreview';
+import { TranslationsPanel } from './components/TranslationsPanel';
 import {
   AdminSession,
   hasCmsPermission,
@@ -112,11 +113,6 @@ export const App: React.FC<Props> = ({ initialClient, initialSession = null }) =
     'quote_card_portrait' | 'quote_card_square' | 'lock_screen' | 'home_screen'
   >('quote_card_portrait');
 
-  const [transQuoteId, setTransQuoteId] = useState('');
-  const [transLocale, setTransLocale] = useState<NestinLocale>('id');
-  const [transText, setTransText] = useState('');
-  const [transAuthor, setTransAuthor] = useState('');
-
   const client = useMemo(
     () =>
       initialClient ??
@@ -153,7 +149,6 @@ export const App: React.FC<Props> = ({ initialClient, initialSession = null }) =
       setNotifLogs(l);
       if (!newQuoteCatId && c.length > 0) setNewQuoteCatId(c[0].id);
       if (!featuredQuoteId && q.length > 0) setFeaturedQuoteId(q[0].id);
-      if (!transQuoteId && q.length > 0) setTransQuoteId(q[0].id);
     } catch (err) {
       setBannerError(
         err instanceof ApiClientError || err instanceof Error
@@ -894,89 +889,17 @@ export const App: React.FC<Props> = ({ initialClient, initialSession = null }) =
         )}
 
         {activeTab === 'translations' && (
-          <section className="cms-section">
-            {hasCmsPermission(session, 'inspiration.translation.manage') && (
-              <form
-                className="panel-card form-grid"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void runAction(
-                    () =>
-                      client.upsertTranslation({
-                        quoteId: transQuoteId,
-                        locale: transLocale,
-                        quoteText: transText,
-                        authorDisplay: transAuthor || 'Nestin',
-                        publicationStatus: 'PUBLISHED',
-                      }),
-                    'Translation saved.',
-                  ).then(() => {
-                    setTransText('');
-                    setTransAuthor('');
-                  });
-                }}
-              >
-                <h3>Upsert Quote Translation</h3>
-                <div className="row-inputs">
-                  <select
-                    value={transQuoteId}
-                    onChange={(e) => setTransQuoteId(e.target.value)}
-                  >
-                    {quotes.map((q) => (
-                      <option key={q.id} value={q.id}>
-                        {q.quoteText.slice(0, 50)} ({q.locale})
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={transLocale}
-                    onChange={(e) => setTransLocale(e.target.value as NestinLocale)}
-                  >
-                    <option value="id">ID</option>
-                    <option value="en">EN</option>
-                  </select>
-                  <input
-                    placeholder="Localized Author Display"
-                    value={transAuthor}
-                    onChange={(e) => setTransAuthor(e.target.value)}
-                    required
-                  />
-                </div>
-                <textarea
-                  rows={2}
-                  placeholder="Translated quote text..."
-                  value={transText}
-                  onChange={(e) => setTransText(e.target.value)}
-                  required
-                />
-                <button type="submit" className="btn-primary">
-                  Save Translation
-                </button>
-              </form>
-            )}
-            <div className="table-card">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Quote ID</th>
-                    <th>Locale</th>
-                    <th>Translated Text</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {translations.map((t) => (
-                    <tr key={t.id}>
-                      <td>{t.quoteId.slice(0, 8)}...</td>
-                      <td>{t.locale.toUpperCase()}</td>
-                      <td>{t.quoteText}</td>
-                      <td>{t.publicationStatus}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <TranslationsPanel
+            quotes={quotes}
+            translations={translations}
+            canManage={hasCmsPermission(session, 'inspiration.translation.manage')}
+            onUpsertTranslation={async (payload) => {
+              await runAction(
+                () => client.upsertTranslation(payload),
+                'Translation saved.',
+              );
+            }}
+          />
         )}
 
         {activeTab === 'notifications' && (

@@ -9,13 +9,18 @@ import '../../../providers/journal_provider.dart';
 import '../../../providers/collection_provider.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/reading_provider.dart';
+import '../../../providers/bucket_list_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../providers/geofence_provider.dart';
 import '../../../providers/before_you_go_provider.dart';
 import '../../../providers/money_provider.dart';
 import '../../../providers/device_control_provider.dart';
 import '../../../providers/automation_provider.dart';
+import '../../../data/models/bucket_list_item.dart';
 import '../../../data/models/money_transaction.dart';
+import '../discipline/digital_discipline_screen.dart';
+import '../explore/bucket_list_screen.dart';
+import '../scout/phone_modes_screen.dart';
 
 class UniversalSearchScreen extends StatefulWidget {
   const UniversalSearchScreen({super.key});
@@ -63,6 +68,10 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
     AutomationProvider? automationProvider;
     try {
       automationProvider = Provider.of<AutomationProvider>(context);
+    } catch (_) {}
+    BucketListProvider? bucketListProvider;
+    try {
+      bucketListProvider = Provider.of<BucketListProvider>(context);
     } catch (_) {}
 
     final q = _query.toLowerCase().trim();
@@ -184,6 +193,23 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                 m.description.toLowerCase().contains(q))
             .toList();
 
+    final matchingAppFasts = q.isEmpty || deviceControlProvider == null
+        ? []
+        : deviceControlProvider.appFastCommitments
+            .where((f) =>
+                f.title.toLowerCase().contains(q) ||
+                f.targetAppNames.values.any((n) => n.toLowerCase().contains(q)) ||
+                (f.motivation?.toLowerCase().contains(q) ?? false))
+            .toList();
+
+    final matchingAppRules = q.isEmpty || deviceControlProvider == null
+        ? []
+        : deviceControlProvider.appRules
+            .where((r) =>
+                r.displayName.toLowerCase().contains(q) ||
+                r.packageName.toLowerCase().contains(q))
+            .toList();
+
     final matchingAutomations = q.isEmpty || automationProvider == null
         ? []
         : automationProvider.rules
@@ -191,6 +217,24 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                 r.name.toLowerCase().contains(q) ||
                 r.description.toLowerCase().contains(q))
             .toList();
+
+    final matchingBucketItems = q.isEmpty || bucketListProvider == null
+        ? <BucketListItem>[]
+        : bucketListProvider.items.where((b) {
+            final livePlace = b.hasSavedPlaceLink && geofenceProvider != null
+                ? geofenceProvider.findPlaceById(b.savedPlaceId!)?.name
+                : null;
+            final place = b.resolvedLocationLabel(livePlaceName: livePlace);
+            final windowEn = b.targetWindowLabel(isIndonesian: false) ?? '';
+            final windowId = b.targetWindowLabel(isIndonesian: true) ?? '';
+            return b.title.toLowerCase().contains(q) ||
+                b.inspirationNote.toLowerCase().contains(q) ||
+                b.category.labelEn.toLowerCase().contains(q) ||
+                b.category.labelId.toLowerCase().contains(q) ||
+                place.toLowerCase().contains(q) ||
+                windowEn.toLowerCase().contains(q) ||
+                windowId.toLowerCase().contains(q);
+          }).toList();
 
     final totalCount = matchingNotes.length +
         matchingTasks.length +
@@ -200,11 +244,14 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
         matchingCollections.length +
         matchingAlarms.length +
         matchingReading.length +
+        matchingBucketItems.length +
         matchingLocationReminders.length +
         matchingMoneyTxs.length +
         matchingMoneyAccounts.length +
         matchingDepartureEvents.length +
         matchingDeparturePresets.length +
+        matchingAppFasts.length +
+        matchingAppRules.length +
         matchingPhoneModes.length +
         matchingAutomations.length;
 
@@ -215,10 +262,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
           controller: _searchController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: l10n.pick(
-              'Search notes, tasks, events, journal...',
-              'Cari catatan, tugas, acara, jurnal...',
-            ),
+            hintText: l10n.tr('search_notes_tasks_events_journal'),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
@@ -245,15 +289,12 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       size: 56, color: AppColors.textSecondary(context)),
                   const SizedBox(height: 12),
                   Text(
-                    l10n.pick('Universal Search', 'Pencarian Universal'),
+                    l10n.tr('universal_search_2'),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    l10n.pick(
-                      'Search across notes, tasks, events, journal & alarms',
-                      'Cari catatan, tugas, acara, jurnal & alarm',
-                    ),
+                    l10n.tr('search_across_notes_tasks_events_journal'),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary(context),
@@ -265,10 +306,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
           : totalCount == 0
               ? Center(
                   child: Text(
-                    l10n.pick(
-                      'No matching records found',
-                      'Tidak ada data yang cocok ditemukan',
-                    ),
+                    l10n.tr('no_matching_records_found'),
                     style: TextStyle(color: AppColors.textSecondary(context)),
                   ),
                 )
@@ -276,10 +314,10 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     if (matchingNotes.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Notes', 'Catatan'), matchingNotes.length, AppColors.accent),
+                      _buildHeader(l10n.tr('metric_notes'), matchingNotes.length, AppColors.accent),
                       ...matchingNotes.map((n) => _buildResultTile(
                             title: n.title.isEmpty
-                                ? l10n.pick('Untitled Note', 'Catatan Tanpa Judul')
+                                ? l10n.tr('untitled_note')
                                 : n.title,
                             subtitle: n.content,
                             icon: Icons.description_outlined,
@@ -288,19 +326,19 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       const SizedBox(height: 16),
                     ],
                     if (matchingTasks.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Tasks', 'Tugas'), matchingTasks.length, AppColors.catWork),
+                      _buildHeader(l10n.tr('metric_tasks'), matchingTasks.length, AppColors.catWork),
                       ...matchingTasks.map((t) => _buildResultTile(
                             title: t.title,
                             subtitle: t.isCompleted
                                 ? l10n.tr('completed')
-                                : l10n.pick('Pending', 'Tertunda'),
+                                : l10n.tr('pending'),
                             icon: Icons.check_circle_outline_rounded,
                             color: AppColors.catWork,
                           )),
                       const SizedBox(height: 16),
                     ],
                     if (matchingEvents.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Calendar Events', 'Acara Kalender'), matchingEvents.length, AppColors.primaryLight),
+                      _buildHeader(l10n.tr('calendar_events'), matchingEvents.length, AppColors.primaryLight),
                       ...matchingEvents.map((e) => _buildResultTile(
                             title: e.title,
                             subtitle: e.formattedTime(),
@@ -310,10 +348,10 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       const SizedBox(height: 16),
                     ],
                     if (matchingJournal.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Journal Entries', 'Entri Jurnal'), matchingJournal.length, AppColors.catPersonal),
+                      _buildHeader(l10n.tr('journal_entries'), matchingJournal.length, AppColors.catPersonal),
                       ...matchingJournal.map((j) => _buildResultTile(
                             title: j.title.isEmpty
-                                ? l10n.pick('Journal Entry', 'Entri Jurnal')
+                                ? l10n.tr('journal_entry')
                                 : j.title,
                             subtitle: j.content,
                             icon: Icons.book_outlined,
@@ -323,7 +361,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                     ],
                     if (matchingCollections.isNotEmpty) ...[
                       _buildHeader(
-                        l10n.pick('Lists & Packing', 'Daftar & Kemas'),
+                        l10n.tr('lists_packing'),
                         matchingCollections.length,
                         AppColors.primary,
                       ),
@@ -337,7 +375,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       const SizedBox(height: 16),
                     ],
                     if (matchingWishlist.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Wishlist', 'Daftar Keinginan'), matchingWishlist.length, AppColors.catHealth),
+                      _buildHeader(l10n.tr('wishlist'), matchingWishlist.length, AppColors.catHealth),
                       ...matchingWishlist.map((w) => _buildResultTile(
                             title: w.title,
                             subtitle: w.formattedPrice(),
@@ -347,7 +385,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       const SizedBox(height: 16),
                     ],
                     if (matchingAlarms.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Alarms', 'Alarm'), matchingAlarms.length, AppColors.primary),
+                      _buildHeader(l10n.tr('metric_alarms'), matchingAlarms.length, AppColors.primary),
                       ...matchingAlarms.map((a) => _buildResultTile(
                             title: a.title,
                             subtitle: a.formattedTime(),
@@ -357,7 +395,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       const SizedBox(height: 16),
                     ],
                     if (matchingReading.isNotEmpty) ...[
-                      _buildHeader(l10n.pick('Reading List', 'Daftar Bacaan'), matchingReading.length, const Color(0xFF10B981)),
+                      _buildHeader(l10n.tr('reading_list'), matchingReading.length, const Color(0xFF10B981)),
                       ...matchingReading.map((b) => _buildResultTile(
                             title: b.title,
                             subtitle:
@@ -367,17 +405,54 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                           )),
                       const SizedBox(height: 16),
                     ],
+                    if (matchingBucketItems.isNotEmpty) ...[
+                      _buildHeader(
+                        l10n.tr('bucket_list_places'),
+                        matchingBucketItems.length,
+                        const Color(0xFF10B981),
+                      ),
+                      ...matchingBucketItems.map((b) {
+                        final livePlace =
+                            b.hasSavedPlaceLink && geofenceProvider != null
+                                ? geofenceProvider
+                                    .findPlaceById(b.savedPlaceId!)
+                                    ?.name
+                                : null;
+                        final place =
+                            b.resolvedLocationLabel(livePlaceName: livePlace);
+                        final window =
+                            b.targetWindowLabel(isIndonesian: l10n.isIndonesian);
+                        final subParts = <String>[
+                          b.category.label(l10n.isIndonesian),
+                          ?window,
+                          if (place.isNotEmpty) place,
+                        ];
+                        return _buildResultTile(
+                          title: b.title,
+                          subtitle: subParts.join(' • '),
+                          icon: Icons.explore_rounded,
+                          color: b.category.color,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  BucketListScreen(highlightItemId: b.id),
+                            ),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 16),
+                    ],
                     if (matchingLocationReminders.isNotEmpty &&
                         geofenceProvider != null) ...[
                       _buildHeader(
-                        l10n.pick('Location Reminders', 'Pengingat Lokasi'),
+                        l10n.tr('location_reminders'),
                         matchingLocationReminders.length,
                         const Color(0xFF3B82F6),
                       ),
                       ...matchingLocationReminders.map((r) {
                         final placeName =
                             geofenceProvider!.findPlaceById(r.placeId)?.name ??
-                                l10n.pick('Saved Place', 'Tempat Tersimpan');
+                                l10n.tr('saved_place');
                         return _buildResultTile(
                           title: r.title,
                           subtitle:
@@ -391,7 +466,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                     if (matchingMoneyAccounts.isNotEmpty &&
                         moneyProvider != null) ...[
                       _buildHeader(
-                        l10n.pick('Money Wallets & Accounts', 'Dompet & Akun Keuangan'),
+                        l10n.tr('money_wallets_accounts'),
                         matchingMoneyAccounts.length,
                         const Color(0xFFF59E0B),
                       ),
@@ -407,7 +482,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                     if (matchingMoneyTxs.isNotEmpty &&
                         moneyProvider != null) ...[
                       _buildHeader(
-                        l10n.pick('Money Transactions', 'Transaksi Keuangan'),
+                        l10n.tr('money_transactions_2'),
                         matchingMoneyTxs.length,
                         const Color(0xFFF59E0B),
                       ),
@@ -429,7 +504,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                     if (matchingDepartureEvents.isNotEmpty &&
                         beforeYouGoProvider != null) ...[
                       _buildHeader(
-                        l10n.pick('BeforeYouGo Trips', 'Jadwal BeforeYouGo'),
+                        l10n.tr('beforeyougo_trips'),
                         matchingDepartureEvents.length,
                         const Color(0xFF3B82F6),
                       ),
@@ -449,27 +524,60 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                     if (matchingDeparturePresets.isNotEmpty &&
                         beforeYouGoProvider != null) ...[
                       _buildHeader(
-                        l10n.pick('BeforeYouGo Checklists', 'Daftar BeforeYouGo'),
+                        l10n.tr('beforeyougo_checklists'),
                         matchingDeparturePresets.length,
                         const Color(0xFF3B82F6),
                       ),
                       ...matchingDeparturePresets.map((p) => _buildResultTile(
-                            title: l10n.pick(
-                              '${p.name} Checklist',
-                              'Daftar ${p.name}',
-                            ),
-                            subtitle: l10n.pick(
-                              '${p.checkedCount}/${p.totalCount} items packed',
-                              '${p.checkedCount}/${p.totalCount} item siap',
-                            ),
+                            title: l10n.tr('checklist_3', {'p_name': p.name}),
+                            subtitle: l10n.tr('items_packed', {'p_checkedCount': p.checkedCount, 'p_totalCount': p.totalCount}),
                             icon: p.icon,
                             color: p.color,
+                          )),
+                    ],
+                    if (matchingAppFasts.isNotEmpty ||
+                        matchingAppRules.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildHeader(
+                        l10n.tr('search_digital_discipline'),
+                        matchingAppFasts.length + matchingAppRules.length,
+                        AppColors.primary,
+                      ),
+                      ...matchingAppFasts.map((f) => _buildResultTile(
+                            title: f.title,
+                            subtitle:
+                                '${l10n.tr('app_fast')} · ${f.targetAppNames.values.join(', ')}',
+                            icon: Icons.hourglass_top_rounded,
+                            color: AppColors.primary,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const DigitalDisciplineScreen(initialTab: 1),
+                                ),
+                              );
+                            },
+                          )),
+                      ...matchingAppRules.map((r) => _buildResultTile(
+                            title: r.displayName,
+                            subtitle:
+                                '${l10n.tr('usage_limits')} · ${r.dailyLimitMinutes} min',
+                            icon: Icons.phonelink_lock_rounded,
+                            color: AppColors.primary,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const DigitalDisciplineScreen(initialTab: 3),
+                                ),
+                              );
+                            },
                           )),
                     ],
                     if (matchingPhoneModes.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _buildHeader(
-                        l10n.pick('Phone Modes', 'Mode Ponsel'),
+                        l10n.tr('phone_modes'),
                         matchingPhoneModes.length,
                         AppColors.info,
                       ),
@@ -478,12 +586,19 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                             subtitle: m.description,
                             icon: Icons.shield_moon_rounded,
                             color: Color(m.colorValue),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const PhoneModesScreen(),
+                                ),
+                              );
+                            },
                           )),
                     ],
                     if (matchingAutomations.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _buildHeader(
-                        l10n.pick('Automation Rules', 'Aturan Otomasi'),
+                        l10n.tr('automation_rules_2'),
                         matchingAutomations.length,
                         AppColors.accent,
                       ),
@@ -524,10 +639,12 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
     required String subtitle,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
+        onTap: onTap,
         leading: Icon(icon, color: color),
         title: Text(
           title,

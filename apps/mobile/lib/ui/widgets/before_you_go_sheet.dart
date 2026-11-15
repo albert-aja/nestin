@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/alarm_category.dart';
 import '../../data/models/before_you_go.dart';
 import '../../data/models/calendar_event.dart';
 import '../../providers/before_you_go_provider.dart';
 import '../../providers/calendar_provider.dart';
+import 'before_you_go_weather_banner.dart';
 
 const Color kScoutBlue = Color(0xFF3B82F6);
 const Color kScoutAmber = Color(0xFFF59E0B);
@@ -76,6 +77,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final provider = Provider.of<BeforeYouGoProvider>(context);
     final nextDeparture = provider.getNextScheduledDeparture();
 
@@ -106,7 +108,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Heads-up notifications support Android shade actions: Mark All Ready & Snooze 5m.',
+                l10n.tr('heads_up_notifications_support_android_shade'),
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.textSecondary(context),
@@ -161,8 +163,8 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                             ),
                             Text(
                               nextDeparture != null
-                                  ? 'Next: ${nextDeparture.title} • ${nextDeparture.formattedDepartureTime} (${nextDeparture.leadLabel})'
-                                  : 'Custom checklists & smart departure heads-up',
+                                  ? l10n.tr('next_3', {'nextDeparture_title': nextDeparture.title, 'nextDeparture_formattedDepartureTime': nextDeparture.formattedDepartureTime, 'nextDeparture_leadLabel': nextDeparture.leadLabel})
+                                  : l10n.tr('custom_checklists_smart_departure_heads_up'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -175,7 +177,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'New Departure Trip',
+                        tooltip: l10n.tr('new_departure_trip'),
                         icon: const Icon(Icons.add_alarm_rounded,
                             color: kScoutBlue),
                         onPressed: () => showDepartureEventEditorDialog(
@@ -184,6 +186,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                         ),
                       ),
                       IconButton(
+                        tooltip: l10n.tr('close'),
                         icon: const Icon(Icons.close_rounded),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -198,11 +201,10 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                       fontWeight: FontWeight.w700, fontSize: 13),
                   tabs: [
                     Tab(
-                      text:
-                          'Checklists (${provider.activePreset.checkedCount}/${provider.activePreset.totalCount})',
+                      text: l10n.tr('checklists', {'provider_checkedCount': provider.activePreset.checkedCount, 'provider_totalCount': provider.activePreset.totalCount}),
                     ),
                     Tab(
-                      text: 'Schedules (${provider.events.length})',
+                      text: l10n.tr('schedules', {'provider_length': provider.events.length}),
                     ),
                   ],
                 ),
@@ -223,6 +225,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
   }
 
   Widget _buildChecklistTab(BuildContext context, BeforeYouGoProvider provider) {
+    final l10n = context.l10n;
     final preset = provider.activePreset;
 
     return Column(
@@ -263,8 +266,9 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
               }),
               ActionChip(
                 avatar: const Icon(Icons.add_rounded, size: 15, color: kScoutBlue),
-                label: const Text('New Preset',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                label: Text(l10n.tr('new_preset'),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600)),
                 onPressed: () => showDeparturePresetDialog(context),
               ),
             ],
@@ -290,7 +294,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${preset.name} • ${preset.checkedCount}/${preset.totalCount} packed',
+                        l10n.tr('packed', {'preset_name': preset.name, 'preset_checkedCount': preset.checkedCount, 'preset_totalCount': preset.totalCount}),
                         style: const TextStyle(
                             fontSize: 13, fontWeight: FontWeight.w700),
                       ),
@@ -304,9 +308,9 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                           size: 15,
                           color: AppColors.success,
                         ),
-                        label: const Text(
-                          'Mark All Ready',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.tr('mark_all_ready'),
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: AppColors.success,
@@ -320,15 +324,15 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                     TextButton.icon(
                       onPressed: () => provider.resetPresetItems(preset.id),
                       icon: const Icon(Icons.refresh_rounded, size: 15),
-                      label: const Text('Reset',
-                          style: TextStyle(fontSize: 11)),
+                      label: Text(l10n.tr('reset_2'),
+                          style: const TextStyle(fontSize: 11)),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Edit Preset',
+                      tooltip: l10n.tr('edit_preset'),
                       icon: const Icon(Icons.edit_outlined, size: 17),
                       visualDensity: VisualDensity.compact,
                       onPressed: () => showDeparturePresetDialog(
@@ -338,7 +342,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                     ),
                     if (provider.presets.length > 1)
                       IconButton(
-                        tooltip: 'Delete Preset',
+                        tooltip: l10n.tr('delete_preset'),
                         icon: Icon(
                           Icons.delete_outline_rounded,
                           size: 17,
@@ -368,6 +372,15 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
           ),
         ),
 
+        // Weather-Aware Checklist Item Prompts (LocalWeatherService)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
+          child: BeforeYouGoWeatherBanner(
+            provider: provider,
+            compact: false,
+          ),
+        ),
+
         // Inline Add Item Bar
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
@@ -379,7 +392,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _submitNewItem(provider, preset.id),
                   decoration: InputDecoration(
-                    hintText: 'Add item to ${preset.name}...',
+                    hintText: l10n.tr('add_item_to', {'preset_name': preset.name}),
                     isDense: true,
                     prefixIcon: const Icon(Icons.add_task_rounded, size: 18),
                   ),
@@ -387,7 +400,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
               ),
               const SizedBox(width: 6),
               Tooltip(
-                message: 'Mark as essential (featured in heads-up push)',
+                message: l10n.tr('mark_as_essential_featured_in_heads'),
                 child: IconButton.filledTonal(
                   onPressed: () =>
                       setState(() => _newItemEssential = !_newItemEssential),
@@ -409,7 +422,8 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
-                child: const Text('Add', style: TextStyle(fontSize: 12)),
+                child: Text(l10n.tr('add'),
+                    style: const TextStyle(fontSize: 12)),
               ),
             ],
           ),
@@ -420,7 +434,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
           child: preset.items.isEmpty
               ? Center(
                   child: Text(
-                    'No items in "${preset.name}". Add items above.',
+                    l10n.tr('no_items_in_add_items_above', {'preset_name': preset.name}),
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary(context),
@@ -487,14 +501,14 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              tooltip: 'Edit item',
+                              tooltip: l10n.tr('edit_item'),
                               icon: const Icon(Icons.edit_outlined, size: 16),
                               visualDensity: VisualDensity.compact,
                               onPressed: () =>
                                   _showEditItemDialog(context, provider, preset.id, item),
                             ),
                             IconButton(
-                              tooltip: 'Delete item',
+                              tooltip: l10n.tr('delete_item'),
                               icon: Icon(
                                 Icons.delete_outline_rounded,
                                 size: 16,
@@ -545,57 +559,68 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.cardSurface(ctx),
-          title: const Text('Edit Checklist Item',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: ctrl,
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'Item Label'),
+        builder: (ctx, setDialogState) {
+          final l10n = ctx.l10n;
+          return AlertDialog(
+            backgroundColor: AppColors.cardSurface(ctx),
+            title: Text(
+              l10n.tr('edit_checklist_item'),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: ctrl,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.tr('item_label'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    l10n.tr('essential_item'),
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  subtitle: Text(
+                    l10n.tr('prioritized_in_pre_departure_notifications'),
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  value: essential,
+                  onChanged: (v) => setDialogState(() => essential = v),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l10n.tr('cancel')),
               ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Essential Item',
-                    style: TextStyle(fontSize: 13)),
-                subtitle: const Text(
-                    'Prioritized in pre-departure notifications',
-                    style: TextStyle(fontSize: 11)),
-                value: essential,
-                onChanged: (v) => setDialogState(() => essential = v),
+              ElevatedButton(
+                onPressed: () {
+                  final nextLabel = ctrl.text.trim();
+                  if (nextLabel.isNotEmpty) {
+                    provider.updateItem(
+                      presetId,
+                      item.copyWith(label: nextLabel, isEssential: essential),
+                    );
+                    Navigator.of(ctx).pop();
+                  }
+                },
+                child: Text(l10n.tr('save')),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final nextLabel = ctrl.text.trim();
-                if (nextLabel.isNotEmpty) {
-                  provider.updateItem(
-                    presetId,
-                    item.copyWith(label: nextLabel, isEssential: essential),
-                  );
-                  Navigator.of(ctx).pop();
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildSchedulesTab(
       BuildContext context, BeforeYouGoProvider provider) {
+    final l10n = context.l10n;
     final events = provider.upcomingEvents();
     CalendarProvider? calProvider;
     try {
@@ -622,7 +647,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                   initialPresetId: provider.activePresetId,
                 ),
                 icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text('Add Departure Schedule'),
+                label: Text(l10n.tr('add_departure_schedule')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kScoutBlue,
                   foregroundColor: Colors.white,
@@ -643,7 +668,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Heads-up notifications support Android shade actions: Mark All Ready & Snooze 5m.',
+                l10n.tr('heads_up_notifications_support_android_shade'),
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.textSecondary(context),
@@ -673,7 +698,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Heads-up notifications support Android shade actions: Mark All Ready & Snooze 5m.',
+                l10n.tr('heads_up_notifications_support_android_shade'),
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.textSecondary(context),
@@ -684,13 +709,14 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
           ],
         ),
         const SizedBox(height: 10),
-                  const Text(
-                    'No Smart Departure Heads-Up Yet',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                  Text(
+                    l10n.tr('no_smart_departure_heads_up_yet'),
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Schedule a recurring routine (e.g. Mon–Fri 07:10 Leaving for Work) or a one-time trip (e.g. Today 16:00 Going to Airport) with custom advance alert time.',
+                    l10n.tr('schedule_a_recurring_routine_e_g'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
@@ -706,10 +732,10 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                       ActionChip(
                         avatar: const Icon(Icons.work_outline_rounded,
                             size: 14, color: kScoutBlue),
-                        label: const Text('Leaving for Work (Mon–Fri 07:10)'),
+                        label: Text(l10n.tr('leaving_for_work_mon_fri_07')),
                         onPressed: () {
                           provider.addDepartureEvent(
-                            title: 'Leaving for work',
+                            title: l10n.tr('leaving_for_work'),
                             presetId: DeparturePreset.workPresetId,
                             hour: 7,
                             minute: 10,
@@ -722,10 +748,10 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                       ActionChip(
                         avatar: const Icon(Icons.flight_takeoff_rounded,
                             size: 14, color: kScoutAmber),
-                        label: const Text('Going to Airport (Today 16:00)'),
+                        label: Text(l10n.tr('going_to_airport_today_16_00')),
                         onPressed: () {
                           provider.addDepartureEvent(
-                            title: 'Going to airport',
+                            title: l10n.tr('going_to_airport'),
                             presetId: DeparturePreset.travelPresetId,
                             hour: 16,
                             minute: 0,
@@ -825,21 +851,21 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                           _pillChip(
                             context,
                             Icons.event_rounded,
-                            'Calendar Linked',
+                            l10n.tr('calendar_linked'),
                             AppColors.primary,
                           ),
                         if (isSnoozed)
                           _pillChip(
                             context,
                             Icons.snooze_rounded,
-                            'Snoozed +5m -> ${activeSnooze.formattedSnoozedUntil}${activeSnooze.snoozeCount > 1 ? ' (${activeSnooze.snoozeCount}x)' : ''}',
+                            l10n.tr('snoozed_5m', {'activeSnooze_formattedSnoozedUntil': activeSnooze.formattedSnoozedUntil, 'activeSnooze_x': activeSnooze.snoozeCount > 1 ? ' (${activeSnooze.snoozeCount}x)' : ''}),
                             kScoutAmber,
                           ),
                         if (isReadyToday)
                           _pillChip(
                             context,
                             Icons.verified_rounded,
-                            'Marked Ready Today',
+                            l10n.tr('marked_ready_today'),
                             AppColors.success,
                           ),
                       ],
@@ -847,7 +873,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                     if (nextNotif != null && nextDep != null && ev.isEnabled) ...[
                       const SizedBox(height: 8),
                       Text(
-                        'Next heads-up: ${DateFormat('EEE, MMM d • HH:mm').format(nextNotif)}',
+                        l10n.tr('next_heads_up', {'l10n_mm': l10n.formatDate(nextNotif, 'EEE, MMM d • HH:mm')}),
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.success,
@@ -875,14 +901,14 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Snoozed "${ev.title}" 5m until ${snoozed.formattedSnoozedUntil}',
+                                      l10n.tr('snoozed_5m_until_2', {'ev_title': ev.title, 'snoozed_formattedSnoozedUntil': snoozed.formattedSnoozedUntil}),
                                     ),
                                   ),
                                 );
                               },
                               icon: const Icon(Icons.snooze_rounded, size: 15),
-                              label: const Text('Snooze 5m',
-                                  style: TextStyle(fontSize: 12)),
+                              label: Text(l10n.tr('notif_action_snooze_5m'),
+                                  style: const TextStyle(fontSize: 12)),
                             ),
                           TextButton.icon(
                             onPressed: () {
@@ -890,13 +916,15 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                      'Sent Scout BeforeYouGo preview for "${ev.title}"'),
+                                    l10n.tr('sent_scout_beforeyougo_preview_for', {'ev_title': ev.title}),
+                                  ),
                                 ),
                               );
                             },
                             icon: const Icon(Icons.notifications_rounded, size: 15),
-                            label: const Text('Test Alert',
-                                style: TextStyle(fontSize: 12)),
+                            label: Text(
+                                l10n.tr('test_alert'),
+                                style: const TextStyle(fontSize: 12)),
                           ),
                           TextButton.icon(
                             onPressed: () {
@@ -909,11 +937,12 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                               );
                             },
                             icon: const Icon(Icons.edit_outlined, size: 15),
-                            label: const Text('Edit',
-                                style: TextStyle(fontSize: 12)),
+                            label: Text(l10n.tr('edit_2'),
+                                style: const TextStyle(fontSize: 12)),
                           ),
                           IconButton(
-                            tooltip: 'Delete Schedule',
+                            tooltip:
+                                l10n.tr('delete_schedule'),
                             icon: Icon(Icons.delete_outline_rounded,
                                 size: 17,
                                 color: AppColors.textSecondary(context)),
@@ -931,7 +960,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
         if (unlinkedCalendarEvents.isNotEmpty) ...[
           const SizedBox(height: 16),
           Text(
-            'Upcoming Calendar Events',
+            l10n.tr('upcoming_calendar_events'),
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -948,7 +977,7 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.w700)),
                   subtitle: Text(
-                    '${DateFormat('EEE, MMM d').format(ce.date)} • ${ce.formattedTime()}',
+                    '${l10n.formatDate(ce.date, 'EEE, MMM d')} • ${ce.formattedTime()}',
                     style: const TextStyle(fontSize: 11),
                   ),
                   trailing: OutlinedButton(
@@ -957,8 +986,8 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                       linkCalendarEvent: ce,
                       initialPresetId: provider.activePresetId,
                     ),
-                    child: const Text('+ Heads-up',
-                        style: TextStyle(fontSize: 11)),
+                    child: Text(l10n.tr('heads_up'),
+                        style: const TextStyle(fontSize: 11)),
                   ),
                 ),
               )),
@@ -1016,110 +1045,117 @@ Future<DeparturePreset?> showDeparturePresetDialog(
   return showDialog<DeparturePreset?>(
     context: context,
     builder: (ctx) => StatefulBuilder(
-      builder: (ctx, setStateDialog) => AlertDialog(
-        backgroundColor: AppColors.cardSurface(ctx),
-        title: Text(
-          existing == null ? 'New Checklist Preset' : 'Edit Preset',
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Preset Name',
-                  hintText: 'e.g. Work, Travel, Gym, Weekend Run',
+      builder: (ctx, setStateDialog) {
+        final l10n = ctx.l10n;
+        return AlertDialog(
+          backgroundColor: AppColors.cardSurface(ctx),
+          title: Text(
+            existing == null
+                ? l10n.tr('new_checklist_preset')
+                : l10n.tr('edit_preset'),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.tr('preset_name'),
+                    hintText: l10n.tr('e_g_work_travel_gym_weekend'),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              const Text('Icon',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: DeparturePreset.availableIcons.map((ic) {
-                  final selected = ic.codePoint == iconCode;
-                  return InkWell(
-                    onTap: () =>
-                        setStateDialog(() => iconCode = ic.codePoint),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? Color(colorVal).withValues(alpha: 0.22)
-                            : AppColors.recessedSurface(ctx),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
+                const SizedBox(height: 12),
+                Text(l10n.tr('icon'),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: DeparturePreset.availableIcons.map((ic) {
+                    final selected = ic.codePoint == iconCode;
+                    return InkWell(
+                      onTap: () =>
+                          setStateDialog(() => iconCode = ic.codePoint),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
                           color: selected
-                              ? Color(colorVal)
-                              : AppColors.border(ctx),
+                              ? Color(colorVal).withValues(alpha: 0.22)
+                              : AppColors.recessedSurface(ctx),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: selected
+                                ? Color(colorVal)
+                                : AppColors.border(ctx),
+                          ),
                         ),
+                        child: Icon(ic, size: 18, color: Color(colorVal)),
                       ),
-                      child: Icon(ic, size: 18, color: Color(colorVal)),
-                    ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                Text(l10n.tr('color'),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  children: colorOptions.map((c) {
+                    final selected = c == colorVal;
+                    return InkWell(
+                      onTap: () => setStateDialog(() => colorVal = c),
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: Color(c),
+                        child: selected
+                            ? const Icon(Icons.check,
+                                size: 14, color: Colors.white)
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.tr('cancel')),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                DeparturePreset saved;
+                if (existing == null) {
+                  saved = await provider.createPreset(
+                    name: name,
+                    iconCodePoint: iconCode,
+                    colorValue: colorVal,
                   );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-              const Text('Color',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                children: colorOptions.map((c) {
-                  final selected = c == colorVal;
-                  return InkWell(
-                    onTap: () => setStateDialog(() => colorVal = c),
-                    child: CircleAvatar(
-                      radius: 14,
-                      backgroundColor: Color(c),
-                      child: selected
-                          ? const Icon(Icons.check,
-                              size: 14, color: Colors.white)
-                          : null,
-                    ),
+                } else {
+                  saved = existing.copyWith(
+                    name: name,
+                    iconCodePoint: iconCode,
+                    colorValue: colorVal,
                   );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final name = nameCtrl.text.trim();
-              if (name.isEmpty) return;
-              DeparturePreset saved;
-              if (existing == null) {
-                saved = await provider.createPreset(
-                  name: name,
-                  iconCodePoint: iconCode,
-                  colorValue: colorVal,
-                );
-              } else {
-                saved = existing.copyWith(
-                  name: name,
-                  iconCodePoint: iconCode,
-                  colorValue: colorVal,
-                );
-                await provider.updatePreset(saved);
-              }
-              if (ctx.mounted) Navigator.of(ctx).pop(saved);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+                  await provider.updatePreset(saved);
+                }
+                if (ctx.mounted) Navigator.of(ctx).pop(saved);
+              },
+              child: Text(l10n.tr('save')),
+            ),
+          ],
+        );
+      },
     ),
   );
 }
@@ -1175,6 +1211,7 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setStateDialog) {
+        final l10n = ctx.l10n;
         final effectiveNotifyTime = DateTime(
           2026,
           1,
@@ -1184,13 +1221,15 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
         ).subtract(Duration(minutes: leadMinutes));
         final notifyStr =
             '${effectiveNotifyTime.hour.toString().padLeft(2, '0')}:${effectiveNotifyTime.minute.toString().padLeft(2, '0')}';
+        final departStr =
+            '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
 
         return AlertDialog(
           backgroundColor: AppColors.cardSurface(ctx),
           title: Text(
             existing == null
-                ? 'Schedule Departure Heads-Up'
-                : 'Edit Departure Schedule',
+                ? l10n.tr('schedule_departure_heads_up')
+                : l10n.tr('edit_departure_schedule'),
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
           ),
           content: SizedBox(
@@ -1203,25 +1242,25 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                   TextField(
                     controller: titleCtrl,
                     autofocus: existing == null && linkCalendarEvent == null,
-                    decoration: const InputDecoration(
-                      labelText: 'Event Title',
-                      hintText: 'e.g. Leaving for work / Going to airport',
-                      prefixIcon: Icon(Icons.departure_board_rounded),
+                    decoration: InputDecoration(
+                      labelText: l10n.tr('event_title'),
+                      hintText: l10n.tr('e_g_leaving_for_work_going'),
+                      prefixIcon: const Icon(Icons.departure_board_rounded),
                     ),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: presetId,
-                    decoration: const InputDecoration(
-                      labelText: 'BeforeYouGo Checklist Preset',
-                      prefixIcon: Icon(Icons.checklist_rounded),
+                    decoration: InputDecoration(
+                      labelText: l10n.tr('beforeyougo_checklist_preset'),
+                      prefixIcon: const Icon(Icons.checklist_rounded),
                     ),
                     items: provider.presets
                         .map(
                           (p) => DropdownMenuItem(
                             value: p.id,
-                            child: Text('${p.name} (${p.totalCount} items)'),
+                            child: Text(l10n.tr('items', {'p_name': p.name, 'p_totalCount': p.totalCount})),
                           ),
                         )
                         .toList(),
@@ -1230,9 +1269,9 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                     },
                   ),
                   const SizedBox(height: 12),
-                  const Text('Schedule Repeat',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text(l10n.tr('schedule_repeat'),
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -1265,14 +1304,14 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                       spacing: 4,
                       runSpacing: 4,
                       children: [
-                        for (final entry in const {
-                          1: 'Mon',
-                          2: 'Tue',
-                          3: 'Wed',
-                          4: 'Thu',
-                          5: 'Fri',
-                          6: 'Sat',
-                          7: 'Sun',
+                        for (final entry in {
+                          1: l10n.tr('mon'),
+                          2: l10n.tr('tue'),
+                          3: l10n.tr('wed'),
+                          4: l10n.tr('thu'),
+                          5: l10n.tr('fri'),
+                          6: l10n.tr('sat'),
+                          7: l10n.tr('sun'),
                         }.entries)
                           FilterChip(
                             selected: selectedDays.contains(entry.key),
@@ -1313,7 +1352,7 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                             icon: const Icon(Icons.calendar_today_rounded,
                                 size: 14),
                             label: Text(
-                              DateFormat('EEE, MMM d').format(oneTimeDate),
+                              l10n.formatDate(oneTimeDate, 'EEE, MMM d'),
                               style: const TextStyle(fontSize: 12),
                             ),
                           ),
@@ -1333,7 +1372,7 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                           },
                           icon: const Icon(Icons.schedule_rounded, size: 15),
                           label: Text(
-                            'Depart ${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
+                            l10n.tr('depart', {'departStr': departStr}),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ),
@@ -1341,9 +1380,10 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const Text('Reminder Notification Lead Time',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text(
+                      l10n.tr('reminder_notification_lead_time'),
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -1355,7 +1395,9 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                           selected: selected,
                           selectedColor: kScoutAmber.withValues(alpha: 0.25),
                           label: Text(
-                            mins == 0 ? 'At time' : '${mins}m before',
+                            mins == 0
+                                ? l10n.tr('at_time')
+                                : l10n.tr('m_before', {'mins': mins}),
                             style: const TextStyle(fontSize: 11),
                           ),
                           onSelected: (_) {
@@ -1370,8 +1412,8 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                       ChoiceChip(
                         selected: customLeadMode,
                         selectedColor: kScoutAmber.withValues(alpha: 0.25),
-                        label: const Text('Custom',
-                            style: TextStyle(fontSize: 11)),
+                        label: Text(l10n.tr('custom_2'),
+                            style: const TextStyle(fontSize: 11)),
                         onSelected: (_) =>
                             setStateDialog(() => customLeadMode = true),
                       ),
@@ -1382,8 +1424,8 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                     TextField(
                       controller: customLeadCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Minutes before departure (0–180)',
+                      decoration: InputDecoration(
+                        labelText: l10n.tr('minutes_before_departure_0_180'),
                         isDense: true,
                       ),
                       onChanged: (txt) {
@@ -1411,8 +1453,8 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                         Expanded(
                           child: Text(
                             leadMinutes == 0
-                                ? 'Scout notifies right at ${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}'
-                                : 'Scout pushes heads-up at $notifyStr (${leadMinutes}m before)',
+                                ? l10n.tr('scout_notifies_right_at', {'departStr': departStr})
+                                : l10n.tr('scout_pushes_heads_up_at_m', {'notifyStr': notifyStr, 'leadMinutes': leadMinutes}),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -1430,8 +1472,9 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       dense: true,
-                      title: const Text('Also add to Calendar Events',
-                          style: TextStyle(fontSize: 12)),
+                      title: Text(
+                          l10n.tr('also_add_to_calendar_events'),
+                          style: const TextStyle(fontSize: 12)),
                       value: alsoAddToCalendar,
                       onChanged: (v) => setStateDialog(
                           () => alsoAddToCalendar = v ?? false),
@@ -1444,7 +1487,7 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.tr('cancel')),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -1521,7 +1564,7 @@ Future<DepartureEvent?> showDepartureEventEditorDialog(
                 backgroundColor: kScoutBlue,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Save Schedule'),
+              child: Text(l10n.tr('save_schedule')),
             ),
           ],
         );

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/routine_item.dart';
 import '../../../providers/routine_provider.dart';
+import '../../widgets/mascot_milestone_stamp_overlay.dart';
 
 class RoutinesScreen extends StatelessWidget {
   const RoutinesScreen({super.key});
@@ -222,7 +223,17 @@ class RoutinesScreen extends StatelessWidget {
                     final isChecked = r.completedStepIndices.contains(idx);
 
                     return InkWell(
-                      onTap: () => routineProvider.toggleStep(r.id, idx),
+                      onTap: () async {
+                        final milestone =
+                            await routineProvider.toggleStep(r.id, idx);
+                        if (milestone != null && context.mounted) {
+                          MascotMilestoneStampOverlay.showRooOnFire(
+                            context,
+                            routineTitle: r.title,
+                            streakDays: milestone,
+                          );
+                        }
+                      },
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),

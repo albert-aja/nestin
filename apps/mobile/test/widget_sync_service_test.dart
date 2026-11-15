@@ -1,10 +1,16 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nestin/data/models/alarm.dart';
 import 'package:nestin/data/models/alarm_category.dart';
 import 'package:nestin/data/models/alarm_schedule.dart';
+import 'package:nestin/data/models/hydration_data.dart';
 import 'package:nestin/data/models/routine_item.dart';
+import 'package:nestin/data/services/notification_service.dart';
+import 'package:nestin/data/services/storage_service.dart';
 import 'package:nestin/data/services/widget_sync_service.dart';
+import 'package:nestin/providers/hydration_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -128,6 +134,85 @@ void main() {
         data,
         (ByteData? reply) {},
       );
+    });
+
+    test('syncHydration emits Seren mascot pose and intake payload accurately',
+        () async {
+      final hydration = HydrationData(
+        glassesConsumed: 8,
+        dailyGoalGlasses: 8,
+        lastLoggedDate: '2026-11-14',
+      );
+
+      await WidgetSyncService.instance.syncHydration(hydration);
+
+      expect(methodCalls.length, 1);
+      final call = methodCalls.first;
+      expect(call.method, 'updateHydration');
+      final args = call.arguments as Map<dynamic, dynamic>;
+      expect(args['glassesConsumed'], 8);
+      expect(args['dailyGoalGlasses'], 8);
+      expect(args['currentMilliliters'], 2000);
+      expect(args['targetMilliliters'], 2000);
+      expect(args['isGoalMet'], isTrue);
+      expect(args['mascotPose'], 'seren_refreshed');
+    });
+
+    test(
+        'HydrationProvider reloads background widget +1 writes via reloadFromStorage and onHydrationUpdatedFromWidget',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('dexterous.com/flutter/local_notifications'),
+        (call) async => true,
+      );
+
+      SharedPreferences.setMockInitialValues({});
+      final storage = await StorageService.init();
+      final notif = NotificationService();
+      final provider = HydrationProvider(storage, notif);
+      WidgetSyncService.instance.initialize();
+
+      expect(provider.glassesConsumed, 0);
+
+      // Simulate native HydrationWidgetProvider writing +1 glass directly to FlutterSharedPreferences
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final prefs = await SharedPreferences.getInstance();
+      final externalData = HydrationData(
+        glassesConsumed: 8,
+        dailyGoalGlasses: 8,
+        lastLoggedDate: today,
+        dailyHistory: {today: 8},
+      );
+      await prefs.setString(
+        'nestin_hydration_data_v1',
+        jsonEncode(externalData.toJson()),
+      );
+
+      methodCalls.clear();
+
+      // Simulate native calling onHydrationUpdatedFromWidget while engine is alive
+      final binaryMessenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      const codec = StandardMethodCodec();
+      final ByteData data = codec.encodeMethodCall(
+        const MethodCall('onHydrationUpdatedFromWidget', null),
+      );
+      await binaryMessenger.handlePlatformMessage(
+        'com.nestin.app/widgets',
+        data,
+        (ByteData? reply) {},
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(provider.glassesConsumed, 8);
+      expect(provider.isGoalMet, isTrue);
+      expect(
+        methodCalls.any((c) => c.method == 'updateHydration'),
+        isTrue,
+      );
+
+      provider.dispose();
     });
   });
 }

@@ -8,6 +8,7 @@ import '../../data/models/medication_snooze.dart';
 import '../../data/services/widget_sync_service.dart';
 import '../../data/services/notification_service.dart';
 import '../../providers/alarm_provider.dart';
+import '../../providers/hydration_provider.dart';
 import '../../providers/medication_provider.dart';
 import '../../providers/before_you_go_provider.dart';
 import '../../providers/reading_provider.dart';
@@ -17,17 +18,20 @@ import 'home/home_dashboard_screen.dart';
 import 'time/time_hub_screen.dart';
 import 'organize/organize_hub_screen.dart';
 import 'journal/journal_hub_screen.dart';
+import 'explore/bucket_list_screen.dart';
 import 'explore/explore_hub_screen.dart';
 import 'alarms/active_alarm_screen.dart';
 import 'alarms/alarm_edit_screen.dart';
 import '../widgets/quick_capture_sheet.dart';
 import '../widgets/sleep_cycle_sheet.dart';
 import '../widgets/health_wellness_sheet.dart';
+import '../widgets/hydration_settings_sheet.dart';
 import '../widgets/medication_tracker_sheet.dart';
 import '../widgets/reading_tracker_sheet.dart';
 import '../widgets/location_reminders_sheet.dart';
 import '../widgets/before_you_go_sheet.dart';
-import 'scout/digital_wellbeing_screen.dart';
+import 'discipline/digital_discipline_screen.dart';
+import 'scout/phone_modes_screen.dart';
 import 'settings/permission_center_screen.dart';
 import 'automation/automation_hub_screen.dart';
 
@@ -109,6 +113,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             .reloadFromStorage();
       } catch (_) {}
       try {
+        Provider.of<HydrationProvider>(context, listen: false)
+            .reloadFromStorage();
+      } catch (_) {}
+      try {
         final settings = Provider.of<SettingsProvider>(context, listen: false);
         if (_currentIndex == 3) {
           settings.notifyDiaryEntered();
@@ -153,12 +161,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     } else if (uri.host == 'health') {
       _onTabSelected(4);
       HealthWellnessSheet.show(context);
+    } else if (uri.host == 'hydration') {
+      _onTabSelected(4);
+      HydrationSettingsSheet.show(context);
     } else if (uri.host == 'medication') {
       _onTabSelected(4);
       MedicationTrackerSheet.show(context);
     } else if (uri.host == 'reading') {
       _onTabSelected(4);
       ReadingTrackerSheet.show(context);
+    } else if (uri.host == 'bucket_list') {
+      _onTabSelected(4);
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const BucketListScreen()),
+      );
     } else if (uri.host == 'location_reminders') {
       _onTabSelected(4);
       LocationRemindersSheet.show(context);
@@ -180,10 +196,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         captureType = CaptureType.journal;
       }
       QuickCaptureSheet.show(context, initialType: captureType);
-    } else if (uri.host == 'wellbeing') {
+    } else if (uri.host == 'wellbeing' || uri.host == 'discipline') {
+      final rawTab = int.tryParse(uri.queryParameters['tab'] ?? '');
+      if (rawTab != null) {
+        _onTabSelected(1, 6);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DigitalDisciplineScreen(initialTab: rawTab),
+          ),
+        );
+      } else {
+        _onTabSelected(1, 6);
+      }
+    } else if (uri.host == 'phone_modes') {
       _onTabSelected(4);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const DigitalWellbeingScreen()),
+        MaterialPageRoute(builder: (_) => const PhoneModesScreen()),
       );
     } else if (uri.host == 'permissions') {
       _onTabSelected(4);

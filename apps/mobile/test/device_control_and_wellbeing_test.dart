@@ -8,7 +8,8 @@ import 'package:nestin/data/services/device_control_service.dart';
 import 'package:nestin/data/services/storage_service.dart';
 import 'package:nestin/providers/device_control_provider.dart';
 import 'package:nestin/providers/settings_provider.dart';
-import 'package:nestin/ui/screens/scout/digital_wellbeing_screen.dart';
+import 'package:nestin/ui/screens/discipline/digital_discipline_screen.dart';
+import 'package:nestin/ui/screens/scout/phone_modes_screen.dart';
 import 'package:nestin/ui/screens/settings/permission_center_screen.dart';
 
 void main() {
@@ -284,7 +285,7 @@ void main() {
 
   group('UI Widget Smoke Tests (Light & Dark Adaptive Rendering)', () {
     testWidgets(
-        'renders DigitalWellbeingScreen and PermissionCenterScreen cleanly in light & dark mode',
+        'renders DigitalDisciplineScreen (Roo) and PhoneModesScreen / PermissionCenterScreen (Scout) cleanly in light & dark mode',
         (tester) async {
       final storage = await StorageService.init();
       final mockService = MockDeviceControlService(
@@ -301,7 +302,7 @@ void main() {
       for (final mode in [ThemeMode.light, ThemeMode.dark]) {
         await tester.pumpWidget(
           MultiProvider(
-            key: ValueKey(mode),
+            key: ValueKey('roo_$mode'),
             providers: [
               ChangeNotifierProvider.value(value: settingsProvider),
               ChangeNotifierProvider.value(value: dcProvider),
@@ -310,17 +311,38 @@ void main() {
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: mode,
-              home: const DigitalWellbeingScreen(),
+              home: const DigitalDisciplineScreen(initialTab: 3),
             ),
           ),
         );
         await tester.pumpAndSettle();
 
+        expect(find.text('Overview'), findsOneWidget);
+        expect(find.text('App Fast'), findsOneWidget);
+        expect(find.text('Focus Lock'), findsOneWidget);
+        expect(find.text('Usage Limits'), findsAtLeastNWidgets(1));
+        expect(find.text('Application Usage'), findsOneWidget);
+        expect(find.text('Phone Modes'), findsNothing);
         expect(find.text('Instagram'), findsOneWidget);
 
-        await tester.tap(find.text('Phone Modes'));
+        await tester.pumpWidget(
+          MultiProvider(
+            key: ValueKey('scout_$mode'),
+            providers: [
+              ChangeNotifierProvider.value(value: settingsProvider),
+              ChangeNotifierProvider.value(value: dcProvider),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: mode,
+              home: const PhoneModesScreen(),
+            ),
+          ),
+        );
         await tester.pumpAndSettle();
         expect(find.text('Sleep Mode'), findsOneWidget);
+        expect(find.text('App Fast'), findsNothing);
 
         await tester.tap(find.byIcon(Icons.verified_user_outlined));
         await tester.pumpAndSettle();

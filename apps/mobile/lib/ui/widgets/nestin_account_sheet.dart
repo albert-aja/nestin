@@ -81,26 +81,17 @@ class _NestinAccountSettingsTileState extends State<NestinAccountSettingsTile> {
     final String statusBadge;
 
     if (isSignedIn && isLinked) {
-      subtitleText = l10n.pick(
-        '${email ?? 'Account active'} • Guest ID linked, local data intact',
-        '${email ?? 'Akun aktif'} • ID Tamu tertaut, data lokal aman',
-      );
+      subtitleText = l10n.tr('guest_id_linked_local_data_intact', {'email_active': email ?? 'Account active', 'email_aktif': email ?? 'Akun aktif'});
       statusColor = AppColors.success;
-      statusBadge = l10n.pick('Linked', 'Tertaut');
+      statusBadge = l10n.tr('linked');
     } else if (isSignedIn) {
-      subtitleText = l10n.pick(
-        '${email ?? 'Signed in'} • Tap to link local Guest ID',
-        '${email ?? 'Sudah masuk'} • Ketuk untuk tautkan ID Tamu lokal',
-      );
+      subtitleText = l10n.tr('tap_to_link_local_guest_id', {'email_in': email ?? 'Signed in', 'email_masuk': email ?? 'Sudah masuk'});
       statusColor = AppColors.info;
-      statusBadge = l10n.pick('Signed In', 'Masuk');
+      statusBadge = l10n.tr('signed_in');
     } else {
-      subtitleText = l10n.pick(
-        'Guest mode active • Sign up anytime without altering local data',
-        'Mode tamu aktif • Daftar kapan saja tanpa mengubah data lokal',
-      );
+      subtitleText = l10n.tr('guest_mode_active_sign_up_anytime');
       statusColor = AppColors.textSecondary(context);
-      statusBadge = l10n.pick('Guest', 'Tamu');
+      statusBadge = l10n.tr('guest');
     }
 
     return Card(
@@ -142,10 +133,7 @@ class _NestinAccountSettingsTileState extends State<NestinAccountSettingsTile> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          l10n.pick(
-                            'Nestin Account (Optional)',
-                            'Akun Nestin (Opsional)',
-                          ),
+                          l10n.tr('nestin_account_optional'),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -295,10 +283,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.l10n.pick(
-              'Guest ID linked safely. All local records remain untouched on-device.',
-              'ID Tamu berhasil ditautkan. Semua data lokal tetap utuh di perangkat.',
-            ),
+            context.l10n.tr('guest_id_linked_safely_all_local'),
           ),
         ),
       );
@@ -315,10 +300,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            l10n.pick(
-              'Guest migration prepared. Local data preserved and cloud sync stays off.',
-              'Persiapan migrasi tamu selesai. Data lokal aman & sinkronisasi cloud tetap nonaktif.',
-            ),
+            l10n.tr('guest_migration_prepared_local_data_preserved'),
           ),
         ),
       );
@@ -332,10 +314,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          l10n.pick(
-            'Signed out cleanly. All local Nestin records remain intact.',
-            'Berhasil keluar. Semua catatan lokal Nestin tetap utuh.',
-          ),
+          l10n.tr('signed_out_cleanly_all_local_nestin'),
         ),
       ),
     );
@@ -390,10 +369,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            l10n.pick(
-                              'Nestin Account (Optional)',
-                              'Akun Nestin (Opsional)',
-                            ),
+                            l10n.tr('nestin_account_optional'),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -401,10 +377,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            l10n.pick(
-                              'Link your local guest identity without altering local records',
-                              'Tautkan identitas tamu lokal tanpa mengubah catatan di perangkat',
-                            ),
+                            l10n.tr('link_your_local_guest_identity_without'),
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary(context),
@@ -442,10 +415,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          l10n.pick(
-                            'Local-First Guarantee: Creating an account or preparing migration only links your Guest UUID on the server. None of your alarms, tasks, notes, diary entries, or money records are modified or uploaded.',
-                            'Jaminan Lokal-Utama: Membuat akun atau menyiapkan migrasi hanya menautkan UUID Tamu di server. Alarm, tugas, catatan, jurnal, maupun data uang tidak diubah atau diunggah.',
-                          ),
+                          l10n.tr('local_first_guarantee_creating_an_account'),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textPrimary(context),
@@ -476,10 +446,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                     context,
                     icon: Icons.mark_email_read_outlined,
                     color: AppColors.info,
-                    text: l10n.pick(
-                      'Confirmation sent to ${provider.pendingConfirmationEmail}. Verify your email first, then use Sign In to link your Guest ID.',
-                      'Konfirmasi terkirim ke ${provider.pendingConfirmationEmail}. Verifikasi email Anda terlebih dahulu, lalu gunakan Masuk untuk menautkan ID Tamu.',
-                    ),
+                    text: l10n.tr('confirmation_sent_to_verify_your_email', {'provider_pendingConfirmationEmail': provider.pendingConfirmationEmail}),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -512,11 +479,11 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
     final isLinked = guest?.authMode == AccountAuthMode.registered;
     final total = counts.values.fold<int>(0, (sum, val) => sum + val);
     final highlights = <MapEntry<String, int>>[
-      MapEntry(l10n.pick('Alarms', 'Alarm'), counts['alarms'] ?? 0),
-      MapEntry(l10n.pick('Tasks', 'Tugas'), counts['tasks'] ?? 0),
-      MapEntry(l10n.pick('Notes', 'Catatan'), counts['notes'] ?? 0),
-      MapEntry(l10n.pick('Journal', 'Jurnal'), counts['journalEntries'] ?? 0),
-      MapEntry(l10n.pick('Money', 'Keuangan'), counts['moneyTransactions'] ?? 0),
+      MapEntry(l10n.tr('metric_alarms'), counts['alarms'] ?? 0),
+      MapEntry(l10n.tr('metric_tasks'), counts['tasks'] ?? 0),
+      MapEntry(l10n.tr('metric_notes'), counts['notes'] ?? 0),
+      MapEntry(l10n.tr('qc_journal'), counts['journalEntries'] ?? 0),
+      MapEntry(l10n.tr('qc_money'), counts['moneyTransactions'] ?? 0),
     ];
 
     return Container(
@@ -536,7 +503,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                l10n.pick('On-Device Guest Identity', 'Identitas Tamu Perangkat'),
+                l10n.tr('on_device_guest_identity'),
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -551,8 +518,8 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                 ),
                 child: Text(
                   isLinked
-                      ? l10n.pick('Linked', 'Tertaut')
-                      : l10n.pick('Local Guest', 'Tamu Lokal'),
+                      ? l10n.tr('linked')
+                      : l10n.tr('local_guest'),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -570,7 +537,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
           ),
           const SizedBox(height: 6),
           SelectableText(
-            guest?.guestLocalId ?? l10n.pick('Provisioning...', 'Menyiapkan...'),
+            guest?.guestLocalId ?? l10n.tr('provisioning'),
             style: TextStyle(
               fontSize: 12,
               fontFamily: 'monospace',
@@ -579,10 +546,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
           ),
           const SizedBox(height: 10),
           Text(
-            l10n.pick(
-              '$total local records protected on this device:',
-              '$total catatan lokal tersimpan aman di perangkat:',
-            ),
+            l10n.tr('local_records_protected_on_this_device', {'total': total}),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -641,14 +605,8 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
               icon: Icons.cloud_off_rounded,
               color: AppColors.warning,
               text: !supabaseReady
-                  ? l10n.pick(
-                      'Offline-only build: configure NESTIN_SUPABASE_URL and NESTIN_SUPABASE_ANON_KEY via --dart-define to enable optional sign-up/sign-in.',
-                      'Build khusus offline: konfigurasi NESTIN_SUPABASE_URL dan NESTIN_SUPABASE_ANON_KEY melalui --dart-define untuk mengaktifkan pendaftaran opsional.',
-                    )
-                  : l10n.pick(
-                      'Supabase Auth is ready, but NESTIN_API_BASE_URL is not configured yet for server guest-migration linking.',
-                      'Supabase Auth siap, namun NESTIN_API_BASE_URL belum dikonfigurasi untuk penautan migrasi tamu.',
-                    ),
+                  ? l10n.tr('offline_only_build_configure_nestin_supabase_url_and')
+                  : l10n.tr('supabase_auth_is_ready_but_nestin_api_base_url'),
             ),
             const SizedBox(height: 12),
           ],
@@ -656,12 +614,12 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
             segments: [
               ButtonSegment<_AuthFormMode>(
                 value: _AuthFormMode.signUp,
-                label: Text(l10n.pick('Sign Up', 'Daftar')),
+                label: Text(l10n.tr('sign_up')),
                 icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
               ),
               ButtonSegment<_AuthFormMode>(
                 value: _AuthFormMode.signIn,
-                label: Text(l10n.pick('Sign In', 'Masuk')),
+                label: Text(l10n.tr('sign_in')),
                 icon: const Icon(Icons.login_rounded, size: 18),
               ),
             ],
@@ -680,10 +638,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
               enabled: !provider.isSubmitting,
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: l10n.pick(
-                  'Display Name (Optional)',
-                  'Nama Tampilan (Opsional)',
-                ),
+                labelText: l10n.tr('display_name_optional'),
                 prefixIcon: const Icon(Icons.badge_outlined),
               ),
             ),
@@ -695,16 +650,13 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(
-              labelText: l10n.pick('Email Address', 'Alamat Email'),
+              labelText: l10n.tr('email_address'),
               prefixIcon: const Icon(Icons.email_outlined),
             ),
             validator: (value) {
               final trimmed = value?.trim() ?? '';
               if (trimmed.isEmpty || !trimmed.contains('@')) {
-                return l10n.pick(
-                  'Enter a valid email address',
-                  'Masukkan alamat email yang valid',
-                );
+                return l10n.tr('enter_a_valid_email_address');
               }
               return null;
             },
@@ -716,7 +668,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
-              labelText: l10n.pick('Password', 'Kata Sandi'),
+              labelText: l10n.tr('password'),
               prefixIcon: const Icon(Icons.lock_outline_rounded),
               suffixIcon: IconButton(
                 onPressed: () =>
@@ -731,16 +683,10 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
             validator: (value) {
               final raw = value ?? '';
               if (raw.isEmpty) {
-                return l10n.pick(
-                  'Enter your password',
-                  'Masukkan kata sandi',
-                );
+                return l10n.tr('enter_your_password');
               }
               if (_mode == _AuthFormMode.signUp && raw.length < 6) {
-                return l10n.pick(
-                  'Password must be at least 6 characters',
-                  'Kata sandi minimal 6 karakter',
-                );
+                return l10n.tr('password_must_be_at_least_6');
               }
               return null;
             },
@@ -755,20 +701,14 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                   ? null
                   : (val) => setState(() => _linkGuestAfterAuth = val ?? true),
               title: Text(
-                l10n.pick(
-                  'Prepare Guest ID migration right away',
-                  'Siapkan tautan migrasi ID Tamu langsung',
-                ),
+                l10n.tr('prepare_guest_id_migration_right_away'),
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               subtitle: Text(
-                l10n.pick(
-                  'Links your Guest UUID without uploading or changing local records.',
-                  'Menautkan UUID Tamu tanpa mengunggah atau mengubah catatan lokal.',
-                ),
+                l10n.tr('links_your_guest_uuid_without_uploading'),
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.textSecondary(context),
@@ -796,8 +736,8 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                   ),
             label: Text(
               _mode == _AuthFormMode.signUp
-                  ? l10n.pick('Create Optional Account', 'Buat Akun Opsional')
-                  : l10n.pick('Sign In', 'Masuk'),
+                  ? l10n.tr('create_optional_account')
+                  : l10n.tr('sign_in'),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -849,10 +789,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                       children: [
                         Text(
                           session.email ??
-                              l10n.pick(
-                                'Authenticated Account',
-                                'Akun Terautentikasi',
-                              ),
+                              l10n.tr('authenticated_account'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -879,18 +816,15 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                   _infoPill(
                     context,
                     label: cloudSyncOptIn
-                        ? l10n.pick('Cloud Sync: Opt-In', 'Sinkronisasi Cloud: Aktif')
-                        : l10n.pick(
-                            'Cloud Sync: Off (Local-First)',
-                            'Sinkronisasi Cloud: Nonaktif (Lokal)',
-                          ),
+                        ? l10n.tr('cloud_sync_opt_in')
+                        : l10n.tr('cloud_sync_off_local_first'),
                     color: AppColors.info,
                   ),
                   _infoPill(
                     context,
                     label: provider.isGuestLinked
-                        ? l10n.pick('Guest UUID Linked', 'UUID Tamu Tertaut')
-                        : l10n.pick('Not Linked Yet', 'Belum Tertaut'),
+                        ? l10n.tr('guest_uuid_linked')
+                        : l10n.tr('not_linked_yet'),
                     color: provider.isGuestLinked
                         ? AppColors.success
                         : AppColors.warning,
@@ -906,10 +840,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
             context,
             icon: Icons.cloud_off_rounded,
             color: AppColors.warning,
-            text: l10n.pick(
-              'NESTIN_API_BASE_URL is not configured in this build. Guest migration linking requires a configured backend.',
-              'NESTIN_API_BASE_URL belum dikonfigurasi pada build ini. Penautan migrasi tamu memerlukan URL backend.',
-            ),
+            text: l10n.tr('nestin_api_base_url_is_not_configured_in_this'),
           ),
           const SizedBox(height: 12),
         ],
@@ -929,14 +860,8 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
               : const Icon(Icons.link_rounded),
           label: Text(
             provider.isGuestLinked
-                ? l10n.pick(
-                    'Refresh Guest Migration Link',
-                    'Perbarui Tautan Migrasi Tamu',
-                  )
-                : l10n.pick(
-                    'Prepare Guest Migration',
-                    'Siapkan Migrasi Tamu',
-                  ),
+                ? l10n.tr('refresh_guest_migration_link')
+                : l10n.tr('prepare_guest_migration'),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -962,10 +887,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.pick(
-                    'Migration Link Acknowledged',
-                    'Tautan Migrasi Dikonfirmasi',
-                  ),
+                  l10n.tr('migration_link_acknowledged'),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -974,10 +896,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  l10n.pick(
-                    'Local data preserved: ${receipt.localDataPreserved} • Cloud sync: ${receipt.cloudSyncOptIn ? 'On' : 'Off'} • Counts acknowledged: ${receipt.totalAcknowledgedCount}',
-                    'Data lokal aman: ${receipt.localDataPreserved} • Sinkronisasi cloud: ${receipt.cloudSyncOptIn ? 'Aktif' : 'Nonaktif'} • Jumlah tercatat: ${receipt.totalAcknowledgedCount}',
-                  ),
+                  l10n.tr('local_data_preserved_cloud_sync_counts', {'receipt_localDataPreserved': receipt.localDataPreserved, 'receipt_Off': receipt.cloudSyncOptIn ? 'On' : 'Off', 'receipt_totalAcknowledgedCount': receipt.totalAcknowledgedCount, 'receipt_Nonaktif': receipt.cloudSyncOptIn ? 'Aktif' : 'Nonaktif'}),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),
@@ -992,10 +911,7 @@ class _NestinAccountSheetState extends State<NestinAccountSheet> {
           onPressed: provider.isSubmitting ? null : _handleSignOut,
           icon: const Icon(Icons.logout_rounded),
           label: Text(
-            l10n.pick(
-              'Sign Out (Keep Local Data)',
-              'Keluar (Pertahankan Data Lokal)',
-            ),
+            l10n.tr('sign_out_keep_local_data'),
           ),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 13),

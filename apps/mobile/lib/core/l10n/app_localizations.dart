@@ -121,6 +121,8 @@ class AppLocalizations {
         ThemeMode.light => tr('theme_light'),
         ThemeMode.system => tr('theme_system'),
       };
+
+  String get brandTagline => tr('brand_tagline');
 }
 
 class _AppLocalizationsDelegate

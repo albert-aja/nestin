@@ -14,11 +14,13 @@ lib/
 │   ├── models/           # Immutable JSON-serializable entities across all 6 families
 │   └── services/         # StorageService, NotificationService, AudioService,
 │                         # OemHardeningService, DeviceControlService, WidgetSyncService
-├── domain/               # Pure logic (ChallengeEngine, NaturalLanguageDateParser, SleepCycleCalculator)
+├── domain/               # Pure logic (ChallengeEngine, NaturalLanguageDateParser,
+│                         # SleepCycleCalculator, wellbeing/RestrictionEngine & FocusLockCoordinator)
 ├── providers/            # 22 domain ChangeNotifiers + DeviceControlProvider,
 │                         # AutomationProvider, CrossModuleLinkProvider
 └── ui/
-    ├── screens/          # MainNavigationScreen, Hubs, Settings, DigitalWellbeingScreen,
+    ├── screens/          # MainNavigationScreen, Hubs, Settings,
+    │                     # discipline/DigitalDisciplineScreen, scout/PhoneModesScreen,
     │                     # PermissionCenterScreen, AutomationHubScreen, UniversalSearchScreen
     └── widgets/          # SwipeActionCard, LinkedEntitiesSection, Mascot/Feature sheets & cards
 ```

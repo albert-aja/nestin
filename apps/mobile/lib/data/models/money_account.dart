@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_localizations.dart';
 
 enum MoneyAccountType {
-  cash('Cash', Icons.payments_rounded, Color(0xFF10B981)),
-  bankAccount('Bank Account', Icons.account_balance_rounded, Color(0xFF3B82F6)),
-  eWallet('E-Wallet', Icons.account_balance_wallet_rounded, Color(0xFFF59E0B)),
-  other('Other', Icons.savings_rounded, Color(0xFF8B5CF6));
+  cash('money_acct_cash', Icons.payments_rounded, Color(0xFF10B981)),
+  bankAccount(
+    'money_acct_bank',
+    Icons.account_balance_rounded,
+    Color(0xFF3B82F6),
+  ),
+  eWallet(
+    'money_acct_ewallet',
+    Icons.account_balance_wallet_rounded,
+    Color(0xFFF59E0B),
+  ),
+  other('money_acct_other', Icons.savings_rounded, Color(0xFF8B5CF6));
 
-  final String label;
+  final String translationKey;
   final IconData defaultIcon;
   final Color defaultColor;
 
-  const MoneyAccountType(this.label, this.defaultIcon, this.defaultColor);
+  String get label => AppLocalizations.current.tr(translationKey);
+
+  const MoneyAccountType(
+    this.translationKey,
+    this.defaultIcon,
+    this.defaultColor,
+  );
 
   static MoneyAccountType fromName(String? name) {
     return MoneyAccountType.values.firstWhere(

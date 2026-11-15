@@ -327,7 +327,8 @@ void main() {
 
       await tester.pumpWidget(env.wrap(const TimeHubScreen()));
       await tester.pumpAndSettle();
-      expect(find.text('Waktu & Rencana'), findsOneWidget);
+      expect(find.text('Waktu, Rencana & Kebiasaan'), findsOneWidget);
+      expect(find.text('Disiplin'), findsAtLeastNWidgets(1));
       expect(find.text('Alarm'), findsAtLeastNWidgets(1));
       expect(find.text('Pengingat'), findsAtLeastNWidgets(1));
       expect(find.text('Timer'), findsAtLeastNWidgets(1));

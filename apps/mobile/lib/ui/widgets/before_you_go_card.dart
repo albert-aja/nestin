@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../providers/before_you_go_provider.dart';
 import 'before_you_go_sheet.dart';
+import 'before_you_go_weather_banner.dart';
 
 class BeforeYouGoCard extends StatelessWidget {
   const BeforeYouGoCard({super.key});
@@ -83,10 +84,7 @@ class BeforeYouGoCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  l10n.pick(
-                                    '${preset.checkedCount}/${preset.totalCount} Ready',
-                                    '${preset.checkedCount}/${preset.totalCount} Siap',
-                                  ),
+                                  l10n.tr('ready', {'preset_checkedCount': preset.checkedCount, 'preset_totalCount': preset.totalCount}),
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -101,14 +99,8 @@ class BeforeYouGoCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             nextDeparture != null
-                                ? l10n.pick(
-                                    '🧭 Next: ${nextDeparture.title} • ${nextDeparture.recurrenceSummary} ${nextDeparture.formattedDepartureTime} (${nextDeparture.leadLabel})',
-                                    '🧭 Berikutnya: ${nextDeparture.title} • ${nextDeparture.recurrenceSummary} ${nextDeparture.formattedDepartureTime} (${nextDeparture.leadLabel})',
-                                  )
-                                : l10n.pick(
-                                    '🧭 ${provider.events.length} departure schedules • Tap to add heads-up',
-                                    '🧭 ${provider.events.length} jadwal berangkat • Ketuk untuk tambah pengingat',
-                                  ),
+                                ? l10n.tr('next_2', {'nextDeparture_title': nextDeparture.title, 'nextDeparture_recurrenceSummary': nextDeparture.recurrenceSummary, 'nextDeparture_formattedDepartureTime': nextDeparture.formattedDepartureTime, 'nextDeparture_leadLabel': nextDeparture.leadLabel})
+                                : l10n.tr('departure_schedules_tap_to_add_heads', {'provider_length': provider.events.length}),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -120,10 +112,7 @@ class BeforeYouGoCard extends StatelessWidget {
                           if (activeSnooze != null) ...[
                             const SizedBox(height: 3),
                             Text(
-                              l10n.pick(
-                                '⏰ Snoozed +5m until ${activeSnooze.formattedSnoozedUntil}${activeSnooze.snoozeCount > 1 ? ' (${activeSnooze.snoozeCount}x)' : ''}',
-                                '⏰ Ditunda +5m hingga ${activeSnooze.formattedSnoozedUntil}${activeSnooze.snoozeCount > 1 ? ' (${activeSnooze.snoozeCount}x)' : ''}',
-                              ),
+                              l10n.tr('snoozed_5m_until', {'activeSnooze_formattedSnoozedUntil': activeSnooze.formattedSnoozedUntil, 'activeSnooze_x': activeSnooze.snoozeCount > 1 ? ' (${activeSnooze.snoozeCount}x)' : ''}),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -196,6 +185,14 @@ class BeforeYouGoCard extends StatelessWidget {
                   ),
                 ),
 
+                if (provider.activeWeatherSuggestions.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  BeforeYouGoWeatherBanner(
+                    provider: provider,
+                    compact: true,
+                  ),
+                ],
+
                 if (preset.items.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Divider(height: 1, color: AppColors.border(context)),
@@ -247,10 +244,7 @@ class BeforeYouGoCard extends StatelessWidget {
                   if (preset.items.length > 5) ...[
                     const SizedBox(height: 4),
                     Text(
-                      l10n.pick(
-                        '+${preset.items.length - 5} more items • Tap card to reorder or edit',
-                        '+${preset.items.length - 5} item lagi • Ketuk kartu untuk ubah',
-                      ),
+                      l10n.tr('more_items_tap_card_to_reorder', {'preset_5': preset.items.length - 5}),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(context),
@@ -278,7 +272,7 @@ class BeforeYouGoCard extends StatelessWidget {
                             color: AppColors.success,
                           ),
                           label: Text(
-                            l10n.pick('Mark All Ready', 'Siap Semua'),
+                            l10n.tr('notif_action_mark_all_ready'),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -301,7 +295,7 @@ class BeforeYouGoCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              l10n.pick('All Ready ✓', 'Semua Siap ✓'),
+                              l10n.tr('all_ready'),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -321,14 +315,8 @@ class BeforeYouGoCard extends StatelessWidget {
                             size: 14, color: kScoutBlue),
                         label: Text(
                           provider.events.isEmpty
-                              ? l10n.pick(
-                                  'Set Departure Alerts ->',
-                                  'Atur Pengingat Berangkat ->',
-                                )
-                              : l10n.pick(
-                                  'Manage ${provider.events.length} Schedules ->',
-                                  'Kelola ${provider.events.length} Jadwal ->',
-                                ),
+                              ? l10n.tr('set_departure_alerts')
+                              : l10n.tr('manage_schedules', {'provider_length': provider.events.length}),
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,

@@ -1,25 +1,45 @@
 package com.nestin.app.oem
 
 import android.app.Activity
+import android.app.StatusBarManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
+import com.nestin.app.R
 import com.nestin.app.services.NestinKeepAliveService
+import com.nestin.app.services.NestinKeepAliveTileService
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.lang.ref.WeakReference
 
 class OemHardeningPlugin(private val activity: Activity) {
 
     companion object {
         const val CHANNEL_NAME = "com.nestin.app/oem_hardening"
+        private var activeChannelRef: WeakReference<MethodChannel>? = null
+
+        fun notifyKeepAliveStateChanged(enabled: Boolean) {
+            val channel = activeChannelRef?.get() ?: return
+            Handler(Looper.getMainLooper()).post {
+                try {
+                    channel.invokeMethod("onKeepAliveStateChanged", enabled)
+                } catch (_: Exception) {
+                    // Ignore when Flutter engine is detached.
+                }
+            }
+        }
 
         fun register(activity: Activity, flutterEngine: FlutterEngine): OemHardeningPlugin {
             val plugin = OemHardeningPlugin(activity)
             val channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_NAME)
+            activeChannelRef = WeakReference(channel)
             channel.setMethodCallHandler { call, result ->
                 when (call.method) {
                     "getDeviceOemInfo" -> {
@@ -56,19 +76,33 @@ class OemHardeningPlugin(private val activity: Activity) {
                     }
                     "startKeepAliveService" -> {
                         try {
-                            NestinKeepAliveService.startService(activity)
-                            result.success(true)
+                            KeepAliveGuardState.setEnabled(activity, true, syncFlutterConfig = false)
+                            val started = NestinKeepAliveService.startService(activity)
+                            NestinKeepAliveTileService.requestTileUpdate(activity)
+                            result.success(started)
                         } catch (e: Exception) {
                             result.error("SERVICE_START_ERROR", e.message, null)
                         }
                     }
                     "stopKeepAliveService" -> {
                         try {
+                            KeepAliveGuardState.setEnabled(activity, false, syncFlutterConfig = false)
                             NestinKeepAliveService.stopService(activity)
+                            NestinKeepAliveTileService.requestTileUpdate(activity)
                             result.success(true)
                         } catch (e: Exception) {
                             result.error("SERVICE_STOP_ERROR", e.message, null)
                         }
+                    }
+                    "getQuickSettingsTileStatus" -> {
+                        try {
+                            result.success(plugin.getQuickSettingsTileStatus())
+                        } catch (e: Exception) {
+                            result.error("QS_STATUS_ERROR", e.message, null)
+                        }
+                    }
+                    "requestAddQuickSettingsTile" -> {
+                        plugin.requestAddQuickSettingsTile(result)
                     }
                     else -> result.notImplemented()
                 }
@@ -97,8 +131,55 @@ class OemHardeningPlugin(private val activity: Activity) {
             "model" to model,
             "sdkInt" to sdkInt,
             "isIgnoringBatteryOptimizations" to isIgnoringBattery,
-            "isKeepAliveRunning" to NestinKeepAliveService.isRunning
+            "isKeepAliveRunning" to KeepAliveGuardState.isCurrentlyGuarded(activity)
         )
+    }
+
+    private fun getQuickSettingsTileStatus(): Map<String, Any> {
+        val sdkInt = Build.VERSION.SDK_INT
+        return mapOf(
+            "supported" to (sdkInt >= Build.VERSION_CODES.N),
+            "canRequestAdd" to (sdkInt >= Build.VERSION_CODES.TIRAMISU),
+            "isTileAdded" to KeepAliveGuardState.isTileAdded(activity)
+        )
+    }
+
+    private fun requestAddQuickSettingsTile(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            result.success("unsupported")
+            return
+        }
+        val statusBarManager =
+            activity.getSystemService(Context.STATUS_BAR_SERVICE) as? StatusBarManager
+                ?: activity.getSystemService(StatusBarManager::class.java)
+        if (statusBarManager == null) {
+            result.success("unsupported")
+            return
+        }
+
+        try {
+            statusBarManager.requestAddTileService(
+                ComponentName(activity, NestinKeepAliveTileService::class.java),
+                activity.getString(R.string.qs_keep_alive_tile_label),
+                Icon.createWithResource(activity, R.drawable.ic_qs_keep_alive_guard),
+                activity.mainExecutor,
+            ) { resultCode ->
+                val outcome = when (resultCode) {
+                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED -> {
+                        KeepAliveGuardState.setTileAdded(activity, true)
+                        "added"
+                    }
+                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED -> {
+                        KeepAliveGuardState.setTileAdded(activity, true)
+                        "already_added"
+                    }
+                    else -> "declined"
+                }
+                result.success(outcome)
+            }
+        } catch (e: Exception) {
+            result.error("QS_PIN_ERROR", e.message, null)
+        }
     }
 
     private fun requestIgnoreBatteryOptimizations(): Boolean {
