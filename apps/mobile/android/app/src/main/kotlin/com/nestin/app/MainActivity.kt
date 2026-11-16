@@ -1,9 +1,28 @@
 package com.nestin.app
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.BitmapFactory
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
+import android.media.MediaMetadata
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.view.KeyEvent
+import androidx.core.content.ContextCompat
 import com.nestin.app.geofencing.GeofencingPlugin
 import com.nestin.app.oem.OemHardeningPlugin
 import com.nestin.app.widgets.HabitChecklistWidgetProvider
@@ -26,6 +45,21 @@ class MainActivity : FlutterActivity() {
     private var oemPlugin: OemHardeningPlugin? = null
     private var geofencingPlugin: GeofencingPlugin? = null
     private var deviceControlPlugin: DeviceControlPlugin? = null
+    private var audioManager: AudioManager? = null
+    private var becomingNoisyReceiver: BroadcastReceiver? = null
+    private var audioDeviceCallback: AudioDeviceCallback? = null
+    private var lastAudioRouteDisconnectMs: Long = 0L
+    private var serenMediaSession: MediaSession? = null
+    private var mediaActionReceiver: BroadcastReceiver? = null
+
+    companion object {
+        private const val SEREN_MEDIA_CHANNEL_ID = "nestin_seren_media_channel"
+        private const val SEREN_MEDIA_NOTIFICATION_ID = 7260
+        private const val ACTION_SEREN_MEDIA_PLAY_PAUSE = "com.nestin.app.SEREN_MEDIA_PLAY_PAUSE"
+        private const val ACTION_SEREN_MEDIA_STOP = "com.nestin.app.SEREN_MEDIA_STOP"
+        private const val ACTION_SEREN_MEDIA_NEXT = "com.nestin.app.SEREN_MEDIA_NEXT"
+        private const val ACTION_SEREN_MEDIA_PREV = "com.nestin.app.SEREN_MEDIA_PREV"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -197,9 +231,432 @@ class MainActivity : FlutterActivity() {
                         textToSpeech?.stop()
                         result.success(true)
                     }
+                    "isExternalAudioConnected" -> {
+                        result.success(hasExternalAudioOutputConnected())
+                    }
+                    "syncMediaSession" -> {
+                        val args = call.arguments as? Map<*, *>
+                        syncSerenMediaSession(args)
+                        result.success(true)
+                    }
+                    "clearMediaSession" -> {
+                        clearSerenMediaSession()
+                        result.success(true)
+                    }
                     else -> result.notImplemented()
                 }
             }
+        }
+        registerAudioRouteDisconnectListeners()
+        registerMediaTransportReceiver()
+    }
+
+    private fun isExternalOutputDeviceType(type: Int): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+        return when (type) {
+            AudioDeviceInfo.TYPE_WIRED_HEADSET,
+            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+            AudioDeviceInfo.TYPE_USB_DEVICE,
+            AudioDeviceInfo.TYPE_USB_ACCESSORY,
+            AudioDeviceInfo.TYPE_LINE_ANALOG,
+            AudioDeviceInfo.TYPE_LINE_DIGITAL,
+            AudioDeviceInfo.TYPE_AUX_LINE -> true
+            AudioDeviceInfo.TYPE_USB_HEADSET,
+            AudioDeviceInfo.TYPE_HEARING_AID -> true
+            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                type == AudioDeviceInfo.TYPE_BLE_HEADSET ||
+                    type == AudioDeviceInfo.TYPE_BLE_SPEAKER ||
+                    type == AudioDeviceInfo.TYPE_BLE_BROADCAST
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun classifyExternalRouteType(type: Int): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return "unknown"
+        return when (type) {
+            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "bluetooth"
+            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                (type == AudioDeviceInfo.TYPE_BLE_HEADSET ||
+                    type == AudioDeviceInfo.TYPE_BLE_SPEAKER ||
+                    type == AudioDeviceInfo.TYPE_BLE_BROADCAST)
+            ) {
+                "bluetooth"
+            } else if (isExternalOutputDeviceType(type)) {
+                "wired"
+            } else {
+                "unknown"
+            }
+        }
+    }
+
+    private fun hasExternalAudioOutputConnected(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+        val am = audioManager ?: (getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
+        audioManager = am
+        val outputs = am?.getDevices(AudioManager.GET_DEVICES_OUTPUTS) ?: return false
+        return outputs.any { it.isSink && isExternalOutputDeviceType(it.type) }
+    }
+
+    private fun emitAudioRouteDisconnected(
+        reason: String,
+        routeType: String,
+        deviceName: String? = null
+    ) {
+        val now = System.currentTimeMillis()
+        if (now - lastAudioRouteDisconnectMs < 400L) {
+            return
+        }
+        lastAudioRouteDisconnectMs = now
+        runOnUiThread {
+            ttsChannel?.invokeMethod(
+                "onAudioRouteDisconnected",
+                mapOf(
+                    "reason" to reason,
+                    "routeType" to routeType,
+                    "deviceName" to deviceName
+                )
+            )
+        }
+    }
+
+    private fun registerAudioRouteDisconnectListeners() {
+        unregisterAudioRouteDisconnectListeners()
+        val am = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        audioManager = am
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                    emitAudioRouteDisconnected(
+                        reason = "becoming_noisy",
+                        routeType = "unknown",
+                        deviceName = null
+                    )
+                }
+            }
+        }
+        val filter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        becomingNoisyReceiver = receiver
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val callback = object : AudioDeviceCallback() {
+                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
+                    val external = removedDevices?.firstOrNull {
+                        it.isSink && isExternalOutputDeviceType(it.type)
+                    } ?: return
+                    emitAudioRouteDisconnected(
+                        reason = "device_removed",
+                        routeType = classifyExternalRouteType(external.type),
+                        deviceName = external.productName?.toString()
+                    )
+                }
+            }
+            am.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper()))
+            audioDeviceCallback = callback
+        }
+    }
+
+    private fun unregisterAudioRouteDisconnectListeners() {
+        becomingNoisyReceiver?.let { receiver ->
+            try {
+                unregisterReceiver(receiver)
+            } catch (_: Exception) {}
+        }
+        becomingNoisyReceiver = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioDeviceCallback?.let { callback ->
+                try {
+                    audioManager?.unregisterAudioDeviceCallback(callback)
+                } catch (_: Exception) {}
+            }
+        }
+        audioDeviceCallback = null
+    }
+
+    private fun ensureSerenMediaSession(): MediaSession {
+        serenMediaSession?.let { return it }
+        val session = MediaSession(applicationContext, "NestinSerenMediaSession")
+        session.setCallback(object : MediaSession.Callback() {
+            override fun onPlay() {
+                emitMediaTransportAction("play")
+            }
+
+            override fun onPause() {
+                emitMediaTransportAction("pause")
+            }
+
+            override fun onStop() {
+                emitMediaTransportAction("stop")
+            }
+
+            override fun onSkipToNext() {
+                emitMediaTransportAction("next")
+            }
+
+            override fun onSkipToPrevious() {
+                emitMediaTransportAction("previous")
+            }
+
+            override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
+                val keyEvent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+                }
+                if (keyEvent != null && keyEvent.action == KeyEvent.ACTION_DOWN) {
+                    when (keyEvent.keyCode) {
+                        KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                            emitMediaTransportAction("play")
+                            return true
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                            emitMediaTransportAction("pause")
+                            return true
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                        KeyEvent.KEYCODE_HEADSETHOOK -> {
+                            emitMediaTransportAction("togglePlayPause")
+                            return true
+                        }
+                        KeyEvent.KEYCODE_MEDIA_STOP -> {
+                            emitMediaTransportAction("stop")
+                            return true
+                        }
+                        KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                            emitMediaTransportAction("next")
+                            return true
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                            emitMediaTransportAction("previous")
+                            return true
+                        }
+                    }
+                }
+                return super.onMediaButtonEvent(mediaButtonIntent)
+            }
+        })
+        serenMediaSession = session
+        return session
+    }
+
+    private fun emitMediaTransportAction(action: String) {
+        runOnUiThread {
+            ttsChannel?.invokeMethod(
+                "onMediaTransportAction",
+                mapOf("action" to action)
+            )
+        }
+    }
+
+    private fun registerMediaTransportReceiver() {
+        unregisterMediaTransportReceiver()
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    ACTION_SEREN_MEDIA_PLAY_PAUSE -> emitMediaTransportAction("togglePlayPause")
+                    ACTION_SEREN_MEDIA_STOP -> emitMediaTransportAction("stop")
+                    ACTION_SEREN_MEDIA_NEXT -> emitMediaTransportAction("next")
+                    ACTION_SEREN_MEDIA_PREV -> emitMediaTransportAction("previous")
+                }
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(ACTION_SEREN_MEDIA_PLAY_PAUSE)
+            addAction(ACTION_SEREN_MEDIA_STOP)
+            addAction(ACTION_SEREN_MEDIA_NEXT)
+            addAction(ACTION_SEREN_MEDIA_PREV)
+        }
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        mediaActionReceiver = receiver
+    }
+
+    private fun unregisterMediaTransportReceiver() {
+        mediaActionReceiver?.let { receiver ->
+            try {
+                unregisterReceiver(receiver)
+            } catch (_: Exception) {}
+        }
+        mediaActionReceiver = null
+    }
+
+    private fun syncSerenMediaSession(args: Map<*, *>?) {
+        val isActive = args?.get("isActive") as? Boolean ?: false
+        if (!isActive) {
+            clearSerenMediaSession()
+            return
+        }
+
+        val isPlaying = args?.get("isPlaying") as? Boolean ?: false
+        val title = args?.get("title") as? String ?: "Seren Daily Relaxation"
+        val subtitle = args?.get("subtitle") as? String ?: "Peaceful Ambient Soundscape"
+        val album = args?.get("album") as? String ?: "Nestin • Seren Sanctuary"
+        val timerRemainingSeconds = (args?.get("timerRemainingSeconds") as? Number)?.toInt() ?: 0
+        val timerTotalSeconds = (args?.get("timerTotalSeconds") as? Number)?.toInt() ?: 0
+        val timerBadge = args?.get("timerBadge") as? String ?: ""
+        val playLabel = args?.get("playActionLabel") as? String ?: "Play"
+        val pauseLabel = args?.get("pauseActionLabel") as? String ?: "Pause"
+        val stopLabel = args?.get("stopActionLabel") as? String ?: "Stop"
+
+        val session = ensureSerenMediaSession()
+        session.isActive = true
+
+        val artBitmap = BitmapFactory.decodeResource(resources, R.drawable.mascot_widget_seren_you_go)
+            ?: BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+
+        val metadataBuilder = MediaMetadata.Builder()
+            .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+            .putString(
+                MediaMetadata.METADATA_KEY_ARTIST,
+                if (timerBadge.isNotEmpty()) "$subtitle • $timerBadge" else subtitle
+            )
+            .putString(MediaMetadata.METADATA_KEY_ALBUM, album)
+            .putLong(
+                MediaMetadata.METADATA_KEY_DURATION,
+                if (timerTotalSeconds > 0) timerTotalSeconds * 1000L else -1L
+            )
+        if (artBitmap != null) {
+            metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_ART, artBitmap)
+            metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, artBitmap)
+        }
+        session.setMetadata(metadataBuilder.build())
+
+        val elapsedMs = if (timerTotalSeconds > 0) {
+            (timerTotalSeconds - timerRemainingSeconds).coerceAtLeast(0) * 1000L
+        } else {
+            PlaybackState.PLAYBACK_POSITION_UNKNOWN
+        }
+        val playbackActions = PlaybackState.ACTION_PLAY or
+            PlaybackState.ACTION_PAUSE or
+            PlaybackState.ACTION_PLAY_PAUSE or
+            PlaybackState.ACTION_STOP or
+            PlaybackState.ACTION_SKIP_TO_NEXT or
+            PlaybackState.ACTION_SKIP_TO_PREVIOUS
+
+        val stateBuilder = PlaybackState.Builder()
+            .setActions(playbackActions)
+            .setState(
+                if (isPlaying) PlaybackState.STATE_PLAYING else PlaybackState.STATE_PAUSED,
+                elapsedMs,
+                if (isPlaying) 1.0f else 0.0f
+            )
+        session.setPlaybackState(stateBuilder.build())
+
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                SEREN_MEDIA_CHANNEL_ID,
+                "Seren Relaxation Media Controls",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Lock-screen and headphone controls for Seren soundscapes and stories"
+                setShowBadge(false)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            }
+            nm.createNotificationChannel(channel)
+        }
+
+        val immutableFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        val contentIntent = Intent(this, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse("nestin://seren")
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPending = PendingIntent.getActivity(this, 7260, contentIntent, immutableFlag)
+
+        fun actionPending(actionName: String, reqCode: Int): PendingIntent {
+            val intent = Intent(actionName).setPackage(packageName)
+            return PendingIntent.getBroadcast(this, reqCode, intent, immutableFlag)
+        }
+
+        val prevPending = actionPending(ACTION_SEREN_MEDIA_PREV, 7261)
+        val playPausePending = actionPending(ACTION_SEREN_MEDIA_PLAY_PAUSE, 7262)
+        val stopPending = actionPending(ACTION_SEREN_MEDIA_STOP, 7263)
+        val nextPending = actionPending(ACTION_SEREN_MEDIA_NEXT, 7264)
+
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, SEREN_MEDIA_CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+
+        val subText = if (timerBadge.isNotEmpty()) timerBadge else album
+        builder
+            .setSmallIcon(R.drawable.ic_widget_water)
+            .setContentTitle(title)
+            .setContentText(subtitle)
+            .setSubText(subText)
+            .setContentIntent(contentPending)
+            .setDeleteIntent(stopPending)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setOngoing(isPlaying)
+            .setOnlyAlertOnce(true)
+            .addAction(
+                Notification.Action.Builder(
+                    android.R.drawable.ic_media_previous,
+                    "Prev",
+                    prevPending
+                ).build()
+            )
+            .addAction(
+                Notification.Action.Builder(
+                    if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
+                    if (isPlaying) pauseLabel else playLabel,
+                    playPausePending
+                ).build()
+            )
+            .addAction(
+                Notification.Action.Builder(
+                    android.R.drawable.ic_menu_close_clear_cancel,
+                    stopLabel,
+                    stopPending
+                ).build()
+            )
+            .addAction(
+                Notification.Action.Builder(
+                    android.R.drawable.ic_media_next,
+                    "Next",
+                    nextPending
+                ).build()
+            )
+            .setStyle(
+                Notification.MediaStyle()
+                    .setMediaSession(session.sessionToken)
+                    .setShowActionsInCompactView(1, 2)
+            )
+
+        if (artBitmap != null) {
+            builder.setLargeIcon(artBitmap)
+        }
+
+        try {
+            nm.notify(SEREN_MEDIA_NOTIFICATION_ID, builder.build())
+        } catch (_: SecurityException) {
+            // Safely ignored if POST_NOTIFICATIONS permission is not yet granted on Android 13+
+        }
+    }
+
+    private fun clearSerenMediaSession() {
+        try {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.cancel(SEREN_MEDIA_NOTIFICATION_ID)
+        } catch (_: Exception) {}
+        serenMediaSession?.let { session ->
+            try {
+                session.isActive = false
+            } catch (_: Exception) {}
         }
     }
 
@@ -216,6 +673,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         HydrationWidgetProvider.onWidgetLoggedGlassListener = null
+        unregisterAudioRouteDisconnectListeners()
+        unregisterMediaTransportReceiver()
+        clearSerenMediaSession()
+        serenMediaSession?.release()
+        serenMediaSession = null
         textToSpeech?.stop()
         textToSpeech?.shutdown()
         textToSpeech = null

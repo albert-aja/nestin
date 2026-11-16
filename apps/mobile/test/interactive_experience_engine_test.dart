@@ -11,6 +11,8 @@ import 'package:nestin/providers/collection_provider.dart';
 import 'package:nestin/providers/cross_module_link_provider.dart';
 import 'package:nestin/providers/hobby_provider.dart';
 import 'package:nestin/providers/interactive_experience_provider.dart';
+import 'package:nestin/providers/note_provider.dart';
+import 'package:nestin/providers/reading_provider.dart';
 import 'package:nestin/providers/seren_relaxation_provider.dart';
 import 'package:nestin/providers/task_provider.dart';
 import 'package:nestin/ui/screens/explore/nestin_discover_screen.dart';
@@ -273,6 +275,136 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Langkah 1 dari 7'), findsOneWidget);
+    });
+
+    test(
+        'Echo Knowledge Arena filters by topic, scores deterministically, and saves Fact Card to NoteProvider + Book to ReadingProvider with CrossModuleLink',
+        () async {
+      final noteProvider = NoteProvider(storage);
+      final readingProvider = ReadingProvider(storage, seedDefaults: false);
+      final linkProvider = CrossModuleLinkProvider(storage);
+
+      await expProvider.startFreshKnowledgeArena(
+        topic: KnowledgeArenaTopic.science,
+      );
+      final scienceCards = expProvider.activeKnowledgeArenaCards();
+      expect(scienceCards.length, 2);
+
+      final firstCard = scienceCards.first;
+      await expProvider.answerKnowledgeArenaCard(
+        card: firstCard,
+        optionId: 'a', // correct answer
+      );
+
+      // Save Fact Card to Echo Notes
+      final savedNote = await expProvider.saveFactCardToEchoNotes(
+        card: firstCard,
+        localizedTopic: 'Science',
+        localizedFactTitle: 'Hexagonal Ice Lattice & Winter Lake Survival',
+        localizedPrompt: 'Why does liquid water expand when it freezes?',
+        localizedCorrectAnswer: 'Hexagonal hydrogen-bond crystal lattice',
+        localizedExplanation:
+            'Water reaches maximum density at 4C and forms a hexagonal lattice.',
+        localizedBookTitle: 'Water: A Natural History',
+        localizedBookAuthor: 'Alice Outwater',
+        noteProvider: noteProvider,
+        linkProvider: linkProvider,
+      );
+      expect(noteProvider.notes.any((n) => n.id == savedNote.id), isTrue);
+      expect(expProvider.isFactCardSavedToNotes(firstCard.id), isTrue);
+
+      // Add Related Book to Pippin ReadingProvider
+      final addedBook = await expProvider.addSuggestedBookToPippinReading(
+        card: firstCard,
+        localizedTopic: 'Science',
+        localizedFactTitle: 'Hexagonal Ice Lattice & Winter Lake Survival',
+        localizedBookTitle: 'Water: A Natural History',
+        localizedBookAuthor: 'Alice Outwater',
+        readingProvider: readingProvider,
+        linkProvider: linkProvider,
+      );
+      expect(readingProvider.items.any((b) => b.id == addedBook.id), isTrue);
+      expect(expProvider.isSuggestedBookAddedToReading(firstCard.id), isTrue);
+
+      // Verify bidirectional CrossModuleLink between Echo Note and Pippin ReadingBook
+      final noteLinks = linkProvider.linksFor(LinkEntityType.note, savedNote.id);
+      expect(noteLinks.any((ref) => ref.entityId == addedBook.id), isTrue);
+
+      // Answer second Science card & complete Arena
+      await expProvider.answerKnowledgeArenaCard(
+        card: scienceCards[1],
+        optionId: 'a',
+      );
+      final result = await expProvider.completeKnowledgeArenaSession();
+      expect(result.topMatches.first.matchPercentage, 100);
+      expect(result.answersSnapshot['correctCount'], 2);
+    });
+
+    testWidgets(
+        'Echo Knowledge Arena UI opens in Bahasa Indonesia, reveals explanation, and executes 1-tap Echo Note & Pippin Book handoffs',
+        (tester) async {
+      final noteProvider = NoteProvider(storage);
+      final readingProvider = ReadingProvider(storage, seedDefaults: false);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: expProvider),
+            ChangeNotifierProvider(create: (_) => HobbyProvider(storage)),
+            ChangeNotifierProvider(create: (_) => CollectionProvider(storage)),
+            ChangeNotifierProvider(create: (_) => TaskProvider(storage)),
+            ChangeNotifierProvider.value(value: noteProvider),
+            ChangeNotifierProvider.value(value: readingProvider),
+            ChangeNotifierProvider(
+                create: (_) => CrossModuleLinkProvider(storage)),
+            ChangeNotifierProvider(
+              create: (_) => SerenRelaxationProvider(storage),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('id'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: NestinDiscoverScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Arena Pengetahuan Echo'), findsWidgets);
+
+      final startBtn = find.byKey(const ValueKey('btn_start_knowledge_arena'));
+      await tester.scrollUntilVisible(
+        startBtn,
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(startBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kartu Wawasan 1 dari 10'), findsOneWidget);
+
+      // Tap Option A to reveal explanation card
+      await tester.tap(find.byKey(const ValueKey('ka_opt_a')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('ka_explanation_card')), findsOneWidget);
+
+      // Tap 1-Tap Save Fact Card to Echo Notes
+      final saveNoteBtn = find.byKey(const ValueKey('btn_ka_save_fact_note'));
+      await tester.ensureVisible(saveNoteBtn);
+      await tester.tap(saveNoteBtn);
+      await tester.pumpAndSettle();
+      expect(find.text('Tersimpan di Catatan Echo'), findsOneWidget);
+
+      // Tap 1-Tap Add Book to Pippin Reading List
+      final addBookBtn = find.byKey(const ValueKey('btn_ka_add_pippin_book'));
+      await tester.ensureVisible(addBookBtn);
+      await tester.tap(addBookBtn);
+      await tester.pumpAndSettle();
+      expect(find.text('Ditambahkan ke Daftar Bacaan Pippin'), findsOneWidget);
+      expect(readingProvider.items.length, 1);
     });
   });
 }

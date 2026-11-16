@@ -826,6 +826,8 @@ class SerenRelaxationPreferences {
   final Map<String, int> readingLastParagraphIndex;
   final bool morningGentleReminderEnabled;
   final bool eveningUnwindReminderEnabled;
+  final bool pauseOnHeadphoneDisconnect;
+  final bool lockScreenControlsEnabled;
 
   const SerenRelaxationPreferences({
     this.defaultPlaybackMode = RelaxationPlaybackMode.audioAndVisual,
@@ -848,6 +850,8 @@ class SerenRelaxationPreferences {
     this.readingLastParagraphIndex = const {},
     this.morningGentleReminderEnabled = false,
     this.eveningUnwindReminderEnabled = false,
+    this.pauseOnHeadphoneDisconnect = true,
+    this.lockScreenControlsEnabled = true,
   });
 
   SerenRelaxationPreferences copyWith({
@@ -871,6 +875,8 @@ class SerenRelaxationPreferences {
     Map<String, int>? readingLastParagraphIndex,
     bool? morningGentleReminderEnabled,
     bool? eveningUnwindReminderEnabled,
+    bool? pauseOnHeadphoneDisconnect,
+    bool? lockScreenControlsEnabled,
   }) {
     return SerenRelaxationPreferences(
       defaultPlaybackMode: defaultPlaybackMode ?? this.defaultPlaybackMode,
@@ -898,6 +904,10 @@ class SerenRelaxationPreferences {
           morningGentleReminderEnabled ?? this.morningGentleReminderEnabled,
       eveningUnwindReminderEnabled:
           eveningUnwindReminderEnabled ?? this.eveningUnwindReminderEnabled,
+      pauseOnHeadphoneDisconnect:
+          pauseOnHeadphoneDisconnect ?? this.pauseOnHeadphoneDisconnect,
+      lockScreenControlsEnabled:
+          lockScreenControlsEnabled ?? this.lockScreenControlsEnabled,
     );
   }
 
@@ -922,6 +932,8 @@ class SerenRelaxationPreferences {
         'readingLastParagraphIndex': readingLastParagraphIndex,
         'morningGentleReminderEnabled': morningGentleReminderEnabled,
         'eveningUnwindReminderEnabled': eveningUnwindReminderEnabled,
+        'pauseOnHeadphoneDisconnect': pauseOnHeadphoneDisconnect,
+        'lockScreenControlsEnabled': lockScreenControlsEnabled,
       };
 
   factory SerenRelaxationPreferences.fromJson(Map<String, dynamic> json) {
@@ -984,6 +996,10 @@ class SerenRelaxationPreferences {
           json['morningGentleReminderEnabled'] as bool? ?? false,
       eveningUnwindReminderEnabled:
           json['eveningUnwindReminderEnabled'] as bool? ?? false,
+      pauseOnHeadphoneDisconnect:
+          json['pauseOnHeadphoneDisconnect'] as bool? ?? true,
+      lockScreenControlsEnabled:
+          json['lockScreenControlsEnabled'] as bool? ?? true,
     );
   }
 }

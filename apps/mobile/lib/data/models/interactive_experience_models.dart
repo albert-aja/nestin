@@ -1032,22 +1032,23 @@ class ExperienceCatalog {
       ],
     ),
     ExperienceCandidateAudit(
-      id: 'knowledge_arena',
+      id: 'knowledge_arena_v1',
       titleKey: 'exp_cand_knowledge_arena_title',
       descriptionKey: 'exp_cand_knowledge_arena_desc',
       iconEmoji: '🏛️',
       primaryBird: 'Echo',
       supportingBirds: ['Pippin'],
       grouping: DiscoverGrouping.learnSomething,
-      status: ExperienceCandidateStatus.priorityCandidate,
+      status: ExperienceCandidateStatus.referenceImplemented,
       reusedNestinModules: [
         'NoteProvider',
         'ReadingProvider',
-        'JournalProvider',
+        'CrossModuleLinkProvider',
       ],
       followUpActionsCreated: [
         'NoteItem (Saved Fact Card)',
         'ReadingItem',
+        'EntityLink',
       ],
     ),
     ExperienceCandidateAudit(
@@ -1149,4 +1150,322 @@ class ExperienceCatalog {
     }
     return null;
   }
+
+  // ===========================================================================
+  // ECHO'S KNOWLEDGE ARENA (knowledge_arena_v1)
+  // ===========================================================================
+
+  static const String knowledgeArenaId = 'knowledge_arena_v1';
+
+  static const List<KnowledgeArenaCard> knowledgeArenaCards = [
+    // 1. Science — Hexagonal Ice Lattice
+    KnowledgeArenaCard(
+      id: 'ka_sci_1',
+      topic: KnowledgeArenaTopic.science,
+      promptKey: 'ka_q_sci_1_prompt',
+      factTitleKey: 'ka_q_sci_1_fact_title',
+      explanationKey: 'ka_q_sci_1_explain',
+      suggestedBookTitleKey: 'ka_q_sci_1_book_title',
+      suggestedBookAuthorKey: 'ka_q_sci_1_book_author',
+      suggestedBookPages: 240,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_sci_1_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_sci_1_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_sci_1_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_sci_1_opt_d'),
+      ],
+    ),
+    // 2. Science — Sunlight 8m 20s travel
+    KnowledgeArenaCard(
+      id: 'ka_sci_2',
+      topic: KnowledgeArenaTopic.science,
+      promptKey: 'ka_q_sci_2_prompt',
+      factTitleKey: 'ka_q_sci_2_fact_title',
+      explanationKey: 'ka_q_sci_2_explain',
+      suggestedBookTitleKey: 'ka_q_sci_2_book_title',
+      suggestedBookAuthorKey: 'ka_q_sci_2_book_author',
+      suggestedBookPages: 365,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_sci_2_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_sci_2_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_sci_2_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_sci_2_opt_d'),
+      ],
+    ),
+    // 3. Nature — Mycorrhizal Wood Wide Web
+    KnowledgeArenaCard(
+      id: 'ka_nat_1',
+      topic: KnowledgeArenaTopic.nature,
+      promptKey: 'ka_q_nat_1_prompt',
+      factTitleKey: 'ka_q_nat_1_fact_title',
+      explanationKey: 'ka_q_nat_1_explain',
+      suggestedBookTitleKey: 'ka_q_nat_1_book_title',
+      suggestedBookAuthorKey: 'ka_q_nat_1_book_author',
+      suggestedBookPages: 348,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_nat_1_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_nat_1_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_nat_1_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_nat_1_opt_d'),
+      ],
+    ),
+    // 4. Nature — Dolphin Unihemispheric Sleep
+    KnowledgeArenaCard(
+      id: 'ka_nat_2',
+      topic: KnowledgeArenaTopic.nature,
+      promptKey: 'ka_q_nat_2_prompt',
+      factTitleKey: 'ka_q_nat_2_fact_title',
+      explanationKey: 'ka_q_nat_2_explain',
+      suggestedBookTitleKey: 'ka_q_nat_2_book_title',
+      suggestedBookAuthorKey: 'ka_q_nat_2_book_author',
+      suggestedBookPages: 360,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_nat_2_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_nat_2_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_nat_2_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_nat_2_opt_d'),
+      ],
+    ),
+    // 5. Geography — Wallace Line
+    KnowledgeArenaCard(
+      id: 'ka_geo_1',
+      topic: KnowledgeArenaTopic.geography,
+      promptKey: 'ka_q_geo_1_prompt',
+      factTitleKey: 'ka_q_geo_1_fact_title',
+      explanationKey: 'ka_q_geo_1_explain',
+      suggestedBookTitleKey: 'ka_q_geo_1_book_title',
+      suggestedBookAuthorKey: 'ka_q_geo_1_book_author',
+      suggestedBookPages: 515,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_geo_1_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_geo_1_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_geo_1_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_geo_1_opt_d'),
+      ],
+    ),
+    // 6. Geography — Mid-Ocean Ridge
+    KnowledgeArenaCard(
+      id: 'ka_geo_2',
+      topic: KnowledgeArenaTopic.geography,
+      promptKey: 'ka_q_geo_2_prompt',
+      factTitleKey: 'ka_q_geo_2_fact_title',
+      explanationKey: 'ka_q_geo_2_explain',
+      suggestedBookTitleKey: 'ka_q_geo_2_book_title',
+      suggestedBookAuthorKey: 'ka_q_geo_2_book_author',
+      suggestedBookPages: 696,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_geo_2_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_geo_2_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_geo_2_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_geo_2_opt_d'),
+      ],
+    ),
+    // 7. History — Mesopotamian Cuneiform Clay Tablets
+    KnowledgeArenaCard(
+      id: 'ka_hist_1',
+      topic: KnowledgeArenaTopic.history,
+      promptKey: 'ka_q_hist_1_prompt',
+      factTitleKey: 'ka_q_hist_1_fact_title',
+      explanationKey: 'ka_q_hist_1_explain',
+      suggestedBookTitleKey: 'ka_q_hist_1_book_title',
+      suggestedBookAuthorKey: 'ka_q_hist_1_book_author',
+      suggestedBookPages: 443,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_hist_1_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_hist_1_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_hist_1_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_hist_1_opt_d'),
+      ],
+    ),
+    // 8. History — Austronesian Star Compass & Swell Navigation
+    KnowledgeArenaCard(
+      id: 'ka_hist_2',
+      topic: KnowledgeArenaTopic.history,
+      promptKey: 'ka_q_hist_2_prompt',
+      factTitleKey: 'ka_q_hist_2_fact_title',
+      explanationKey: 'ka_q_hist_2_explain',
+      suggestedBookTitleKey: 'ka_q_hist_2_book_title',
+      suggestedBookAuthorKey: 'ka_q_hist_2_book_author',
+      suggestedBookPages: 264,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_hist_2_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_hist_2_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_hist_2_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_hist_2_opt_d'),
+      ],
+    ),
+    // 9. Culture — Indonesian Batik Canting
+    KnowledgeArenaCard(
+      id: 'ka_cult_1',
+      topic: KnowledgeArenaTopic.culture,
+      promptKey: 'ka_q_cult_1_prompt',
+      factTitleKey: 'ka_q_cult_1_fact_title',
+      explanationKey: 'ka_q_cult_1_explain',
+      suggestedBookTitleKey: 'ka_q_cult_1_book_title',
+      suggestedBookAuthorKey: 'ka_q_cult_1_book_author',
+      suggestedBookPages: 220,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_cult_1_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_cult_1_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_cult_1_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_cult_1_opt_d'),
+      ],
+    ),
+    // 10. Culture — Japanese Kintsugi Golden Joinery
+    KnowledgeArenaCard(
+      id: 'ka_cult_2',
+      topic: KnowledgeArenaTopic.culture,
+      promptKey: 'ka_q_cult_2_prompt',
+      factTitleKey: 'ka_q_cult_2_fact_title',
+      explanationKey: 'ka_q_cult_2_explain',
+      suggestedBookTitleKey: 'ka_q_cult_2_book_title',
+      suggestedBookAuthorKey: 'ka_q_cult_2_book_author',
+      suggestedBookPages: 96,
+      options: [
+        KnowledgeArenaOption(
+          id: 'a',
+          labelKey: 'ka_q_cult_2_opt_a',
+          isCorrect: true,
+        ),
+        KnowledgeArenaOption(id: 'b', labelKey: 'ka_q_cult_2_opt_b'),
+        KnowledgeArenaOption(id: 'c', labelKey: 'ka_q_cult_2_opt_c'),
+        KnowledgeArenaOption(id: 'd', labelKey: 'ka_q_cult_2_opt_d'),
+      ],
+    ),
+  ];
+
+  static List<KnowledgeArenaCard> cardsForTopic(KnowledgeArenaTopic? topic) {
+    if (topic == null || topic == KnowledgeArenaTopic.all) {
+      return knowledgeArenaCards;
+    }
+    return knowledgeArenaCards.where((c) => c.topic == topic).toList();
+  }
+
+  static KnowledgeArenaCard? findKnowledgeCardById(String id) {
+    for (final c in knowledgeArenaCards) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+}
+
+/// Curated curiosity domains in Echo's Knowledge Arena.
+enum KnowledgeArenaTopic {
+  all,
+  science,
+  nature,
+  geography,
+  history,
+  culture,
+}
+
+extension KnowledgeArenaTopicExt on KnowledgeArenaTopic {
+  String get titleKey {
+    switch (this) {
+      case KnowledgeArenaTopic.all:
+        return 'ka_topic_all';
+      case KnowledgeArenaTopic.science:
+        return 'ka_topic_science';
+      case KnowledgeArenaTopic.nature:
+        return 'ka_topic_nature';
+      case KnowledgeArenaTopic.geography:
+        return 'ka_topic_geography';
+      case KnowledgeArenaTopic.history:
+        return 'ka_topic_history';
+      case KnowledgeArenaTopic.culture:
+        return 'ka_topic_culture';
+    }
+  }
+
+  String get iconEmoji {
+    switch (this) {
+      case KnowledgeArenaTopic.all:
+        return '🏛️';
+      case KnowledgeArenaTopic.science:
+        return '🔬';
+      case KnowledgeArenaTopic.nature:
+        return '🌿';
+      case KnowledgeArenaTopic.geography:
+        return '🌍';
+      case KnowledgeArenaTopic.history:
+        return '🏺';
+      case KnowledgeArenaTopic.culture:
+        return '🎭';
+    }
+  }
+}
+
+class KnowledgeArenaOption {
+  final String id;
+  final String labelKey;
+  final bool isCorrect;
+
+  const KnowledgeArenaOption({
+    required this.id,
+    required this.labelKey,
+    this.isCorrect = false,
+  });
+}
+
+class KnowledgeArenaCard {
+  final String id;
+  final KnowledgeArenaTopic topic;
+  final String promptKey;
+  final List<KnowledgeArenaOption> options;
+  final String factTitleKey;
+  final String explanationKey;
+  final String suggestedBookTitleKey;
+  final String suggestedBookAuthorKey;
+  final int suggestedBookPages;
+
+  const KnowledgeArenaCard({
+    required this.id,
+    required this.topic,
+    required this.promptKey,
+    required this.options,
+    required this.factTitleKey,
+    required this.explanationKey,
+    required this.suggestedBookTitleKey,
+    required this.suggestedBookAuthorKey,
+    required this.suggestedBookPages,
+  });
+
+  String get correctOptionId =>
+      options.firstWhere((o) => o.isCorrect, orElse: () => options.first).id;
 }

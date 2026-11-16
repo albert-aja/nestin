@@ -468,7 +468,8 @@ public class SliceNewSheets
                                 }
                             }
                         }
-                        if (island.Count <= 14 && maxC <= 30)
+                        if ((island.Count <= 14 && maxC <= 30) ||
+                            (poseName == "geofence_radar_pulse" && island.Count <= 60 && island[0].Y < ch / 2))
                         {
                             foreach (var pt in island) cell.SetPixel(pt.X, pt.Y, Color.Transparent);
                         }
@@ -653,6 +654,43 @@ public class SliceNewSheets
                 new HoleSeed(967, 752, 28, 25),   // lower thread pocket between Roo & Twill
                 new HoleSeed(1066, 757, 28, 25)   // lower thread pocket between Seren & Echo
             } },
+            { "typing_keyboard_dash", new[] {
+                new HoleSeed(933, 277, 26, 22)    // small pocket between Roo's wrist & keyboard
+            } },
+            { "subtask_ladder", new[] {
+                new HoleSeed(724, 756, 26, 65),   // main lower A-frame ladder opening
+                new HoleSeed(639, 780, 26, 35),   // lower-left ladder foot gap
+                new HoleSeed(658, 738, 26, 30),   // middle-left ladder step gap
+                new HoleSeed(592, 752, 26, 25),   // gap between Roo's right ankle & ladder leg
+                new HoleSeed(692, 703, 26, 25)    // upper ladder rung opening
+            } },
+            { "undo_lasso", new[] {
+                new HoleSeed(986, 498, 26, 180),  // top spinning golden lasso oval
+                new HoleSeed(930, 586, 26, 90),   // left loop between rope, Roo wing & top oval
+                new HoleSeed(931, 705, 26, 55),   // lower-left rope coil beside bell card
+                new HoleSeed(1064, 752, 24, 45)   // lower-right rope loop between hand & leg
+            } },
+            { "book_finished_star", new[] {
+                new HoleSeed(609, 786, 28, 40)    // gap between Pippin's ankles
+            } },
+            { "monthly_chart_easel", new[] {
+                new HoleSeed(603, 771, 28, 45),   // gap between Twill's ankles
+                new HoleSeed(730, 757, 28, 35)    // pocket between wooden easel legs
+            } },
+            { "quote_painter_beret", new[] {
+                new HoleSeed(670, 769, 28, 45),   // lower easel opening beneath canvas shelf
+                new HoleSeed(713, 759, 28, 25),   // lower-right easel crossbar pocket
+                new HoleSeed(741, 761, 28, 25),   // outer-right easel leg pocket
+                new HoleSeed(608, 786, 28, 35)    // pocket between Echo's ankles
+            } },
+            { "duo_twill_echo_annual_archive", new[] {
+                new HoleSeed(917, 754, 28, 35),   // pocket between Twill's ankles
+                new HoleSeed(944, 749, 28, 30),   // gap between Twill & stacked books
+                new HoleSeed(1100, 748, 28, 35)   // pocket between Echo's ankles
+            } },
+            { "geofence_radar_pulse", new[] {
+                new HoleSeed(982, 252, 28, 25)    // pocket between Scout's talons & map pin
+            } },
         };
 
         var configs = new[]
@@ -666,10 +704,45 @@ public class SliceNewSheets
             },
             new SheetConfig
             {
+                SheetKey = "roo5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\roo_expressions_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\roo",
+                PoseNames = new[] { "app_fast_broken_compassion", "shield_interceptor_stop", "typing_keyboard_dash", "nlp_magic_calendar", "subtask_ladder", "undo_lasso" }
+            },
+            new SheetConfig
+            {
                 SheetKey = "seren4",
                 SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_expressions_4.jpg",
                 OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
                 PoseNames = new[] { "headphones_bliss", "spatial_conductor", "custom_mix_jar", "window_rain_gaze", "storyteller_lantern", "timer_sandglass_fade" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "scout4",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\scout_expressions_4.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\scout",
+                PoseNames = new[] { "cold_scarf_jacket", "heavy_storm_raincoat", "geofence_radar_pulse", "all_ready_salute", "phone_mode_sliders", "oem_knight_armor" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "pippin4",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\pippin_expressions_4.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\pippin",
+                PoseNames = new[] { "seedling_spark", "artisan_chisel", "virtuoso_conductor", "reading_streak_lantern", "book_finished_star", "bucket_globe_pin" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "twill4",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\twill_expressions_4.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\twill",
+                PoseNames = new[] { "ledger_quill_entry", "wallet_trio_organizer", "internal_transfer_bridge", "budget_shield_green", "monthly_chart_easel", "markdown_blocks" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "echo4",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\echo_expressions_4.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\echo",
+                PoseNames = new[] { "gratitude_jar_shake", "tough_day_lantern_hug", "seren_pebble_catch", "custom_pin_vault", "quote_painter_beret", "paper_plane_submit" }
             },
             new SheetConfig
             {
@@ -680,6 +753,13 @@ public class SliceNewSheets
             },
             new SheetConfig
             {
+                SheetKey = "duos3",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_duos_3.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\duos",
+                PoseNames = new[] { "duo_scout_pippin_adventure_pin", "duo_scout_pippin_weather_outing", "duo_scout_seren_sleep_shield", "duo_seren_echo_tough_day_comfort", "duo_pippin_echo_book_quote_vault", "duo_twill_echo_annual_archive" }
+            },
+            new SheetConfig
+            {
                 SheetKey = "trios1",
                 SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_trios_quartets_1.jpg",
                 OutputDir = @"apps\mobile\assets\mascots\sprites\ensembles",
@@ -687,8 +767,18 @@ public class SliceNewSheets
             }
         };
 
+        HashSet<string> filterKeys = null;
+        foreach (var a in args)
+        {
+            if (a.StartsWith("--filter="))
+            {
+                filterKeys = new HashSet<string>(a.Substring(9).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+        }
+
         foreach (var cfg in configs)
         {
+            if (filterKeys != null && !filterKeys.Contains(cfg.SheetKey)) continue;
             if (!File.Exists(cfg.SourcePath)) continue;
             if (!Directory.Exists(cfg.OutputDir)) Directory.CreateDirectory(cfg.OutputDir);
 
@@ -696,7 +786,9 @@ public class SliceNewSheets
             using (Bitmap sheet = (Bitmap)Image.FromFile(cfg.SourcePath))
             {
                 Color bg = EstimateAverageCornerBg(sheet);
-                int[] sepY = FindHorizontalSeam(sheet, bg, 350, 510);
+                int yMin = (int)Math.Round(sheet.Height * (350.0 / 896.0));
+                int yMax = (int)Math.Round(sheet.Height * (510.0 / 896.0));
+                int[] sepY = FindHorizontalSeam(sheet, bg, yMin, yMax);
 
                 int minSepY = sheet.Height, maxSepY = 0;
                 for (int x = 0; x < sheet.Width; x++)
@@ -705,10 +797,15 @@ public class SliceNewSheets
                     if (sepY[x] > maxSepY) maxSepY = sepY[x];
                 }
 
-                int[] r0Seam01 = FindVerticalSeam(sheet, bg, 0, Math.Min(sheet.Height, maxSepY + 1), 330, 480);
-                int[] r0Seam12 = FindVerticalSeam(sheet, bg, 0, Math.Min(sheet.Height, maxSepY + 1), 730, 880);
-                int[] r1Seam01 = FindVerticalSeam(sheet, bg, minSepY, sheet.Height, 330, 480);
-                int[] r1Seam12 = FindVerticalSeam(sheet, bg, minSepY, sheet.Height, 730, 880);
+                int x0Lo = (int)Math.Round(sheet.Width * (330.0 / 1200.0));
+                int x0Hi = (int)Math.Round(sheet.Width * (480.0 / 1200.0));
+                int x1Lo = (int)Math.Round(sheet.Width * (730.0 / 1200.0));
+                int x1Hi = (int)Math.Round(sheet.Width * (880.0 / 1200.0));
+
+                int[] r0Seam01 = FindVerticalSeam(sheet, bg, 0, Math.Min(sheet.Height, maxSepY + 1), x0Lo, x0Hi);
+                int[] r0Seam12 = FindVerticalSeam(sheet, bg, 0, Math.Min(sheet.Height, maxSepY + 1), x1Lo, x1Hi);
+                int[] r1Seam01 = FindVerticalSeam(sheet, bg, minSepY, sheet.Height, x0Lo, x0Hi);
+                int[] r1Seam12 = FindVerticalSeam(sheet, bg, minSepY, sheet.Height, x1Lo, x1Hi);
 
                 for (int i = 0; i < 6; i++)
                 {

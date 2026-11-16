@@ -6,6 +6,8 @@ import '../data/models/collection_item.dart';
 import '../data/models/entity_link.dart';
 import '../data/models/hobby_item.dart';
 import '../data/models/interactive_experience_models.dart';
+import '../data/models/note_item.dart';
+import '../data/models/reading_item.dart';
 import '../data/models/task_item.dart';
 import '../data/models/wishlist_item.dart';
 import '../data/services/storage_service.dart';
@@ -13,6 +15,8 @@ import '../domain/experiences/interactive_experience_engine.dart';
 import 'collection_provider.dart';
 import 'cross_module_link_provider.dart';
 import 'hobby_provider.dart';
+import 'note_provider.dart';
+import 'reading_provider.dart';
 import 'seren_relaxation_provider.dart';
 import 'task_provider.dart';
 
@@ -436,5 +440,388 @@ class InteractiveExperienceProvider extends ChangeNotifier {
     _results[index] = updater(_results[index]);
     await _storage.saveExperienceResults(_results);
     notifyListeners();
+  }
+
+  // ===========================================================================
+  // ECHO'S KNOWLEDGE ARENA (knowledge_arena_v1) — Echo + Pippin Integration
+  // ===========================================================================
+
+  static const String _metaTopicKey = '_topic';
+  static const String _metaSavedNotesKey = '_saved_notes';
+  static const String _metaAddedBooksKey = '_added_books';
+
+  KnowledgeArenaTopic activeKnowledgeArenaTopic() {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId];
+    final raw = draft?.selectedOptionIdsByQuestion[_metaTopicKey]?.firstOrNull;
+    if (raw == null) return KnowledgeArenaTopic.all;
+    return KnowledgeArenaTopic.values.firstWhere(
+      (t) => t.name == raw,
+      orElse: () => KnowledgeArenaTopic.all,
+    );
+  }
+
+  List<KnowledgeArenaCard> activeKnowledgeArenaCards() {
+    return ExperienceCatalog.cardsForTopic(activeKnowledgeArenaTopic());
+  }
+
+  int knowledgeArenaAnsweredCount() {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId];
+    if (draft == null) return 0;
+    final cards = activeKnowledgeArenaCards();
+    var count = 0;
+    for (final c in cards) {
+      final ans = draft.selectedOptionIdsByQuestion[c.id];
+      if (ans != null && ans.isNotEmpty) count++;
+    }
+    return count;
+  }
+
+  Future<ExperienceSessionDraft> startOrResumeKnowledgeArena({
+    KnowledgeArenaTopic topic = KnowledgeArenaTopic.all,
+  }) async {
+    final existing = _drafts[ExperienceCatalog.knowledgeArenaId];
+    if (existing != null) {
+      final existingTopic = activeKnowledgeArenaTopic();
+      if (existingTopic == topic) {
+        return existing;
+      }
+    }
+    return startFreshKnowledgeArena(topic: topic);
+  }
+
+  Future<ExperienceSessionDraft> startFreshKnowledgeArena({
+    KnowledgeArenaTopic topic = KnowledgeArenaTopic.all,
+  }) async {
+    final now = DateTime.now();
+    final draft = ExperienceSessionDraft(
+      experienceId: ExperienceCatalog.knowledgeArenaId,
+      definitionVersion: 1,
+      currentQuestionIndex: 0,
+      selectedOptionIdsByQuestion: {
+        _metaTopicKey: [topic.name],
+      },
+      numericValueByQuestion: const {},
+      skippedQuestionIds: const [],
+      startedAt: now,
+      updatedAt: now,
+    );
+    _drafts[ExperienceCatalog.knowledgeArenaId] = draft;
+    await _storage.saveExperienceDrafts(_drafts);
+    notifyListeners();
+    return draft;
+  }
+
+  String? selectedOptionForKnowledgeCard(String cardId) {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId];
+    final list = draft?.selectedOptionIdsByQuestion[cardId];
+    if (list != null && list.isNotEmpty) return list.first;
+    final latest = latestResultFor(ExperienceCatalog.knowledgeArenaId);
+    final savedAnswers =
+        latest?.answersSnapshot['selectedOptionIdsByQuestion'];
+    if (savedAnswers is Map) {
+      final prevList = savedAnswers[cardId];
+      if (prevList is List && prevList.isNotEmpty) {
+        return prevList.first.toString();
+      }
+    }
+    return null;
+  }
+
+  Future<void> answerKnowledgeArenaCard({
+    required KnowledgeArenaCard card,
+    required String optionId,
+  }) async {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId] ??
+        await startFreshKnowledgeArena();
+    final nextMap = <String, List<String>>{};
+    draft.selectedOptionIdsByQuestion.forEach((k, v) {
+      nextMap[k] = List<String>.from(v);
+    });
+    nextMap[card.id] = [optionId];
+
+    _drafts[ExperienceCatalog.knowledgeArenaId] = draft.copyWith(
+      selectedOptionIdsByQuestion: nextMap,
+      updatedAt: DateTime.now(),
+    );
+    await _storage.saveExperienceDrafts(_drafts);
+    notifyListeners();
+  }
+
+  Future<void> goToKnowledgeArenaCardIndex(int index) async {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId];
+    if (draft == null) return;
+    final cards = activeKnowledgeArenaCards();
+    if (cards.isEmpty) return;
+    final clamped = index.clamp(0, cards.length - 1);
+    _drafts[ExperienceCatalog.knowledgeArenaId] = draft.copyWith(
+      currentQuestionIndex: clamped,
+      updatedAt: DateTime.now(),
+    );
+    await _storage.saveExperienceDrafts(_drafts);
+    notifyListeners();
+  }
+
+  String? savedNoteIdForCard(String cardId) {
+    final draftPairs = _drafts[ExperienceCatalog.knowledgeArenaId]
+            ?.selectedOptionIdsByQuestion[_metaSavedNotesKey] ??
+        const [];
+    for (final entry in draftPairs) {
+      if (entry.startsWith('$cardId:')) {
+        return entry.substring(cardId.length + 1);
+      }
+    }
+    final latest = latestResultFor(ExperienceCatalog.knowledgeArenaId);
+    final snapList = latest?.answersSnapshot['savedNotes'];
+    if (snapList is List) {
+      for (final raw in snapList) {
+        final str = raw.toString();
+        if (str.startsWith('$cardId:')) {
+          return str.substring(cardId.length + 1);
+        }
+      }
+    }
+    return null;
+  }
+
+  String? addedBookIdForCard(String cardId) {
+    final draftPairs = _drafts[ExperienceCatalog.knowledgeArenaId]
+            ?.selectedOptionIdsByQuestion[_metaAddedBooksKey] ??
+        const [];
+    for (final entry in draftPairs) {
+      if (entry.startsWith('$cardId:')) {
+        return entry.substring(cardId.length + 1);
+      }
+    }
+    final latest = latestResultFor(ExperienceCatalog.knowledgeArenaId);
+    final snapList = latest?.answersSnapshot['addedBooks'];
+    if (snapList is List) {
+      for (final raw in snapList) {
+        final str = raw.toString();
+        if (str.startsWith('$cardId:')) {
+          return str.substring(cardId.length + 1);
+        }
+      }
+    }
+    return null;
+  }
+
+  bool isFactCardSavedToNotes(String cardId) =>
+      savedNoteIdForCard(cardId) != null;
+
+  bool isSuggestedBookAddedToReading(String cardId) =>
+      addedBookIdForCard(cardId) != null;
+
+  /// Echo Action: Saves an explainable curiosity fact card directly to [NoteProvider]
+  /// and bidirectionally links it with the related Pippin [ReadingItem] if present.
+  Future<NoteItem> saveFactCardToEchoNotes({
+    required KnowledgeArenaCard card,
+    required String localizedTopic,
+    required String localizedFactTitle,
+    required String localizedPrompt,
+    required String localizedCorrectAnswer,
+    required String localizedExplanation,
+    required String localizedBookTitle,
+    required String localizedBookAuthor,
+    required NoteProvider noteProvider,
+    CrossModuleLinkProvider? linkProvider,
+  }) async {
+    final now = DateTime.now();
+    final contentBuffer = StringBuffer()
+      ..writeln('### $localizedPrompt')
+      ..writeln()
+      ..writeln('**✓ $localizedCorrectAnswer**')
+      ..writeln()
+      ..writeln(localizedExplanation)
+      ..writeln()
+      ..writeln(
+        '📖 *$localizedBookTitle* — $localizedBookAuthor (${card.suggestedBookPages}p)',
+      );
+
+    final note = NoteItem(
+      id: _uuid.v4(),
+      title: '🏛️ $localizedFactTitle',
+      content: contentBuffer.toString().trim(),
+      category: AlarmCategory.fromType(AlarmCategoryType.activities),
+      tags: ['Knowledge Arena', localizedTopic],
+      isPinned: false,
+      colorValue: 0xFF6366F1,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await noteProvider.addNote(note);
+
+    await _recordKnowledgeCardActionPair(
+      metaKey: _metaSavedNotesKey,
+      snapshotKey: 'savedNotes',
+      pair: '${card.id}:${note.id}',
+    );
+
+    final linkedBookId = addedBookIdForCard(card.id);
+    if (linkProvider != null && linkedBookId != null) {
+      await linkProvider.addLink(
+        sourceType: LinkEntityType.note,
+        sourceId: note.id,
+        sourceTitle: note.title,
+        targetType: LinkEntityType.readingBook,
+        targetId: linkedBookId,
+        targetTitle: localizedBookTitle,
+        relationship: 'knowledge_arena_reading',
+      );
+    }
+
+    return note;
+  }
+
+  /// Pippin Action: Adds the card's suggested book to [ReadingProvider] (`wantToRead`)
+  /// and bidirectionally links it with the saved Echo [NoteItem] if present.
+  Future<ReadingItem> addSuggestedBookToPippinReading({
+    required KnowledgeArenaCard card,
+    required String localizedTopic,
+    required String localizedFactTitle,
+    required String localizedBookTitle,
+    required String localizedBookAuthor,
+    required ReadingProvider readingProvider,
+    CrossModuleLinkProvider? linkProvider,
+  }) async {
+    final now = DateTime.now();
+    final book = ReadingItem(
+      id: _uuid.v4(),
+      title: localizedBookTitle,
+      author: localizedBookAuthor,
+      category: localizedTopic,
+      format: ReadingFormat.book,
+      currentPage: 0,
+      totalPages: card.suggestedBookPages,
+      status: ReadingStatus.wantToRead,
+      notes: 'Echo\'s Knowledge Arena • $localizedFactTitle',
+      createdAt: now,
+      updatedAt: now,
+    );
+    await readingProvider.addBook(book);
+
+    await _recordKnowledgeCardActionPair(
+      metaKey: _metaAddedBooksKey,
+      snapshotKey: 'addedBooks',
+      pair: '${card.id}:${book.id}',
+    );
+
+    final linkedNoteId = savedNoteIdForCard(card.id);
+    if (linkProvider != null && linkedNoteId != null) {
+      await linkProvider.addLink(
+        sourceType: LinkEntityType.note,
+        sourceId: linkedNoteId,
+        sourceTitle: '🏛️ $localizedFactTitle',
+        targetType: LinkEntityType.readingBook,
+        targetId: book.id,
+        targetTitle: book.title,
+        relationship: 'knowledge_arena_reading',
+      );
+    }
+
+    return book;
+  }
+
+  Future<void> _recordKnowledgeCardActionPair({
+    required String metaKey,
+    required String snapshotKey,
+    required String pair,
+  }) async {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId];
+    if (draft != null) {
+      final nextMap = <String, List<String>>{};
+      draft.selectedOptionIdsByQuestion.forEach((k, v) {
+        nextMap[k] = List<String>.from(v);
+      });
+      final list = List<String>.from(nextMap[metaKey] ?? const []);
+      if (!list.contains(pair)) {
+        list.add(pair);
+      }
+      nextMap[metaKey] = list;
+      _drafts[ExperienceCatalog.knowledgeArenaId] = draft.copyWith(
+        selectedOptionIdsByQuestion: nextMap,
+        updatedAt: DateTime.now(),
+      );
+      await _storage.saveExperienceDrafts(_drafts);
+    }
+
+    final latestIndex = _results.indexWhere(
+      (r) => r.experienceId == ExperienceCatalog.knowledgeArenaId,
+    );
+    if (latestIndex != -1) {
+      final current = _results[latestIndex];
+      final snap = Map<String, dynamic>.from(current.answersSnapshot);
+      final existingList = (snap[snapshotKey] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          <String>[];
+      if (!existingList.contains(pair)) {
+        existingList.add(pair);
+      }
+      snap[snapshotKey] = existingList;
+      _results[latestIndex] = ExperienceResultRecord(
+        id: current.id,
+        experienceId: current.experienceId,
+        definitionVersion: current.definitionVersion,
+        completedAt: current.completedAt,
+        topMatches: current.topMatches,
+        answersSnapshot: snap,
+      );
+      await _storage.saveExperienceResults(_results);
+    }
+    notifyListeners();
+  }
+
+  /// Completes the active Knowledge Arena session and records the summary snapshot.
+  Future<ExperienceResultRecord> completeKnowledgeArenaSession() async {
+    final draft = _drafts[ExperienceCatalog.knowledgeArenaId] ??
+        await startFreshKnowledgeArena();
+    final topic = activeKnowledgeArenaTopic();
+    final cards = ExperienceCatalog.cardsForTopic(topic);
+
+    var correctCount = 0;
+    for (final c in cards) {
+      final chosen = draft.selectedOptionIdsByQuestion[c.id]?.firstOrNull;
+      if (chosen == c.correctOptionId) {
+        correctCount++;
+      }
+    }
+    final total = cards.isEmpty ? 1 : cards.length;
+    final percentage = ((correctCount / total) * 100).round().clamp(0, 100);
+
+    final savedNotes = List<String>.from(
+      draft.selectedOptionIdsByQuestion[_metaSavedNotesKey] ?? const [],
+    );
+    final addedBooks = List<String>.from(
+      draft.selectedOptionIdsByQuestion[_metaAddedBooksKey] ?? const [],
+    );
+
+    final record = ExperienceResultRecord(
+      experienceId: ExperienceCatalog.knowledgeArenaId,
+      definitionVersion: 1,
+      completedAt: DateTime.now(),
+      topMatches: [
+        ExperienceMatchedOutcome(
+          profileId: topic.name,
+          matchPercentage: percentage,
+          rawScore: correctCount.toDouble(),
+          reasonKeys: const ['ka_subtitle'],
+        ),
+      ],
+      answersSnapshot: {
+        'topic': topic.name,
+        'correctCount': correctCount,
+        'totalCards': cards.length,
+        'selectedOptionIdsByQuestion': draft.selectedOptionIdsByQuestion,
+        'savedNotes': savedNotes,
+        'addedBooks': addedBooks,
+      },
+    );
+
+    _results = [record, ..._results];
+    _drafts.remove(ExperienceCatalog.knowledgeArenaId);
+    await _storage.saveExperienceResults(_results);
+    await _storage.saveExperienceDrafts(_drafts);
+    notifyListeners();
+    return record;
   }
 }

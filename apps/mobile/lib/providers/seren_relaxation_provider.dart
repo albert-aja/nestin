@@ -60,6 +60,13 @@ class SerenRelaxationProvider extends ChangeNotifier
   int _selectedParagraphIndex = 0;
   final Set<String> _skippedMindfulPromptIds = {};
 
+  // Hardware audio route disconnect guard & native OS media session state
+  AudioRouteDisconnectEvent? _lastRouteDisconnectEvent;
+  bool _pausedByHardwareDisconnect = false;
+  DateTime? _lastRouteDisconnectHandledAt;
+  bool _isMediaSessionPinned = false;
+  bool _isDisposed = false;
+
   static const int morningReminderNotificationId = 7250;
   static const int eveningReminderNotificationId = 7251;
 
@@ -74,6 +81,8 @@ class SerenRelaxationProvider extends ChangeNotifier
     _load();
     _ttsService.onStateChanged = _onTtsStateChanged;
     _ttsService.onAllParagraphsCompleted = _onTtsAllCompleted;
+    _ttsService.onAudioRouteDisconnected = _handleNativeAudioRouteDisconnected;
+    _ttsService.onMediaTransportAction = handleMediaTransportAction;
     try {
       WidgetsBinding.instance.addObserver(this);
     } catch (_) {}
@@ -109,6 +118,15 @@ class SerenRelaxationProvider extends ChangeNotifier
   String get ttsLanguageCode => _prefs.ttsLanguageCode;
   bool get lowMotionVisuals => _prefs.lowMotionVisuals;
   bool get autoFadeOut => _prefs.autoFadeOut;
+  bool get pauseOnHeadphoneDisconnect => _prefs.pauseOnHeadphoneDisconnect;
+  bool get lockScreenControlsEnabled => _prefs.lockScreenControlsEnabled;
+  bool get pausedByHardwareDisconnect => _pausedByHardwareDisconnect;
+  AudioRouteDisconnectEvent? get lastRouteDisconnectEvent =>
+      _lastRouteDisconnectEvent;
+  bool get isMediaSessionActive =>
+      _prefs.lockScreenControlsEnabled &&
+      _isMediaSessionPinned &&
+      (_isMixerPlaying || _ttsService.isActive || _activeTracks.isNotEmpty);
 
   // Timer Getters
   bool get isTimerActive => _timerRemainingSeconds > 0;
@@ -312,6 +330,7 @@ class SerenRelaxationProvider extends ChangeNotifier
       _playbackMode = RelaxationPlaybackMode.audioAndVisual;
     }
     _isMixerPlaying = true;
+    _pausedByHardwareDisconnect = false;
     await _recordRecentSound(soundId);
     await _syncAudioEngine();
     notifyListeners();
@@ -482,6 +501,7 @@ class SerenRelaxationProvider extends ChangeNotifier
       _playbackMode = RelaxationPlaybackMode.audioAndVisual;
     }
     _isMixerPlaying = true;
+    _pausedByHardwareDisconnect = false;
     _fadeMultiplier = 1.0;
     await _syncAudioEngine();
     notifyListeners();
@@ -490,15 +510,18 @@ class SerenRelaxationProvider extends ChangeNotifier
   Future<void> pauseMixerPlayback() async {
     _isMixerPlaying = false;
     await _ambientSoundService.pauseMixer();
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
   Future<void> stopAllPlayback() async {
     _isMixerPlaying = false;
+    _isMediaSessionPinned = false;
     cancelPlaybackTimer(notify: false);
     await _ambientSoundService.stopMixer();
     await _ttsService.stop();
     stopGuidedSession(notify: false);
+    await _ttsService.clearMediaSession();
     notifyListeners();
   }
 
@@ -506,6 +529,11 @@ class SerenRelaxationProvider extends ChangeNotifier
     final shouldPlayAudio = _isMixerPlaying &&
         _playbackMode != RelaxationPlaybackMode.visualOnly &&
         _activeTracks.isNotEmpty;
+    if (shouldPlayAudio) {
+      _isMediaSessionPinned = true;
+    } else if (_activeTracks.isEmpty && !_ttsService.isActive) {
+      _isMediaSessionPinned = false;
+    }
     await _ambientSoundService.syncMixerTracks(
       _activeTracks,
       masterVolume: _prefs.masterVolume,
@@ -513,6 +541,7 @@ class SerenRelaxationProvider extends ChangeNotifier
       duckFactor: effectiveDuckFactor,
       fadeMultiplier: _fadeMultiplier,
     );
+    await _syncNativeMediaSession();
   }
 
   // ===========================================================================
@@ -537,6 +566,7 @@ class SerenRelaxationProvider extends ChangeNotifier
         _playbackMode = RelaxationPlaybackMode.audioAndVisual;
       }
       _isMixerPlaying = true;
+      _pausedByHardwareDisconnect = false;
       _fadeMultiplier = 1.0;
     }
     await _storageService.saveSerenRelaxationPreferences(_prefs);
@@ -654,6 +684,7 @@ class SerenRelaxationProvider extends ChangeNotifier
     _playbackTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       tickTimerSecond();
     });
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
@@ -683,6 +714,7 @@ class SerenRelaxationProvider extends ChangeNotifier
     } else {
       _fadeMultiplier = 1.0;
     }
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
@@ -701,7 +733,10 @@ class SerenRelaxationProvider extends ChangeNotifier
         fadeMultiplier: 1.0,
       );
     }
-    if (notify) notifyListeners();
+    if (notify) {
+      _syncNativeMediaSession();
+      notifyListeners();
+    }
   }
 
   // ===========================================================================
@@ -902,6 +937,8 @@ class SerenRelaxationProvider extends ChangeNotifier
     final target = item ?? _activeReading ?? SerenRelaxationCatalog.readings.first;
     _activeReading = target;
     _selectedParagraphIndex = startParagraph;
+    _pausedByHardwareDisconnect = false;
+    _isMediaSessionPinned = true;
     await _ttsService.speakParagraphs(
       target.paragraphs,
       startIndex: startParagraph,
@@ -910,6 +947,7 @@ class SerenRelaxationProvider extends ChangeNotifier
       languageCode: _prefs.ttsLanguageCode,
     );
     await _applyNarrationDucking();
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
@@ -955,18 +993,26 @@ class SerenRelaxationProvider extends ChangeNotifier
   Future<void> pauseReadingTts() async {
     await _ttsService.pause();
     await _applyNarrationDucking();
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
   Future<void> resumeReadingTts() async {
+    _pausedByHardwareDisconnect = false;
+    _isMediaSessionPinned = true;
     await _ttsService.resume();
     await _applyNarrationDucking();
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
   Future<void> stopReadingTts() async {
     await _ttsService.stop();
+    if (!_isMixerPlaying) {
+      _isMediaSessionPinned = false;
+    }
     await _applyNarrationDucking();
+    await _syncNativeMediaSession();
     notifyListeners();
   }
 
@@ -1015,14 +1061,21 @@ class SerenRelaxationProvider extends ChangeNotifier
   }
 
   void _onTtsStateChanged() {
+    if (_isDisposed) return;
     _selectedParagraphIndex = _ttsService.currentParagraphIndex;
     _saveReadingParagraphProgress();
     _applyNarrationDucking();
+    _syncNativeMediaSession();
     notifyListeners();
   }
 
   void _onTtsAllCompleted() {
+    if (_isDisposed) return;
+    if (!_isMixerPlaying) {
+      _isMediaSessionPinned = false;
+    }
     _applyNarrationDucking();
+    _syncNativeMediaSession();
     notifyListeners();
   }
 
@@ -1138,20 +1191,220 @@ class SerenRelaxationProvider extends ChangeNotifier
   }
 
   // ===========================================================================
+  // NATIVE OS MEDIASTYLE NOTIFICATION & LOCK-SCREEN TRANSPORT CONTROLS
+  // ===========================================================================
+
+  Future<void> setLockScreenControlsEnabled(bool enabled) async {
+    _prefs = _prefs.copyWith(lockScreenControlsEnabled: enabled);
+    await _storageService.saveSerenRelaxationPreferences(_prefs);
+    if (!enabled) {
+      await _ttsService.clearMediaSession();
+    } else {
+      await _syncNativeMediaSession();
+    }
+    notifyListeners();
+  }
+
+  /// Builds the current lock-screen & MediaSession metadata snapshot.
+  SerenMediaTransportState get currentMediaTransportState {
+    final l10n = AppLocalizations.current;
+    final active = isMediaSessionActive;
+    final playing = _isMixerPlaying || _ttsService.isPlaying;
+
+    String title;
+    String subtitle;
+
+    if (_ttsService.isActive && _activeReading != null) {
+      final reading = _activeReading!;
+      title = reading.title;
+      final mixNames = _activeTracks
+          .map((t) => SerenRelaxationCatalog.soundById(t.soundId).title)
+          .join(' + ');
+      if (reading.isMultiChapter) {
+        final chLabel = l10n
+            .tr('seren_chapter_indicator')
+            .replaceAll('{current}', '${activeReadingChapterIndex + 1}')
+            .replaceAll('{total}', '${reading.chapterCount}');
+        subtitle = mixNames.isNotEmpty ? '$chLabel • $mixNames' : chLabel;
+      } else {
+        subtitle = mixNames.isNotEmpty ? mixNames : reading.category.label;
+      }
+    } else {
+      if (_activeSoundscapeId != null) {
+        final allMixes = [...curatedPresets, ...customSoundscapes];
+        final match =
+            allMixes.where((s) => s.id == _activeSoundscapeId).toList();
+        title = match.isNotEmpty
+            ? match.first.displayName
+            : l10n.tr('seren_screen_title');
+      } else if (_activeTracks.length == 1) {
+        title =
+            SerenRelaxationCatalog.soundById(_activeTracks.first.soundId).title;
+      } else {
+        title = l10n.tr('seren_screen_title');
+      }
+      subtitle = _activeTracks.isNotEmpty
+          ? _activeTracks
+              .map((t) => SerenRelaxationCatalog.soundById(t.soundId).title)
+              .join(' + ')
+          : l10n.tr('seren_mixer_title');
+    }
+
+    final timerBadge = isTimerActive
+        ? l10n
+            .tr('seren_media_timer_remaining')
+            .replaceAll('{time}', formattedTimerRemaining)
+        : '';
+
+    return SerenMediaTransportState(
+      isActive: active,
+      isPlaying: playing,
+      title: title,
+      subtitle: subtitle,
+      album: l10n.tr('seren_media_session_album'),
+      timerRemainingSeconds: _timerRemainingSeconds,
+      timerTotalSeconds: _timerTotalSeconds,
+      timerBadge: timerBadge,
+      playActionLabel: l10n.tr('seren_media_action_play'),
+      pauseActionLabel: l10n.tr('seren_media_action_pause'),
+      stopActionLabel: l10n.tr('seren_media_action_stop'),
+    );
+  }
+
+  Future<void> _syncNativeMediaSession() async {
+    if (_isDisposed) return;
+    if (!_prefs.lockScreenControlsEnabled) {
+      await _ttsService.clearMediaSession();
+      return;
+    }
+    final state = currentMediaTransportState;
+    if (!state.isActive) {
+      await _ttsService.clearMediaSession();
+    } else {
+      await _ttsService.syncMediaSession(state);
+    }
+  }
+
+  /// Handles transport commands originating from Android `MediaSession` /
+  /// `Notification.MediaStyle` or iOS `MPRemoteCommandCenter` lock-screen buttons.
+  Future<void> handleMediaTransportAction(
+    SerenMediaTransportAction action,
+  ) async {
+    if (_isDisposed) return;
+    switch (action) {
+      case SerenMediaTransportAction.play:
+        if (_ttsService.isPaused) {
+          await resumeReadingTts();
+        }
+        if (!_isMixerPlaying && _activeTracks.isNotEmpty) {
+          await startMixerPlayback();
+        }
+        break;
+      case SerenMediaTransportAction.pause:
+        if (_isMixerPlaying) {
+          await pauseMixerPlayback();
+        }
+        if (_ttsService.isPlaying) {
+          await pauseReadingTts();
+        }
+        break;
+      case SerenMediaTransportAction.togglePlayPause:
+        final currentlyPlaying = _isMixerPlaying || _ttsService.isPlaying;
+        if (currentlyPlaying) {
+          await handleMediaTransportAction(SerenMediaTransportAction.pause);
+        } else {
+          await handleMediaTransportAction(SerenMediaTransportAction.play);
+        }
+        break;
+      case SerenMediaTransportAction.stop:
+        await stopAllPlayback();
+        break;
+      case SerenMediaTransportAction.next:
+        if (_ttsService.isActive && _activeReading != null) {
+          await nextReadingParagraph();
+        } else if (curatedPresets.isNotEmpty) {
+          final currentIdx = curatedPresets
+              .indexWhere((p) => p.id == _activeSoundscapeId);
+          final nextIdx = (currentIdx + 1) % curatedPresets.length;
+          await loadSoundscape(curatedPresets[nextIdx]);
+        }
+        break;
+      case SerenMediaTransportAction.previous:
+        if (_ttsService.isActive && _activeReading != null) {
+          await previousReadingParagraph();
+        } else if (curatedPresets.isNotEmpty) {
+          final currentIdx = curatedPresets
+              .indexWhere((p) => p.id == _activeSoundscapeId);
+          final prevIdx = currentIdx <= 0
+              ? curatedPresets.length - 1
+              : currentIdx - 1;
+          await loadSoundscape(curatedPresets[prevIdx]);
+        }
+        break;
+    }
+  }
+
+  // ===========================================================================
   // LIFECYCLE, INTERRUPTIONS & HEADPHONE DISCONNECT HANDLING (FEATURES 15 & 16)
   // ===========================================================================
 
-  /// Handles incoming phone calls, audio focus loss, or headphone unplugging
+  Future<void> setPauseOnHeadphoneDisconnect(bool enabled) async {
+    _prefs = _prefs.copyWith(pauseOnHeadphoneDisconnect: enabled);
+    await _storageService.saveSerenRelaxationPreferences(_prefs);
+    notifyListeners();
+  }
+
+  void dismissHardwareDisconnectNotice() {
+    if (!_pausedByHardwareDisconnect) return;
+    _pausedByHardwareDisconnect = false;
+    notifyListeners();
+  }
+
+  Future<void> _handleNativeAudioRouteDisconnected(
+    AudioRouteDisconnectEvent event,
+  ) async {
+    if (_isDisposed || !_prefs.pauseOnHeadphoneDisconnect) return;
+
+    final now = DateTime.now();
+    if (_lastRouteDisconnectHandledAt != null &&
+        now.difference(_lastRouteDisconnectHandledAt!).inMilliseconds < 400) {
+      return;
+    }
+    _lastRouteDisconnectHandledAt = now;
+
+    final wasActive = _isMixerPlaying ||
+        _ttsService.isPlaying ||
+        (_isGuidedSessionRunning && !_isGuidedSessionPaused);
+    if (!wasActive) return;
+
+    await handleAudioInterruption(disconnectEvent: event);
+  }
+
+  /// Handles incoming phone calls, audio focus loss, or headphone/Bluetooth unplugging
   /// by gracefully pausing active mixer and narration playback.
-  Future<void> handleAudioInterruption() async {
+  Future<void> handleAudioInterruption({
+    AudioRouteDisconnectEvent? disconnectEvent,
+  }) async {
+    if (_isDisposed) return;
+    var didPauseAnything = false;
     if (_isMixerPlaying) {
       await pauseMixerPlayback();
+      if (_isDisposed) return;
+      didPauseAnything = true;
     }
     if (_ttsService.isPlaying) {
       await pauseReadingTts();
+      if (_isDisposed) return;
+      didPauseAnything = true;
     }
     if (_isGuidedSessionRunning && !_isGuidedSessionPaused) {
       pauseGuidedSession();
+      didPauseAnything = true;
+    }
+    if (disconnectEvent != null && didPauseAnything && !_isDisposed) {
+      _lastRouteDisconnectEvent = disconnectEvent;
+      _pausedByHardwareDisconnect = true;
+      notifyListeners();
     }
   }
 
@@ -1171,6 +1424,7 @@ class SerenRelaxationProvider extends ChangeNotifier
 
   @override
   void dispose() {
+    _isDisposed = true;
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}

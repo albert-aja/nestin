@@ -3,12 +3,22 @@ import UIKit
 import CoreLocation
 import UserNotifications
 import AVFoundation
+import MediaPlayer
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var geofenceManager: GeofenceManager?
   private var deviceControlManager: DeviceControlManager?
+  private var ttsChannel: FlutterMethodChannel?
+  private var audioRouteObserver: NSObjectProtocol?
+  private var audioInterruptionObserver: NSObjectProtocol?
+  private var remoteCommandsRegistered: Bool = false
   private let speechSynthesizer = AVSpeechSynthesizer()
+
+  deinit {
+    unregisterAudioRouteObservers()
+    clearNowPlayingInfo()
+  }
 
   override func application(
     _ application: UIApplication,
@@ -30,11 +40,12 @@ import AVFoundation
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     deviceControlManager = DeviceControlManager(channel: deviceControlChannel)
-    let ttsChannel = FlutterMethodChannel(
+    let channelInstance = FlutterMethodChannel(
       name: "com.nestin.app/tts",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
-    ttsChannel.setMethodCallHandler { [weak self] call, result in
+    self.ttsChannel = channelInstance
+    channelInstance.setMethodCallHandler { [weak self] call, result in
       guard let self = self else {
         result(FlutterError(code: "DEALLOCATED", message: nil, details: nil))
         return
@@ -59,9 +70,186 @@ import AVFoundation
       case "stop":
         self.speechSynthesizer.stopSpeaking(at: .immediate)
         result(true)
+      case "isExternalAudioConnected":
+        let hasExternal = AVAudioSession.sharedInstance().currentRoute.outputs.contains { port in
+          self.isExternalOutputPort(port.portType)
+        }
+        result(hasExternal)
+      case "syncMediaSession":
+        let args = call.arguments as? [String: Any]
+        self.syncNowPlayingSession(args: args)
+        result(true)
+      case "clearMediaSession":
+        self.clearNowPlayingInfo()
+        result(true)
       default:
         result(FlutterMethodNotImplemented)
       }
+    }
+    registerAudioRouteObservers()
+    registerRemoteTransportCommandsIfNeeded()
+  }
+
+  private func emitMediaTransportAction(_ action: String) {
+    DispatchQueue.main.async { [weak self] in
+      self?.ttsChannel?.invokeMethod("onMediaTransportAction", arguments: ["action": action])
+    }
+  }
+
+  private func registerRemoteTransportCommandsIfNeeded() {
+    guard !remoteCommandsRegistered else { return }
+    remoteCommandsRegistered = true
+    let commandCenter = MPRemoteCommandCenter.shared()
+
+    commandCenter.playCommand.isEnabled = true
+    commandCenter.playCommand.addTarget { [weak self] _ in
+      self?.emitMediaTransportAction("play")
+      return .success
+    }
+
+    commandCenter.pauseCommand.isEnabled = true
+    commandCenter.pauseCommand.addTarget { [weak self] _ in
+      self?.emitMediaTransportAction("pause")
+      return .success
+    }
+
+    commandCenter.togglePlayPauseCommand.isEnabled = true
+    commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
+      self?.emitMediaTransportAction("togglePlayPause")
+      return .success
+    }
+
+    commandCenter.stopCommand.isEnabled = true
+    commandCenter.stopCommand.addTarget { [weak self] _ in
+      self?.emitMediaTransportAction("stop")
+      return .success
+    }
+
+    commandCenter.nextTrackCommand.isEnabled = true
+    commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+      self?.emitMediaTransportAction("next")
+      return .success
+    }
+
+    commandCenter.previousTrackCommand.isEnabled = true
+    commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+      self?.emitMediaTransportAction("previous")
+      return .success
+    }
+  }
+
+  private func syncNowPlayingSession(args: [String: Any]?) {
+    let isActive = args?["isActive"] as? Bool ?? false
+    if !isActive {
+      clearNowPlayingInfo()
+      return
+    }
+
+    let isPlaying = args?["isPlaying"] as? Bool ?? false
+    let title = args?["title"] as? String ?? "Seren Daily Relaxation"
+    let subtitle = args?["subtitle"] as? String ?? "Peaceful Ambient Soundscape"
+    let album = args?["album"] as? String ?? "Nestin • Seren Sanctuary"
+    let timerBadge = args?["timerBadge"] as? String ?? ""
+    let timerRemainingSeconds = args?["timerRemainingSeconds"] as? Int ?? 0
+    let timerTotalSeconds = args?["timerTotalSeconds"] as? Int ?? 0
+
+    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+    try? AVAudioSession.sharedInstance().setActive(true)
+
+    var info: [String: Any] = [
+      MPMediaItemPropertyTitle: title,
+      MPMediaItemPropertyArtist: timerBadge.isEmpty ? subtitle : "\(subtitle) • \(timerBadge)",
+      MPMediaItemPropertyAlbumTitle: album,
+      MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
+    ]
+
+    if timerTotalSeconds > 0 {
+      info[MPMediaItemPropertyPlaybackDuration] = Double(timerTotalSeconds)
+      info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Double(max(0, timerTotalSeconds - timerRemainingSeconds))
+    }
+
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+  }
+
+  private func clearNowPlayingInfo() {
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+  }
+
+  private func isExternalOutputPort(_ portType: AVAudioSession.Port) -> Bool {
+    switch portType {
+    case .headphones, .bluetoothA2DP, .bluetoothLE, .bluetoothHFP, .usbAudio, .lineOut, .carAudio, .airPlay:
+      return true
+    default:
+      return false
+    }
+  }
+
+  private func classifyPortRouteType(_ portType: AVAudioSession.Port) -> String {
+    switch portType {
+    case .bluetoothA2DP, .bluetoothLE, .bluetoothHFP:
+      return "bluetooth"
+    case .headphones, .usbAudio, .lineOut, .carAudio:
+      return "wired"
+    default:
+      return "unknown"
+    }
+  }
+
+  private func registerAudioRouteObservers() {
+    unregisterAudioRouteObservers()
+    let center = NotificationCenter.default
+    audioRouteObserver = center.addObserver(
+      forName: AVAudioSession.routeChangeNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      guard let self = self,
+            let userInfo = notification.userInfo,
+            let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+            let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue),
+            reason == .oldDeviceUnavailable else {
+        return
+      }
+      let prevRoute = userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription
+      guard let prevExternal = prevRoute?.outputs.first(where: { self.isExternalOutputPort($0.portType) }) else {
+        return
+      }
+      self.ttsChannel?.invokeMethod("onAudioRouteDisconnected", arguments: [
+        "reason": "old_device_unavailable",
+        "routeType": self.classifyPortRouteType(prevExternal.portType),
+        "deviceName": prevExternal.portName
+      ])
+    }
+
+    audioInterruptionObserver = center.addObserver(
+      forName: AVAudioSession.interruptionNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      guard let self = self,
+            let userInfo = notification.userInfo,
+            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let interruptionType = AVAudioSession.InterruptionType(rawValue: typeValue),
+            interruptionType == .began else {
+        return
+      }
+      self.ttsChannel?.invokeMethod("onAudioRouteDisconnected", arguments: [
+        "reason": "audio_session_interruption",
+        "routeType": "unknown",
+        "deviceName": NSNull()
+      ])
+    }
+  }
+
+  private func unregisterAudioRouteObservers() {
+    let center = NotificationCenter.default
+    if let observer = audioRouteObserver {
+      center.removeObserver(observer)
+      audioRouteObserver = nil
+    }
+    if let observer = audioInterruptionObserver {
+      center.removeObserver(observer)
+      audioInterruptionObserver = nil
     }
   }
 }

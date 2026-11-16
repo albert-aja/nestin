@@ -27,10 +27,10 @@ void main() {
           .whereType<File>()
           .where((f) => f.path.endsWith('.jpg'))
           .toList();
-      expect(
+       expect(
         files.length,
-        greaterThanOrEqualTo(22),
-        reason: 'Expected at least 22 raw sheet JPG files in source_art/mascots/sheets.',
+        greaterThanOrEqualTo(28),
+        reason: 'Expected at least 28 raw sheet JPG files in source_art/mascots/sheets.',
       );
 
       final familyDir = Directory('source_art/mascots/family');
@@ -47,18 +47,18 @@ void main() {
       );
     });
 
-    test('Sliced sprite library contains 132 transparent PNGs totaling < 10 MB', () {
+    test('Sliced sprite library contains 168 transparent PNGs totaling < 10 MB', () {
       final spritesDir = Directory('assets/mascots/sprites');
       expect(spritesDir.existsSync(), isTrue);
 
       final expectedCounts = {
-        'roo': 24,
+        'roo': 30,
         'seren': 24,
-        'echo': 18,
-        'pippin': 18,
-        'twill': 18,
-        'scout': 18,
-        'duos': 6,
+        'echo': 24,
+        'pippin': 24,
+        'twill': 24,
+        'scout': 24,
+        'duos': 12,
         'ensembles': 6,
       };
 
@@ -83,8 +83,8 @@ void main() {
         }
       });
 
-      expect(totalPngCount, 132);
-      // Total size must be under 10.0 MB (actual is ~8.46 MB)
+      expect(totalPngCount, 168);
+      // Total size must be under 10.0 MB (PNG-8 quantized total is ~5.36 MB)
       expect(totalByteLength, lessThan(10 * 1024 * 1024));
     });
 

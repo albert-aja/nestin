@@ -8,6 +8,8 @@ import '../../../providers/collection_provider.dart';
 import '../../../providers/cross_module_link_provider.dart';
 import '../../../providers/hobby_provider.dart';
 import '../../../providers/interactive_experience_provider.dart';
+import '../../../providers/note_provider.dart';
+import '../../../providers/reading_provider.dart';
 import '../../../providers/seren_relaxation_provider.dart';
 import '../../../providers/task_provider.dart';
 
@@ -230,6 +232,7 @@ class NestinDiscoverScreen extends StatefulWidget {
 class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
   DiscoverGrouping? _selectedGrouping;
   int _selectedMatchIndex = 0;
+  KnowledgeArenaTopic _selectedArenaTopic = KnowledgeArenaTopic.all;
 
   @override
   Widget build(BuildContext context) {
@@ -299,6 +302,10 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   latestResult,
                 ),
               ],
+
+              const SizedBox(height: 20),
+              // Hero Experience Card 2: Echo's Knowledge Arena
+              _buildKnowledgeArenaHeroCard(context, l10n, expProvider),
 
               const SizedBox(height: 24),
               Text(
@@ -479,6 +486,248 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
         _selectedMatchIndex = 0;
       });
     }
+  }
+
+  Widget _buildKnowledgeArenaHeroCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    InteractiveExperienceProvider expProvider,
+  ) {
+    final arenaDraft =
+        expProvider.draftFor(ExperienceCatalog.knowledgeArenaId);
+    final latestArenaResult =
+        expProvider.latestResultFor(ExperienceCatalog.knowledgeArenaId);
+    final cardsForTopic =
+        ExperienceCatalog.cardsForTopic(_selectedArenaTopic);
+    final answeredCount = expProvider.knowledgeArenaAnsweredCount();
+
+    return Container(
+      key: const ValueKey('knowledge_arena_hero_card'),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface(context),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF6366F1).withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🏛️', style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        l10n.tr('ka_badge'),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF6366F1),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.tr('ka_title'),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.tr('ka_subtitle'),
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Topic Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final topic in KnowledgeArenaTopic.values)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      key: ValueKey('ka_topic_chip_${topic.name}'),
+                      selected: _selectedArenaTopic == topic,
+                      label: Text(
+                        '${topic.iconEmoji} ${l10n.tr(topic.titleKey)}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      onSelected: (_) {
+                        setState(() {
+                          _selectedArenaTopic = topic;
+                        });
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          if (latestArenaResult != null) ...[
+            Builder(
+              builder: (context) {
+                final snap = latestArenaResult.answersSnapshot;
+                final correct = (snap['correctCount'] as num?)?.toInt() ?? 0;
+                final total = (snap['totalCards'] as num?)?.toInt() ??
+                    cardsForTopic.length;
+                final percent = latestArenaResult.topMatches.isNotEmpty
+                    ? latestArenaResult.topMatches.first.matchPercentage
+                    : 0;
+                final notesCount =
+                    (snap['savedNotes'] as List?)?.length ?? 0;
+                final booksCount =
+                    (snap['addedBooks'] as List?)?.length ?? 0;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.tr('ka_summary_title'),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            l10n.tr('ka_summary_score', {
+                              'correct': correct,
+                              'total': total,
+                              'percent': percent,
+                            }),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF6366F1),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.tr('ka_summary_saved_stats', {
+                          'notes': notesCount,
+                          'books': booksCount,
+                        }),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+
+          if (arenaDraft != null &&
+              expProvider.activeKnowledgeArenaTopic() ==
+                  _selectedArenaTopic) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    key: const ValueKey('btn_resume_knowledge_arena'),
+                    onPressed: () => _openKnowledgeArenaSheet(
+                      context,
+                      resumeDraft: true,
+                    ),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                    label: Text(
+                      l10n.tr('ka_resume_button', {
+                        'answered': answeredCount,
+                        'total': cardsForTopic.length,
+                      }),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  key: const ValueKey('btn_restart_knowledge_arena'),
+                  onPressed: () => _openKnowledgeArenaSheet(
+                    context,
+                    resumeDraft: false,
+                  ),
+                  child: Text(l10n.tr('exp_restart_fresh')),
+                ),
+              ],
+            ),
+          ] else
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                key: const ValueKey('btn_start_knowledge_arena'),
+                onPressed: () => _openKnowledgeArenaSheet(
+                  context,
+                  resumeDraft: false,
+                ),
+                icon: const Icon(Icons.auto_stories_rounded, size: 18),
+                label: Text(l10n.tr('ka_start_button')),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openKnowledgeArenaSheet(
+    BuildContext context, {
+    required bool resumeDraft,
+  }) async {
+    final expProvider = context.read<InteractiveExperienceProvider>();
+    if (resumeDraft) {
+      await expProvider.startOrResumeKnowledgeArena(
+        topic: _selectedArenaTopic,
+      );
+    } else {
+      await expProvider.startFreshKnowledgeArena(
+        topic: _selectedArenaTopic,
+      );
+    }
+    if (!context.mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const KnowledgeArenaFlowSheet(),
+    );
   }
 
   Widget _buildLatestResultAndMultiBirdJourney(
@@ -1187,6 +1436,420 @@ class HobbyFinderFlowSheet extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Interactive step-by-step Curiosity & Trivia Runner for Echo's Knowledge Arena (`knowledge_arena_v1`).
+class KnowledgeArenaFlowSheet extends StatelessWidget {
+  const KnowledgeArenaFlowSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.90,
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Consumer<InteractiveExperienceProvider>(
+          builder: (context, expProvider, _) {
+            final draft =
+                expProvider.draftFor(ExperienceCatalog.knowledgeArenaId);
+            if (draft == null) {
+              return const SizedBox.shrink();
+            }
+            final cards = expProvider.activeKnowledgeArenaCards();
+            if (cards.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            final currentIndex =
+                draft.currentQuestionIndex.clamp(0, cards.length - 1);
+            final card = cards[currentIndex];
+            final selectedOptionId =
+                expProvider.selectedOptionForKnowledgeCard(card.id);
+            final isAnswered = selectedOptionId != null;
+            final isCorrect = selectedOptionId == card.correctOptionId;
+            final isLastCard = currentIndex >= cards.length - 1;
+            final isNoteSaved = expProvider.isFactCardSavedToNotes(card.id);
+            final isBookAdded =
+                expProvider.isSuggestedBookAddedToReading(card.id);
+            final localizedBookTitle = l10n.tr(card.suggestedBookTitleKey);
+            final localizedBookAuthor = l10n.tr(card.suggestedBookAuthorKey);
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Progress & Save Draft Bar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            card.topic.iconEmoji,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              l10n.tr('ka_card_progress', {
+                                'current': currentIndex + 1,
+                                'total': cards.length,
+                              }),
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary(context),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton.icon(
+                      key: const ValueKey('btn_ka_save_and_exit'),
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.bookmark_outline_rounded, size: 16),
+                      label: Text(l10n.tr('exp_save_and_exit')),
+                    ),
+                  ],
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: (currentIndex + 1) / cards.length,
+                    minHeight: 6,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color(0xFF6366F1),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Scrollable Question, Options, Explainable Fact Card & Multi-Bird Actions
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.tr(card.promptKey),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Options
+                        for (final option in card.options) ...[
+                          Builder(
+                            builder: (context) {
+                              final isThisSelected =
+                                  selectedOptionId == option.id;
+                              final showGreen = isAnswered && option.isCorrect;
+                              final showAmber = isAnswered &&
+                                  isThisSelected &&
+                                  !option.isCorrect;
+
+                              Color borderColor = AppColors.border(context);
+                              Color bgColor = AppColors.trackSurface(context);
+                              if (showGreen) {
+                                borderColor = const Color(0xFF10B981);
+                                bgColor = const Color(0xFF10B981)
+                                    .withValues(alpha: 0.16);
+                              } else if (showAmber) {
+                                borderColor = const Color(0xFFF59E0B);
+                                bgColor = const Color(0xFFF59E0B)
+                                    .withValues(alpha: 0.16);
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: InkWell(
+                                  key: ValueKey('ka_opt_${option.id}'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () =>
+                                      expProvider.answerKnowledgeArenaCard(
+                                    card: card,
+                                    optionId: option.id,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: bgColor,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: borderColor),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            l10n.tr(option.labelKey),
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        if (showGreen)
+                                          const Icon(
+                                            Icons.check_circle_rounded,
+                                            color: Color(0xFF10B981),
+                                            size: 18,
+                                          )
+                                        else if (showAmber)
+                                          const Icon(
+                                            Icons.lightbulb_outline_rounded,
+                                            color: Color(0xFFF59E0B),
+                                            size: 18,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+
+                        // Explainable Curiosity Fact Card + 1-Tap Echo & Pippin Actions
+                        if (isAnswered) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            key: const ValueKey('ka_explanation_card'),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6366F1)
+                                  .withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: const Color(0xFF6366F1)
+                                    .withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      isCorrect
+                                          ? Icons.auto_awesome_rounded
+                                          : Icons.menu_book_rounded,
+                                      size: 18,
+                                      color: isCorrect
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFF6366F1),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        isCorrect
+                                            ? l10n.tr('ka_correct_banner')
+                                            : l10n.tr('ka_incorrect_banner'),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          color: isCorrect
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFF6366F1),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  l10n.tr(card.factTitleKey),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  l10n.tr(card.explanationKey),
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                                const SizedBox(height: 12),
+
+                                // 1. Echo 1-Tap Action: Save Fact Card to Echo Notes
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    key: const ValueKey(
+                                        'btn_ka_save_fact_note'),
+                                    onPressed: isNoteSaved
+                                        ? null
+                                        : () async {
+                                            final noteProvider =
+                                                context.read<NoteProvider>();
+                                            CrossModuleLinkProvider?
+                                                linkProvider;
+                                            try {
+                                              linkProvider = context.read<
+                                                  CrossModuleLinkProvider>();
+                                            } catch (_) {}
+                                            final correctOpt = card.options
+                                                .firstWhere(
+                                                    (o) => o.isCorrect);
+                                            await expProvider
+                                                .saveFactCardToEchoNotes(
+                                              card: card,
+                                              localizedTopic: l10n
+                                                  .tr(card.topic.titleKey),
+                                              localizedFactTitle:
+                                                  l10n.tr(card.factTitleKey),
+                                              localizedPrompt:
+                                                  l10n.tr(card.promptKey),
+                                              localizedCorrectAnswer:
+                                                  l10n.tr(correctOpt.labelKey),
+                                              localizedExplanation:
+                                                  l10n.tr(card.explanationKey),
+                                              localizedBookTitle:
+                                                  localizedBookTitle,
+                                              localizedBookAuthor:
+                                                  localizedBookAuthor,
+                                              noteProvider: noteProvider,
+                                              linkProvider: linkProvider,
+                                            );
+                                          },
+                                    icon: Icon(
+                                      isNoteSaved
+                                          ? Icons.check_circle_rounded
+                                          : Icons.bookmark_add_outlined,
+                                      size: 16,
+                                    ),
+                                    label: Text(
+                                      isNoteSaved
+                                          ? l10n.tr('ka_saved_fact_to_echo')
+                                          : l10n.tr('ka_save_fact_to_echo'),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                // 2. Pippin 1-Tap Action: Add Related Book to ReadingProvider
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    key: const ValueKey(
+                                        'btn_ka_add_pippin_book'),
+                                    onPressed: isBookAdded
+                                        ? null
+                                        : () async {
+                                            final readingProvider = context
+                                                .read<ReadingProvider>();
+                                            CrossModuleLinkProvider?
+                                                linkProvider;
+                                            try {
+                                              linkProvider = context.read<
+                                                  CrossModuleLinkProvider>();
+                                            } catch (_) {}
+                                            await expProvider
+                                                .addSuggestedBookToPippinReading(
+                                              card: card,
+                                              localizedTopic: l10n
+                                                  .tr(card.topic.titleKey),
+                                              localizedFactTitle:
+                                                  l10n.tr(card.factTitleKey),
+                                              localizedBookTitle:
+                                                  localizedBookTitle,
+                                              localizedBookAuthor:
+                                                  localizedBookAuthor,
+                                              readingProvider: readingProvider,
+                                              linkProvider: linkProvider,
+                                            );
+                                          },
+                                    icon: Icon(
+                                      isBookAdded
+                                          ? Icons.check_circle_rounded
+                                          : Icons.menu_book_rounded,
+                                      size: 16,
+                                    ),
+                                    label: Text(
+                                      isBookAdded
+                                          ? l10n.tr('ka_added_book_to_pippin')
+                                          : l10n.tr('ka_add_book_to_pippin', {
+                                              'book': localizedBookTitle,
+                                            }),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Bottom Navigation Row
+                Row(
+                  children: [
+                    if (currentIndex > 0)
+                      OutlinedButton(
+                        key: const ValueKey('btn_ka_prev_card'),
+                        onPressed: () => expProvider
+                            .goToKnowledgeArenaCardIndex(currentIndex - 1),
+                        child: Text(l10n.tr('exp_previous_step')),
+                      ),
+                    const Spacer(),
+                    ElevatedButton(
+                      key: const ValueKey('btn_ka_next_or_finish'),
+                      onPressed: isAnswered
+                          ? () async {
+                              if (isLastCard) {
+                                await expProvider
+                                    .completeKnowledgeArenaSession();
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                              } else {
+                                await expProvider.goToKnowledgeArenaCardIndex(
+                                  currentIndex + 1,
+                                );
+                              }
+                            }
+                          : null,
+                      child: Text(
+                        isLastCard
+                            ? l10n.tr('ka_finish_arena')
+                            : l10n.tr('ka_next_card'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }

@@ -316,6 +316,58 @@ class _SerenRelaxationScreenState extends State<SerenRelaxationScreen>
                 ),
               ),
             ),
+          if (seren.pausedByHardwareDisconnect)
+            _buildHardwareDisconnectBanner(context, seren, l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHardwareDisconnectBanner(
+    BuildContext context,
+    SerenRelaxationProvider seren,
+    AppLocalizations l10n,
+  ) {
+    final event = seren.lastRouteDisconnectEvent;
+    final message = l10n.tr(
+      event?.noticeTranslationKey ?? 'seren_disconnect_notice_generic',
+    );
+    final deviceLabel = event?.deviceName;
+    final iconData = (event?.isBluetooth ?? false)
+        ? Icons.bluetooth_disabled_rounded
+        : Icons.headset_off_rounded;
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      key: const Key('seren_headphone_disconnect_banner'),
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: primary.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        children: [
+          Icon(iconData, size: 18, color: primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              deviceLabel != null && deviceLabel.trim().isNotEmpty
+                  ? '$message ($deviceLabel)'
+                  : message,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ),
+          TextButton(
+            key: const Key('seren_dismiss_disconnect_banner'),
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+            onPressed: seren.dismissHardwareDisconnectNotice,
+            child: Text(l10n.tr('seren_action_dismiss')),
+          ),
         ],
       ),
     );
@@ -529,25 +581,52 @@ class _SerenRelaxationScreenState extends State<SerenRelaxationScreen>
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Row(
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Icon(
-                            Icons.all_inclusive_rounded,
-                            size: 12,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              l10n.tr('seren_loop_seamless_badge'),
-                              style: TextStyle(
-                                fontSize: 11,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.all_inclusive_rounded,
+                                size: 12,
                                 color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.w500,
                               ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                              const SizedBox(width: 4),
+                              Text(
+                                l10n.tr('seren_loop_seamless_badge'),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
+                          if (seren.isMediaSessionActive)
+                            Row(
+                              key: const Key('seren_media_session_active_badge'),
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.lock_clock_rounded,
+                                  size: 12,
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  l10n.tr('seren_media_session_active_badge'),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ],
@@ -1971,6 +2050,26 @@ class _SerenRelaxationScreenState extends State<SerenRelaxationScreen>
                     subtitle: Text(l10n.tr('seren_timer_auto_fade_subtitle')),
                     value: seren.autoFadeOut,
                     onChanged: seren.setAutoFadeOut,
+                  ),
+                  SwitchListTile(
+                    key: const Key('seren_pause_on_disconnect_switch'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.tr('seren_pause_on_disconnect_title')),
+                    subtitle: Text(
+                      l10n.tr('seren_pause_on_disconnect_subtitle'),
+                    ),
+                    value: seren.pauseOnHeadphoneDisconnect,
+                    onChanged: seren.setPauseOnHeadphoneDisconnect,
+                  ),
+                  SwitchListTile(
+                    key: const Key('seren_lock_screen_controls_switch'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.tr('seren_lock_screen_controls_title')),
+                    subtitle: Text(
+                      l10n.tr('seren_lock_screen_controls_subtitle'),
+                    ),
+                    value: seren.lockScreenControlsEnabled,
+                    onChanged: seren.setLockScreenControlsEnabled,
                   ),
                   if (seren.isTimerActive)
                     Align(

@@ -1,6 +1,7 @@
 import 'dart:math' show cos, pi, sin;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -552,6 +553,119 @@ void main() {
       expect(provider.activeReadingChapterIndex, 2);
       await provider.stopReadingTts();
     });
+
+    test('Hardware audio route & Bluetooth disconnect over com.nestin.app/tts pauses active playback cleanly', () async {
+      await provider.playSingleSound('rain');
+      await provider.startReadingTts(
+        item: SerenRelaxationCatalog.readings.first,
+      );
+      expect(provider.isMixerPlaying, isTrue);
+      expect(provider.isTtsPlaying, isTrue);
+      expect(provider.pauseOnHeadphoneDisconnect, isTrue);
+      expect(provider.pausedByHardwareDisconnect, isFalse);
+
+      // Dispatch genuine platform binary message over com.nestin.app/tts
+      final payload = const StandardMethodCodec().encodeMethodCall(
+        const MethodCall('onAudioRouteDisconnected', {
+          'reason': 'device_removed',
+          'routeType': 'bluetooth',
+          'deviceName': 'Sony WH-1000XM5',
+        }),
+      );
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage('com.nestin.app/tts', payload, (_) {});
+      await Future<void>.delayed(Duration.zero);
+
+      expect(provider.isMixerPlaying, isFalse);
+      expect(provider.isTtsPlaying, isFalse);
+      expect(provider.isTtsPaused, isTrue);
+      expect(provider.pausedByHardwareDisconnect, isTrue);
+      expect(provider.lastRouteDisconnectEvent?.isBluetooth, isTrue);
+      expect(provider.lastRouteDisconnectEvent?.deviceName, 'Sony WH-1000XM5');
+
+      // Resuming playback clears disconnect banner automatically
+      await provider.startMixerPlayback();
+      expect(provider.pausedByHardwareDisconnect, isFalse);
+
+      // Disabling preference prevents pause when wired headphones unplug
+      await provider.setPauseOnHeadphoneDisconnect(false);
+      expect(provider.pauseOnHeadphoneDisconnect, isFalse);
+      final wiredPayload = const StandardMethodCodec().encodeMethodCall(
+        const MethodCall('onAudioRouteDisconnected', {
+          'reason': 'becoming_noisy',
+          'routeType': 'wired',
+        }),
+      );
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage('com.nestin.app/tts', wiredPayload, (_) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(provider.isMixerPlaying, isTrue);
+      expect(provider.pausedByHardwareDisconnect, isFalse);
+
+      // Verify preference persists cleanly in JSON
+      final roundtrip =
+          SerenRelaxationPreferences.fromJson(provider.prefs.toJson());
+      expect(roundtrip.pauseOnHeadphoneDisconnect, isFalse);
+    });
+
+    test('Native OS MediaSession / MPNowPlayingInfoCenter syncs state and handles lock-screen transport commands', () async {
+      expect(provider.isMediaSessionActive, isFalse);
+
+      await provider.playSingleSound('rain');
+      await provider.startPlaybackTimer(15);
+      expect(provider.isMediaSessionActive, isTrue);
+
+      final synced = ttsService.lastSyncedMediaSession;
+      expect(synced, isNotNull);
+      expect(synced!.isActive, isTrue);
+      expect(synced.isPlaying, isTrue);
+      expect(synced.title, 'Gentle Rain');
+      expect(synced.timerRemainingSeconds, 15 * 60);
+      expect(synced.timerBadge, 'Sleep timer: 15:00');
+
+      Future<void> dispatchTransport(String action) async {
+        final payload = const StandardMethodCodec().encodeMethodCall(
+          MethodCall('onMediaTransportAction', {'action': action}),
+        );
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage('com.nestin.app/tts', payload, (_) {});
+      }
+
+      // Lock-screen Pause keeps session active (pinned) in Paused state so Play button works
+      await dispatchTransport('pause');
+      expect(provider.isMixerPlaying, isFalse);
+      expect(provider.isMediaSessionActive, isTrue);
+      expect(ttsService.lastSyncedMediaSession?.isPlaying, isFalse);
+
+      // Lock-screen Play resumes playback
+      await dispatchTransport('play');
+      expect(provider.isMixerPlaying, isTrue);
+      expect(ttsService.lastSyncedMediaSession?.isPlaying, isTrue);
+
+      // Lock-screen Next cycles curated preset
+      await dispatchTransport('next');
+      expect(provider.activeSoundscapeId, provider.curatedPresets.first.id);
+
+      // Lock-screen Stop halts playback and deactivates media session notification
+      await dispatchTransport('stop');
+      expect(provider.isMixerPlaying, isFalse);
+      expect(provider.isMediaSessionActive, isFalse);
+      expect(ttsService.lastSyncedMediaSession?.isActive, isFalse);
+
+      // Disabling lock-screen controls preference clears session and persists in JSON
+      await provider.playSingleSound('forest');
+      expect(provider.isMediaSessionActive, isTrue);
+      await provider.setLockScreenControlsEnabled(false);
+      expect(provider.isMediaSessionActive, isFalse);
+      expect(ttsService.lastSyncedMediaSession?.isActive, isFalse);
+
+      final roundtrip =
+          SerenRelaxationPreferences.fromJson(provider.prefs.toJson());
+      expect(roundtrip.lockScreenControlsEnabled, isFalse);
+    });
   });
 
   group('SerenRelaxationScreen Widget Tests (EN & ID)', () {
@@ -645,6 +759,66 @@ void main() {
       await tester.pump();
       expect(provider.activeTracks.first.toneWarmth, 0.0);
       expect(find.text('Seimbang'), findsWidgets);
+    });
+
+    testWidgets('Headphone/Bluetooth disconnect banner & preference switch render in EN & ID', (tester) async {
+      final settingsProvider = SettingsProvider(storageService);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: settingsProvider),
+            ChangeNotifierProvider.value(value: provider),
+            ChangeNotifierProvider.value(value: journalProvider),
+          ],
+          child: const MaterialApp(
+            home: SerenRelaxationScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await provider.playSingleSound('rain');
+      await provider.handleAudioInterruption(
+        disconnectEvent: AudioRouteDisconnectEvent(
+          reason: 'old_device_unavailable',
+          routeType: 'bluetooth',
+          deviceName: 'Pixel Buds',
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('seren_headphone_disconnect_banner')), findsOneWidget);
+      expect(
+        find.text('Paused safely — Bluetooth audio disconnected (Pixel Buds)'),
+        findsOneWidget,
+      );
+
+      // Switch to ID and verify localized disconnect message
+      await settingsProvider.setLanguage(AppLanguage.id);
+      await tester.pump();
+      expect(
+        find.text('Dijeda dengan aman — audio Bluetooth terputus (Pixel Buds)'),
+        findsOneWidget,
+      );
+
+      // Dismiss banner
+      await tester.tap(find.byKey(const Key('seren_dismiss_disconnect_banner')));
+      await tester.pump();
+      expect(find.byKey(const Key('seren_headphone_disconnect_banner')), findsNothing);
+
+      // Active playback shows localized lock-screen media controls badge in ID and EN
+      await provider.startMixerPlayback();
+      await tester.pump();
+      expect(find.byKey(const Key('seren_media_session_active_badge')), findsOneWidget);
+      expect(find.text('Kontrol layar kunci aktif'), findsOneWidget);
+
+      await settingsProvider.setLanguage(AppLanguage.en);
+      await tester.pump();
+      expect(find.text('Lock-screen controls active'), findsOneWidget);
+
+      await provider.stopAllPlayback();
+      await tester.pump();
+      expect(find.byKey(const Key('seren_media_session_active_badge')), findsNothing);
     });
 
     testWidgets('Anthology filter chips and multi-chapter reader controls work in EN and ID', (tester) async {
