@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/alarm.dart';
 import '../../../data/models/alarm_category.dart';
@@ -48,6 +49,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late ChallengeDifficulty _challengeDifficulty;
   late int _questionsCount;
   late bool _allowSnoozeDuringChallenge;
+  late SerenAwakeningHandoffMode _serenAwakeningHandoff;
 
   @override
   void initState() {
@@ -79,6 +81,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     _challengeDifficulty = override?.difficulty ?? ChallengeDifficulty.easy;
     _questionsCount = override?.questionsCount ?? 3;
     _allowSnoozeDuringChallenge = override?.allowSnoozeDuringChallenge ?? true;
+    _serenAwakeningHandoff =
+        a?.serenAwakeningHandoff ?? SerenAwakeningHandoffMode.none;
   }
 
   @override
@@ -150,6 +154,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       maxSnoozeCount: _maxSnoozeCount,
       challengeInherited: _challengeInherited,
       challengeOverride: challengeOverride,
+      serenAwakeningHandoff: _serenAwakeningHandoff,
       createdAt: widget.initialAlarm?.createdAt ?? now,
       updatedAt: now,
     );
@@ -753,6 +758,80 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ),
                   ],
                 ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Seren Peaceful Awakening Handoff Card
+            Card(
+              key: const ValueKey('alarm_seren_handoff_card'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🌅', style: TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                l10n.tr('alarm_handoff_section_title'),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.tr('alarm_handoff_section_subtitle'),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        for (final mode in SerenAwakeningHandoffMode.values)
+                          RadioListTile<SerenAwakeningHandoffMode>(
+                            key: ValueKey('alarm_edit_handoff_${mode.name}'),
+                            value: mode,
+                            groupValue: _serenAwakeningHandoff,
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            title: Text(
+                              '${mode.iconEmoji} ${l10n.tr(mode.labelKey)}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: mode.descriptionKey != null
+                                ? Text(
+                                    l10n.tr(mode.descriptionKey!),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary(context),
+                                    ),
+                                  )
+                                : null,
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() {
+                                  _serenAwakeningHandoff = val;
+                                });
+                              }
+                            },
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

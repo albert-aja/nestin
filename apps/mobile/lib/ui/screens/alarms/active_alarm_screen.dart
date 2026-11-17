@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/alarm.dart';
 import '../../../providers/alarm_provider.dart';
+import '../../../providers/seren_relaxation_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../widgets/category_badge.dart';
 import '../challenges/challenge_modal_dialog.dart';
@@ -23,10 +25,12 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
   late AnimationController _pulseController;
   late Timer _clockTimer;
   DateTime _now = DateTime.now();
+  late SerenAwakeningHandoffMode _selectedHandoffMode;
 
   @override
   void initState() {
     super.initState();
+    _selectedHandoffMode = widget.alarm.serenAwakeningHandoff;
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -48,6 +52,24 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
     super.dispose();
   }
 
+  Future<void> _performDismiss(
+    BuildContext context,
+    AlarmProvider alarmProvider,
+  ) async {
+    SerenRelaxationProvider? serenProvider;
+    try {
+      serenProvider = Provider.of<SerenRelaxationProvider>(
+        context,
+        listen: false,
+      );
+    } catch (_) {}
+    await alarmProvider.dismissAlarm(
+      widget.alarm.id,
+      serenRelaxationProvider: serenProvider,
+      overrideHandoffMode: _selectedHandoffMode,
+    );
+  }
+
   void _openChallenge(BuildContext context, AlarmProvider alarmProvider,
       SettingsProvider settingsProvider) {
     final challenge =
@@ -59,7 +81,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
       builder: (_) => ChallengeModalDialog(
         challenge: challenge,
         onDismissAlarm: () {
-          alarmProvider.dismissAlarm(widget.alarm.id);
+          _performDismiss(context, alarmProvider);
         },
         onSnooze: widget.alarm.snoozeCount < widget.alarm.maxSnoozeCount
             ? () {
@@ -88,10 +110,17 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
     return Scaffold(
       backgroundColor: const Color(0xFF0F1014),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: (constraints.maxHeight - 40).clamp(0.0, double.infinity),
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
               // Category & Tag
               CategoryBadge(category: widget.alarm.category),
               const SizedBox(height: 12),
@@ -209,12 +238,83 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
 
               const Spacer(),
 
+              // Seren Peaceful Awakening Handoff Selector
+              Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context);
+                  return Container(
+                    key: const ValueKey('active_alarm_seren_handoff_selector'),
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _selectedHandoffMode !=
+                                SerenAwakeningHandoffMode.none
+                            ? const Color(0xFF10B981).withValues(alpha: 0.5)
+                            : Colors.white12,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🌅', style: TextStyle(fontSize: 15)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                l10n.tr('alarm_handoff_active_banner'),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              for (final mode
+                                  in SerenAwakeningHandoffMode.values)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: ChoiceChip(
+                                    key: ValueKey(
+                                        'active_alarm_handoff_chip_${mode.name}'),
+                                    selected: _selectedHandoffMode == mode,
+                                    label: Text(
+                                      '${mode.iconEmoji} ${l10n.tr(mode.labelKey)}',
+                                      style: const TextStyle(fontSize: 11),
+                                    ),
+                                    onSelected: (_) {
+                                      setState(() {
+                                        _selectedHandoffMode = mode;
+                                      });
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
               // Primary Dismiss Action
               if (hasChallenge) ...[
                 SizedBox(
                   width: double.infinity,
                   height: 58,
                   child: ElevatedButton.icon(
+                    key: const ValueKey('btn_active_alarm_solve_challenge'),
                     onPressed: () =>
                         _openChallenge(context, alarmProvider, settingsProvider),
                     icon: const Icon(Icons.psychology_rounded,
@@ -242,8 +342,9 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                   width: double.infinity,
                   height: 58,
                   child: ElevatedButton.icon(
+                    key: const ValueKey('btn_active_alarm_dismiss'),
                     onPressed: () {
-                      alarmProvider.dismissAlarm(widget.alarm.id);
+                      _performDismiss(context, alarmProvider);
                     },
                     icon: const Icon(Icons.alarm_off_rounded,
                         color: Colors.white, size: 24),
@@ -300,8 +401,12 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                 ),
               ),
               const SizedBox(height: 16),
-            ],
-          ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

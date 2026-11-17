@@ -407,6 +407,45 @@ class TimerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Records an explicit [FocusSessionLog] (e.g., from Echo's Brain Playground
+  /// pre-focus cognitive warm-up) and persists it to local storage.
+  Future<FocusSessionLog> recordFocusSessionLog(FocusSessionLog log) async {
+    _focusLogs.insert(0, log);
+    await _storageService.saveFocusLogs(_focusLogs);
+    notifyListeners();
+    return log;
+  }
+
+  /// Logs a completed pre-focus cognitive warm-up into [focusLogs] and optionally
+  /// starts a Pomodoro work sprint right away.
+  Future<FocusSessionLog> recordPreFocusWarmup({
+    required String warmupLabel,
+    int durationMinutes = 3,
+    bool startPomodoroSprint = false,
+  }) async {
+    final log = FocusSessionLog(
+      id: const Uuid().v4(),
+      taskLabel: warmupLabel.trim().isEmpty
+          ? '🧩 Brain Playground Warm-Up'
+          : warmupLabel.trim(),
+      durationMinutes: durationMinutes.clamp(1, 60),
+      phase: FocusPhase.work,
+      completedAt: DateTime.now(),
+      ambientSoundUsed: _selectedAmbientSound != AmbientSoundType.none
+          ? _selectedAmbientSound.name
+          : null,
+    );
+    await recordFocusSessionLog(log);
+
+    if (startPomodoroSprint) {
+      _pomodoroPhase = FocusPhase.work;
+      _pomodoroRemainingSeconds = _pomodoroWorkDurationSeconds;
+      setPomodoroTaskLabel(log.taskLabel);
+      await startPomodoro();
+    }
+    return log;
+  }
+
   // --- Countdown Timers CRUD (Preserved) ---
 
   Future<void> addTimer(String label, int totalSeconds) async {

@@ -2,6 +2,56 @@ import 'alarm_category.dart';
 import 'alarm_schedule.dart';
 import 'challenge_profile.dart';
 
+/// Post-dismissal handoff option from a Roo morning alarm into Seren Relaxation.
+enum SerenAwakeningHandoffMode {
+  none,
+  peacefulMorningSoundscape,
+  gentleMorningBreath,
+}
+
+extension SerenAwakeningHandoffModeExt on SerenAwakeningHandoffMode {
+  String get labelKey {
+    switch (this) {
+      case SerenAwakeningHandoffMode.none:
+        return 'alarm_handoff_none';
+      case SerenAwakeningHandoffMode.peacefulMorningSoundscape:
+        return 'alarm_handoff_soundscape';
+      case SerenAwakeningHandoffMode.gentleMorningBreath:
+        return 'alarm_handoff_breath';
+    }
+  }
+
+  String? get descriptionKey {
+    switch (this) {
+      case SerenAwakeningHandoffMode.none:
+        return null;
+      case SerenAwakeningHandoffMode.peacefulMorningSoundscape:
+        return 'alarm_handoff_soundscape_desc';
+      case SerenAwakeningHandoffMode.gentleMorningBreath:
+        return 'alarm_handoff_breath_desc';
+    }
+  }
+
+  String get iconEmoji {
+    switch (this) {
+      case SerenAwakeningHandoffMode.none:
+        return '🔕';
+      case SerenAwakeningHandoffMode.peacefulMorningSoundscape:
+        return '🌅';
+      case SerenAwakeningHandoffMode.gentleMorningBreath:
+        return '🌿';
+    }
+  }
+
+  static SerenAwakeningHandoffMode fromString(String? value) {
+    if (value == null) return SerenAwakeningHandoffMode.none;
+    return SerenAwakeningHandoffMode.values.firstWhere(
+      (m) => m.name == value,
+      orElse: () => SerenAwakeningHandoffMode.none,
+    );
+  }
+}
+
 class Alarm {
   final String id;
   final String title;
@@ -30,6 +80,9 @@ class Alarm {
   final bool challengeInherited;
   final WakeUpChallengeProfile? challengeOverride;
 
+  // Morning Alarm -> Seren Peaceful Awakening Handoff
+  final SerenAwakeningHandoffMode serenAwakeningHandoff;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -54,6 +107,7 @@ class Alarm {
     this.snoozeUntil,
     this.challengeInherited = true,
     this.challengeOverride,
+    this.serenAwakeningHandoff = SerenAwakeningHandoffMode.none,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -172,6 +226,7 @@ class Alarm {
     bool? challengeInherited,
     WakeUpChallengeProfile? challengeOverride,
     bool? clearChallengeOverride,
+    SerenAwakeningHandoffMode? serenAwakeningHandoff,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -199,6 +254,8 @@ class Alarm {
       challengeOverride: clearChallengeOverride == true
           ? null
           : (challengeOverride ?? this.challengeOverride),
+      serenAwakeningHandoff:
+          serenAwakeningHandoff ?? this.serenAwakeningHandoff,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -226,6 +283,7 @@ class Alarm {
       'snoozeUntil': snoozeUntil?.toIso8601String(),
       'challengeInherited': challengeInherited,
       'challengeOverride': challengeOverride?.toJson(),
+      'serenAwakeningHandoff': serenAwakeningHandoff.name,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -261,6 +319,9 @@ class Alarm {
               json['challengeOverride'] as Map<String, dynamic>,
             )
           : null,
+      serenAwakeningHandoff: SerenAwakeningHandoffModeExt.fromString(
+        json['serenAwakeningHandoff'] as String?,
+      ),
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),

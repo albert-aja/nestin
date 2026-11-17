@@ -6,6 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nestin/core/l10n/app_localizations.dart';
 import 'package:nestin/data/models/entity_link.dart';
 import 'package:nestin/data/models/interactive_experience_models.dart';
+import 'package:nestin/data/models/reading_item.dart';
+import 'package:nestin/data/services/ambient_sound_service.dart';
+import 'package:nestin/data/services/audio_service.dart';
+import 'package:nestin/data/services/notification_service.dart';
+import 'package:nestin/data/services/open_library_book_service.dart';
 import 'package:nestin/data/services/storage_service.dart';
 import 'package:nestin/providers/collection_provider.dart';
 import 'package:nestin/providers/cross_module_link_provider.dart';
@@ -13,9 +18,50 @@ import 'package:nestin/providers/hobby_provider.dart';
 import 'package:nestin/providers/interactive_experience_provider.dart';
 import 'package:nestin/providers/note_provider.dart';
 import 'package:nestin/providers/reading_provider.dart';
+import 'package:nestin/providers/routine_provider.dart';
 import 'package:nestin/providers/seren_relaxation_provider.dart';
 import 'package:nestin/providers/task_provider.dart';
+import 'package:nestin/providers/timer_provider.dart';
 import 'package:nestin/ui/screens/explore/nestin_discover_screen.dart';
+
+class _TestAudioService implements AudioService {
+  @override
+  bool get isPlaying => false;
+
+  @override
+  double get currentVolume => 0.0;
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  void dispose() {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _TestNotificationService implements NotificationService {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _TestAmbientSoundService extends AmbientSoundService {
+  @override
+  Future<void> play(AmbientSoundType type, {double? volume}) async {}
+
+  @override
+  Future<void> pause() async {}
+
+  @override
+  Future<void> resume() async {}
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -405,6 +451,442 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Ditambahkan ke Daftar Bacaan Pippin'), findsOneWidget);
       expect(readingProvider.items.length, 1);
+    });
+
+    test(
+        'Echo Brain Playground filters by category, logs pre-focus warm-up to TimerProvider (FocusSessionLog), starts Pomodoro sprint, and saves strategy to NoteProvider',
+        () async {
+      final timerProvider = TimerProvider(
+        storage,
+        _TestNotificationService(),
+        _TestAudioService(),
+        _TestAmbientSoundService(),
+      );
+      final noteProvider = NoteProvider(storage);
+
+      await expProvider.startFreshBrainPlayground(
+        category: BrainPlaygroundCategory.sequenceLogic,
+      );
+      final seqPuzzles = expProvider.activeBrainPlaygroundPuzzles();
+      expect(seqPuzzles.length, 2);
+
+      final firstPuzzle = seqPuzzles.first;
+      await expProvider.answerBrainPlaygroundPuzzle(
+        puzzle: firstPuzzle,
+        optionId: 'a',
+      );
+
+      // 1. Roo: Log 3-Min Pre-Focus Warm-Up + Start Pomodoro Sprint
+      final createdLog = await expProvider.logWarmupToRooFocusHistory(
+        puzzle: firstPuzzle,
+        localizedPuzzleTitle: 'Fibonacci Botanical Spiral Step',
+        timerProvider: timerProvider,
+        durationMinutes: 3,
+        startPomodoroSprint: true,
+      );
+      expect(
+        timerProvider.focusLogs.any((l) => l.id == createdLog.id),
+        isTrue,
+      );
+      expect(createdLog.durationMinutes, 3);
+      expect(timerProvider.isPomodoroRunning, isTrue);
+      expect(expProvider.isPuzzleLoggedToRooFocus(firstPuzzle.id), isTrue);
+
+      // 2. Echo: Save Reasoning Strategy to NoteProvider
+      final savedNote = await expProvider.savePuzzleInsightToEchoNotes(
+        puzzle: firstPuzzle,
+        localizedCategory: 'Sequence Logic',
+        localizedPuzzleTitle: 'Fibonacci Botanical Spiral Step',
+        localizedPrompt: '1, 1, 2, 3, 5, 8, 13, ?',
+        localizedCorrectAnswer: '21 (8 + 13)',
+        localizedExplanation: 'Each term sums the two preceding numbers.',
+        noteProvider: noteProvider,
+      );
+      expect(noteProvider.notes.any((n) => n.id == savedNote.id), isTrue);
+      expect(expProvider.isPuzzleSavedToEchoNotes(firstPuzzle.id), isTrue);
+
+      // Answer second Sequence puzzle & complete session
+      await expProvider.answerBrainPlaygroundPuzzle(
+        puzzle: seqPuzzles[1],
+        optionId: 'a',
+      );
+      final result = await expProvider.completeBrainPlaygroundSession();
+      expect(result.topMatches.first.matchPercentage, 100);
+      expect(result.answersSnapshot['correctCount'], 2);
+
+      timerProvider.dispose();
+    });
+
+    testWidgets(
+        'Echo Brain Playground UI opens in Bahasa Indonesia, reveals reasoning card, and logs FocusSessionLog to Roo',
+        (tester) async {
+      final timerProvider = TimerProvider(
+        storage,
+        _TestNotificationService(),
+        _TestAudioService(),
+        _TestAmbientSoundService(),
+      );
+      final noteProvider = NoteProvider(storage);
+      final readingProvider = ReadingProvider(storage, seedDefaults: false);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: expProvider),
+            ChangeNotifierProvider(create: (_) => HobbyProvider(storage)),
+            ChangeNotifierProvider(create: (_) => CollectionProvider(storage)),
+            ChangeNotifierProvider(create: (_) => TaskProvider(storage)),
+            ChangeNotifierProvider.value(value: noteProvider),
+            ChangeNotifierProvider.value(value: readingProvider),
+            ChangeNotifierProvider.value(value: timerProvider),
+            ChangeNotifierProvider(
+                create: (_) => CrossModuleLinkProvider(storage)),
+            ChangeNotifierProvider(
+              create: (_) => SerenRelaxationProvider(storage),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('id'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: NestinDiscoverScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final startBpBtn =
+          find.byKey(const ValueKey('btn_start_brain_playground'));
+      await tester.scrollUntilVisible(
+        startBpBtn,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(startBpBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pemanasan 1 dari 6'), findsOneWidget);
+      expect(find.text('Mode Tenang Tanpa Timer'), findsOneWidget);
+
+      // Select Option A to reveal reasoning explanation card
+      await tester.tap(find.byKey(const ValueKey('bp_opt_a')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('bp_explanation_card')), findsOneWidget);
+
+      // Tap 1-Tap Log Pre-Focus Warm-Up to Roo Focus History
+      final logFocusBtn =
+          find.byKey(const ValueKey('btn_bp_log_focus_session'));
+      await tester.ensureVisible(logFocusBtn);
+      await tester.tap(logFocusBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tercatat di Riwayat Fokus Roo'), findsOneWidget);
+      expect(timerProvider.focusLogs.length, 1);
+
+      timerProvider.dispose();
+    });
+
+    test(
+        'Pippin Next-Book Matcher (book_matcher_v1) 3-Tier Hybrid Data Strategy + Multi-Bird Handoffs (Pippin + Seren + Roo)',
+        () async {
+      // Verify Tier 1 Curated Offline Catalog has 42 timeless books across 6 genres
+      expect(ExperienceCatalog.curatedBooks.length, 42);
+      expect(BookMatcherGenre.values.length, 6);
+
+      // Prepare ReadingProvider with:
+      // 1) A completed book ('Before the Coffee Gets Cold') -> should be excluded
+      // 2) A 5-star rated Creativity/Philosophy book -> should boost Philosophy genre
+      // 3) An unread 'Want to Read' book ('My Saved Cozy Novel') -> should rank in Unread Shelf mode
+      final now = DateTime.now();
+      final readingProvider = ReadingProvider(storage, seedDefaults: false);
+      await readingProvider.addBook(
+        ReadingItem(
+          id: 'completed_coffee',
+          title: 'Before the Coffee Gets Cold',
+          author: 'Toshikazu Kawaguchi',
+          category: 'Fiction',
+          format: ReadingFormat.book,
+          currentPage: 213,
+          totalPages: 213,
+          status: ReadingStatus.finished,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      await readingProvider.addBook(
+        ReadingItem(
+          id: 'rated_seneca',
+          title: 'Letters from a Stoic',
+          author: 'Seneca',
+          category: 'Creativity',
+          format: ReadingFormat.book,
+          currentPage: 254,
+          totalPages: 254,
+          status: ReadingStatus.finished,
+          rating: 5,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      const savedUnreadBookId = 'unread_cozy_1';
+      await readingProvider.addBook(
+        ReadingItem(
+          id: savedUnreadBookId,
+          title: 'My Saved Cozy Novel',
+          author: 'A. Reader',
+          category: 'Fiction',
+          format: ReadingFormat.book,
+          currentPage: 0,
+          totalPages: 210,
+          status: ReadingStatus.wantToRead,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      // Start book_matcher_v1 session for Philosophy + Short Chapters + <220 pages
+      await expProvider.startFreshSession(ExperienceCatalog.bookMatcherV1);
+      final qMood = ExperienceCatalog.bookMatcherV1.questions[0];
+      final qPacing = ExperienceCatalog.bookMatcherV1.questions[1];
+      final qLength = ExperienceCatalog.bookMatcherV1.questions[2];
+      final qGenres = ExperienceCatalog.bookMatcherV1.questions[3];
+      final qMins = ExperienceCatalog.bookMatcherV1.questions[4];
+      final qMode = ExperienceCatalog.bookMatcherV1.questions[5];
+
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qMood,
+        optionId: 'bm_opt_mood_philosophical',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qPacing,
+        optionId: 'bm_opt_pace_modular',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qLength,
+        optionId: 'bm_opt_len_short',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qGenres,
+        optionId: 'bm_opt_topic_philosophy',
+      );
+      await expProvider.setNumericValue(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qMins,
+        value: 25,
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qMode,
+        optionId: 'bm_opt_mode_curated',
+      );
+
+      final result = await expProvider.completeBookMatcherSession(
+        userReadingItems: readingProvider.items,
+      );
+      expect(result.topMatches.length, 3);
+      // Completed book ('bm_cozy_coffee_cold') must not appear in matches
+      expect(
+        result.topMatches.any((m) => m.profileId == 'bm_cozy_coffee_cold'),
+        isFalse,
+      );
+      // Top match should be a Philosophy book with 4-5 star taste boost reason
+      final topMatch = result.topMatches.first;
+      final topBook = expProvider.resolveBookProfile(
+        topMatch.profileId,
+        userReadingItems: readingProvider.items,
+      )!;
+      expect(topBook.genre, BookMatcherGenre.philosophy);
+      expect(topMatch.reasonKeys.contains('bm_reason_taste_boost'), isTrue);
+
+      // Test Tier 2 Mode B: "Pick From My Unread Shelf" mode ranks user's wantToRead book first
+      await expProvider.startFreshSession(ExperienceCatalog.bookMatcherV1);
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qMood,
+        optionId: 'bm_opt_mood_cozy',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qPacing,
+        optionId: 'bm_opt_pace_unhurried',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qLength,
+        optionId: 'bm_opt_len_short',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qGenres,
+        optionId: 'bm_opt_topic_cozy_fic',
+      );
+      await expProvider.selectOption(
+        definition: ExperienceCatalog.bookMatcherV1,
+        question: qMode,
+        optionId: 'bm_opt_mode_unread_shelf',
+      );
+
+      final unreadShelfResult = await expProvider.completeBookMatcherSession(
+        userReadingItems: readingProvider.items,
+      );
+      expect(
+        unreadShelfResult.topMatches.first.profileId,
+        'shelf_$savedUnreadBookId',
+      );
+      expect(
+        unreadShelfResult.topMatches.first.reasonKeys
+            .contains('bm_reason_from_unread_shelf'),
+        isTrue,
+      );
+
+      // Test Tier 3 Open Library API JSON parser & cache enrichment
+      final fakeOpenLibraryService = OpenLibraryBookService(
+        storage,
+        httpFetcher: (_) async => '''
+        {
+          "works": [
+            {
+              "key": "/works/OL99999W",
+              "title": "The Art of Stillness",
+              "authors": [{"name": "Pico Iyer"}],
+              "cover_id": 8234111
+            }
+          ]
+        }
+        ''',
+      );
+      final providerWithOnline = InteractiveExperienceProvider(
+        storage,
+        openLibraryService: fakeOpenLibraryService,
+      );
+      final fetchedOnline = await fakeOpenLibraryService
+          .fetchAndCacheSubjectBooks(BookMatcherGenre.philosophy);
+      expect(fetchedOnline.length, 1);
+      expect(fetchedOnline.first.titleEn, 'The Art of Stillness');
+      expect(fetchedOnline.first.author, 'Pico Iyer');
+      expect(fetchedOnline.first.tierSource, 3);
+      expect(
+        fetchedOnline.first.coverImageUrl,
+        'https://covers.openlibrary.org/b/id/8234111-M.jpg',
+      );
+
+      // Test Connected 1-Tap Multi-Bird Handoffs (Pippin + Seren + Roo)
+      final serenProvider = SerenRelaxationProvider(
+        storage,
+        ambientSoundService: _TestAmbientSoundService(),
+      );
+      final routineProvider = RoutineProvider(storage);
+      final taskProvider = TaskProvider(storage);
+      final linkProvider = CrossModuleLinkProvider(storage);
+
+      // 1. Pippin Handoff: Add matched book to ReadingProvider
+      final addedBook = await expProvider.addMatchedBookToPippinReading(
+        resultId: result.id,
+        profile: topBook,
+        readingProvider: readingProvider,
+        status: ReadingStatus.currentlyReading,
+      );
+      expect(addedBook.title, topBook.localizedTitle);
+      expect(addedBook.totalPages, topBook.pageCount);
+      expect(addedBook.status, ReadingStatus.currentlyReading);
+
+      // 2. Seren Handoff: Play paired soundscape (e.g. warm_piano -> gentlePiano)
+      await expProvider.startBookMatcherSerenSoundscape(
+        resultId: result.id,
+        profile: topBook,
+        serenProvider: serenProvider,
+      );
+      expect(serenProvider.isMixerPlaying, isTrue);
+      expect(serenProvider.isSoundInMix(topBook.canonicalSerenSoundId), isTrue);
+
+      // 3. Roo Handoff: Schedule evening reading habit block in RoutineProvider & TaskProvider + CrossModuleLinkProvider
+      final scheduledTask = await expProvider.scheduleBookReadingHabitInRoo(
+        resultId: result.id,
+        profile: topBook,
+        taskProvider: taskProvider,
+        routineProvider: routineProvider,
+        linkProvider: linkProvider,
+      );
+      expect(scheduledTask.title.contains(topBook.localizedTitle), isTrue);
+      expect(
+        taskProvider.tasks.any((t) => t.title.contains(topBook.localizedTitle)),
+        isTrue,
+      );
+      expect(linkProvider.allLinks.isNotEmpty, isTrue);
+      expect(providerWithOnline.cachedOpenLibraryBooks.length, 1);
+
+      serenProvider.dispose();
+    });
+
+    testWidgets(
+        'Pippin Reading Taste & Next-Book Matcher UI card renders in NestinDiscoverScreen and opens 6-step quiz',
+        (tester) async {
+      final readingProvider = ReadingProvider(storage, seedDefaults: false);
+      final routineProvider = RoutineProvider(storage);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: expProvider),
+            ChangeNotifierProvider(create: (_) => HobbyProvider(storage)),
+            ChangeNotifierProvider(create: (_) => CollectionProvider(storage)),
+            ChangeNotifierProvider(create: (_) => TaskProvider(storage)),
+            ChangeNotifierProvider(create: (_) => NoteProvider(storage)),
+            ChangeNotifierProvider.value(value: readingProvider),
+            ChangeNotifierProvider.value(value: routineProvider),
+            ChangeNotifierProvider(
+              create: (_) => CrossModuleLinkProvider(storage),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => SerenRelaxationProvider(
+                storage,
+                ambientSoundService: _TestAmbientSoundService(),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: NestinDiscoverScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final startBmBtn = find.byKey(const ValueKey('btn_start_book_matcher'));
+      await tester.scrollUntilVisible(
+        startBmBtn,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("Pippin's Reading Taste & Next-Book Matcher"),
+        findsWidgets,
+      );
+      expect(
+        find.byKey(const ValueKey('btn_book_matcher_unread_shelf')),
+        findsOneWidget,
+      );
+
+      await tester.tap(startBmBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Step 1 of 6'), findsOneWidget);
+      expect(
+        find.text('What reading mood are you looking for tonight?'),
+        findsOneWidget,
+      );
     });
   });
 }

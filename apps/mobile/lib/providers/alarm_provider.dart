@@ -10,6 +10,7 @@ import '../data/services/storage_service.dart';
 import '../data/services/audio_service.dart';
 import '../data/services/notification_service.dart';
 import '../data/services/widget_sync_service.dart';
+import 'seren_relaxation_provider.dart';
 
 class AlarmProvider extends ChangeNotifier {
   final StorageService _storageService;
@@ -18,6 +19,8 @@ class AlarmProvider extends ChangeNotifier {
 
   List<Alarm> _alarms = [];
   Alarm? _ringingAlarm;
+  SerenAwakeningHandoffMode _lastTriggeredAwakeningHandoff =
+      SerenAwakeningHandoffMode.none;
   Timer? _scheduleWatcherTimer;
 
   AlarmProvider(
@@ -31,6 +34,8 @@ class AlarmProvider extends ChangeNotifier {
 
   List<Alarm> get alarms => List.unmodifiable(_alarms);
   Alarm? get ringingAlarm => _ringingAlarm;
+  SerenAwakeningHandoffMode get lastTriggeredAwakeningHandoff =>
+      _lastTriggeredAwakeningHandoff;
 
   void _loadAlarms() {
     _alarms = _storageService.loadAlarms();
@@ -214,11 +219,24 @@ class AlarmProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Dismisses the currently ringing alarm
-  Future<void> dismissAlarm(String alarmId) async {
+  /// Dismisses the currently ringing alarm and optionally launches the configured
+  /// (or overridden) Seren Peaceful Awakening Handoff.
+  Future<void> dismissAlarm(
+    String alarmId, {
+    SerenRelaxationProvider? serenRelaxationProvider,
+    SerenAwakeningHandoffMode? overrideHandoffMode,
+  }) async {
+    SerenAwakeningHandoffMode effectiveHandoff =
+        overrideHandoffMode ??
+            _ringingAlarm?.serenAwakeningHandoff ??
+            SerenAwakeningHandoffMode.none;
+
     final index = _alarms.indexWhere((a) => a.id == alarmId);
     if (index != -1) {
       final alarm = _alarms[index];
+      if (overrideHandoffMode == null) {
+        effectiveHandoff = alarm.serenAwakeningHandoff;
+      }
       if (alarm.schedule.type == ScheduleType.oneTime) {
         // One-time alarms disable on dismissal
         _alarms[index] = alarm.copyWith(
@@ -240,7 +258,14 @@ class AlarmProvider extends ChangeNotifier {
 
     await _audioService.stop();
     _ringingAlarm = null;
+    _lastTriggeredAwakeningHandoff = effectiveHandoff;
     notifyListeners();
+
+    if (serenRelaxationProvider != null &&
+        effectiveHandoff != SerenAwakeningHandoffMode.none) {
+      await serenRelaxationProvider
+          .launchMorningAwakeningHandoff(effectiveHandoff);
+    }
   }
 
   void _startScheduleWatcher() {

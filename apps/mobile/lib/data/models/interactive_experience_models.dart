@@ -1,4 +1,8 @@
 import 'package:uuid/uuid.dart';
+import 'book_matcher_catalog.dart';
+import 'weekend_generator_catalog.dart';
+export 'book_matcher_catalog.dart';
+export 'weekend_generator_catalog.dart';
 
 /// Conceptual groupings in Nestin Discover (Section 7 of Interactive Experiences Blueprint).
 enum DiscoverGrouping {
@@ -396,10 +400,16 @@ class ExperienceResultRecord {
   final List<ExperienceMatchedOutcome> topMatches;
   final Map<String, dynamic> answersSnapshot;
   final String? addedToPippinHobbyId;
+  final String? addedToPippinBookId;
   final String? createdTwillChecklistId;
   final String? createdTwillWishlistId;
   final String? createdRooTaskId;
+  final String? createdRooRoutineId;
   final String? playedSerenSoundId;
+  final String? createdScoutPresetId;
+  final String? createdScoutPlaceId;
+  final String? createdRooCalendarEventId;
+  final String? createdTwillBudgetId;
 
   ExperienceResultRecord({
     String? id,
@@ -409,19 +419,31 @@ class ExperienceResultRecord {
     required this.topMatches,
     this.answersSnapshot = const {},
     this.addedToPippinHobbyId,
+    this.addedToPippinBookId,
     this.createdTwillChecklistId,
     this.createdTwillWishlistId,
     this.createdRooTaskId,
+    this.createdRooRoutineId,
     this.playedSerenSoundId,
+    this.createdScoutPresetId,
+    this.createdScoutPlaceId,
+    this.createdRooCalendarEventId,
+    this.createdTwillBudgetId,
   })  : id = id ?? const Uuid().v4(),
         completedAt = completedAt ?? DateTime.now();
 
   ExperienceResultRecord copyWith({
     String? addedToPippinHobbyId,
+    String? addedToPippinBookId,
     String? createdTwillChecklistId,
     String? createdTwillWishlistId,
     String? createdRooTaskId,
+    String? createdRooRoutineId,
     String? playedSerenSoundId,
+    String? createdScoutPresetId,
+    String? createdScoutPlaceId,
+    String? createdRooCalendarEventId,
+    String? createdTwillBudgetId,
   }) {
     return ExperienceResultRecord(
       id: id,
@@ -431,12 +453,19 @@ class ExperienceResultRecord {
       topMatches: topMatches,
       answersSnapshot: answersSnapshot,
       addedToPippinHobbyId: addedToPippinHobbyId ?? this.addedToPippinHobbyId,
+      addedToPippinBookId: addedToPippinBookId ?? this.addedToPippinBookId,
       createdTwillChecklistId:
           createdTwillChecklistId ?? this.createdTwillChecklistId,
       createdTwillWishlistId:
           createdTwillWishlistId ?? this.createdTwillWishlistId,
       createdRooTaskId: createdRooTaskId ?? this.createdRooTaskId,
+      createdRooRoutineId: createdRooRoutineId ?? this.createdRooRoutineId,
       playedSerenSoundId: playedSerenSoundId ?? this.playedSerenSoundId,
+      createdScoutPresetId: createdScoutPresetId ?? this.createdScoutPresetId,
+      createdScoutPlaceId: createdScoutPlaceId ?? this.createdScoutPlaceId,
+      createdRooCalendarEventId:
+          createdRooCalendarEventId ?? this.createdRooCalendarEventId,
+      createdTwillBudgetId: createdTwillBudgetId ?? this.createdTwillBudgetId,
     );
   }
 
@@ -448,10 +477,16 @@ class ExperienceResultRecord {
         'topMatches': topMatches.map((m) => m.toJson()).toList(),
         'answersSnapshot': answersSnapshot,
         'addedToPippinHobbyId': addedToPippinHobbyId,
+        'addedToPippinBookId': addedToPippinBookId,
         'createdTwillChecklistId': createdTwillChecklistId,
         'createdTwillWishlistId': createdTwillWishlistId,
         'createdRooTaskId': createdRooTaskId,
+        'createdRooRoutineId': createdRooRoutineId,
         'playedSerenSoundId': playedSerenSoundId,
+        'createdScoutPresetId': createdScoutPresetId,
+        'createdScoutPlaceId': createdScoutPlaceId,
+        'createdRooCalendarEventId': createdRooCalendarEventId,
+        'createdTwillBudgetId': createdTwillBudgetId,
       };
 
   factory ExperienceResultRecord.fromJson(Map<String, dynamic> json) {
@@ -471,10 +506,16 @@ class ExperienceResultRecord {
           ? Map<String, dynamic>.from(json['answersSnapshot'] as Map)
           : const {},
       addedToPippinHobbyId: json['addedToPippinHobbyId'] as String?,
+      addedToPippinBookId: json['addedToPippinBookId'] as String?,
       createdTwillChecklistId: json['createdTwillChecklistId'] as String?,
       createdTwillWishlistId: json['createdTwillWishlistId'] as String?,
       createdRooTaskId: json['createdRooTaskId'] as String?,
+      createdRooRoutineId: json['createdRooRoutineId'] as String?,
       playedSerenSoundId: json['playedSerenSoundId'] as String?,
+      createdScoutPresetId: json['createdScoutPresetId'] as String?,
+      createdScoutPlaceId: json['createdScoutPlaceId'] as String?,
+      createdRooCalendarEventId: json['createdRooCalendarEventId'] as String?,
+      createdTwillBudgetId: json['createdTwillBudgetId'] as String?,
     );
   }
 }
@@ -482,6 +523,15 @@ class ExperienceResultRecord {
 /// Curated, deterministic catalog for Nestin Discover & Pippin's Hobby Finder.
 class ExperienceCatalog {
   static const String hobbyFinderId = 'hobby_finder_v1';
+  static const String bookMatcherId = BookMatcherCatalog.bookMatcherId;
+  static const ExperienceDefinition bookMatcherV1 =
+      BookMatcherCatalog.definition;
+  static const String weekendGeneratorId =
+      WeekendGeneratorCatalog.weekendGeneratorId;
+  static const ExperienceDefinition weekendGeneratorV1 =
+      WeekendGeneratorCatalog.definition;
+  static List<BookRecommendationProfile> get curatedBooks =>
+      BookMatcherCatalog.curatedBooks;
 
   static const List<HobbyRecommendationProfile> hobbyProfiles = [
     HobbyRecommendationProfile(
@@ -990,6 +1040,28 @@ class ExperienceCatalog {
       ],
     ),
     ExperienceCandidateAudit(
+      id: 'book_matcher_v1',
+      titleKey: 'bm_title',
+      descriptionKey: 'bm_subtitle',
+      iconEmoji: '📚',
+      primaryBird: 'Pippin',
+      supportingBirds: ['Seren', 'Roo', 'Echo'],
+      grouping: DiscoverGrouping.discoverYourself,
+      status: ExperienceCandidateStatus.referenceImplemented,
+      reusedNestinModules: [
+        'ReadingProvider',
+        'SerenRelaxationProvider',
+        'RoutineProvider',
+        'TaskProvider',
+        'CrossModuleLinkProvider',
+      ],
+      followUpActionsCreated: [
+        'ReadingItem (Want to Read / Currently Reading)',
+        'RoutineItem / TaskItem (20m Evening Reading Block)',
+        'EntityLink',
+      ],
+    ),
+    ExperienceCandidateAudit(
       id: 'interest_explorer',
       titleKey: 'exp_cand_interest_explorer_title',
       descriptionKey: 'exp_cand_interest_explorer_desc',
@@ -1011,24 +1083,28 @@ class ExperienceCatalog {
       ],
     ),
     ExperienceCandidateAudit(
-      id: 'weekend_generator',
+      id: 'weekend_generator_v1',
       titleKey: 'exp_cand_weekend_gen_title',
       descriptionKey: 'exp_cand_weekend_gen_desc',
       iconEmoji: '⛺',
       primaryBird: 'Scout',
       supportingBirds: ['Roo', 'Twill', 'Pippin'],
       grouping: DiscoverGrouping.exploreTheWorld,
-      status: ExperienceCandidateStatus.priorityCandidate,
+      status: ExperienceCandidateStatus.referenceImplemented,
       reusedNestinModules: [
         'BeforeYouGoProvider',
+        'LocalWeatherService',
+        'GeofenceProvider',
         'CalendarProvider',
         'CollectionProvider',
         'MoneyProvider',
       ],
       followUpActionsCreated: [
-        'CalendarEvent',
         'DeparturePreset',
-        'CollectionItem (Packing List)',
+        'SavedPlace / LocationReminder',
+        'CalendarEvent',
+        'CollectionItem',
+        'MoneyBudget',
       ],
     ),
     ExperienceCandidateAudit(
@@ -1071,20 +1147,21 @@ class ExperienceCatalog {
       ],
     ),
     ExperienceCandidateAudit(
-      id: 'brain_playground',
+      id: 'brain_playground_v1',
       titleKey: 'exp_cand_brain_playground_title',
       descriptionKey: 'exp_cand_brain_playground_desc',
       iconEmoji: '🧩',
       primaryBird: 'Echo',
       supportingBirds: ['Roo'],
       grouping: DiscoverGrouping.learnSomething,
-      status: ExperienceCandidateStatus.priorityCandidate,
+      status: ExperienceCandidateStatus.referenceImplemented,
       reusedNestinModules: [
         'TimerProvider',
-        'JournalProvider',
+        'NoteProvider',
       ],
       followUpActionsCreated: [
         'FocusSessionLog',
+        'NoteItem (Reasoning Strategy)',
       ],
     ),
     ExperienceCandidateAudit(
@@ -1383,6 +1460,211 @@ class ExperienceCatalog {
     }
     return null;
   }
+
+  // ===========================================================================
+  // ECHO'S BRAIN PLAYGROUND (brain_playground_v1)
+  // ===========================================================================
+
+  static const String brainPlaygroundId = 'brain_playground_v1';
+
+  static const List<BrainPlaygroundPuzzle> brainPlaygroundPuzzles = [
+    // 1. Pattern Recognition — 90° Phase Rotation Cycle
+    BrainPlaygroundPuzzle(
+      id: 'bp_pat_1',
+      category: BrainPlaygroundCategory.patternRecognition,
+      titleKey: 'bp_p_pat_1_title',
+      promptKey: 'bp_p_pat_1_prompt',
+      explanationKey: 'bp_p_pat_1_explain',
+      visualBanner: '◐   →   ◓   →   ◑   →   ?',
+      options: [
+        BrainPlaygroundOption(
+          id: 'a',
+          labelKey: 'bp_p_pat_1_opt_a',
+          isCorrect: true,
+        ),
+        BrainPlaygroundOption(id: 'b', labelKey: 'bp_p_pat_1_opt_b'),
+        BrainPlaygroundOption(id: 'c', labelKey: 'bp_p_pat_1_opt_c'),
+        BrainPlaygroundOption(id: 'd', labelKey: 'bp_p_pat_1_opt_d'),
+      ],
+    ),
+    // 2. Pattern Recognition — Matrix Symmetry & Fill Parity
+    BrainPlaygroundPuzzle(
+      id: 'bp_pat_2',
+      category: BrainPlaygroundCategory.patternRecognition,
+      titleKey: 'bp_p_pat_2_title',
+      promptKey: 'bp_p_pat_2_prompt',
+      explanationKey: 'bp_p_pat_2_explain',
+      visualBanner: '△ ▲ △  |  ○ ● ○  |  □ ■ ?',
+      options: [
+        BrainPlaygroundOption(
+          id: 'a',
+          labelKey: 'bp_p_pat_2_opt_a',
+          isCorrect: true,
+        ),
+        BrainPlaygroundOption(id: 'b', labelKey: 'bp_p_pat_2_opt_b'),
+        BrainPlaygroundOption(id: 'c', labelKey: 'bp_p_pat_2_opt_c'),
+        BrainPlaygroundOption(id: 'd', labelKey: 'bp_p_pat_2_opt_d'),
+      ],
+    ),
+    // 3. Sequence Logic — Fibonacci Botanical Spiral Step
+    BrainPlaygroundPuzzle(
+      id: 'bp_seq_1',
+      category: BrainPlaygroundCategory.sequenceLogic,
+      titleKey: 'bp_p_seq_1_title',
+      promptKey: 'bp_p_seq_1_prompt',
+      explanationKey: 'bp_p_seq_1_explain',
+      visualBanner: '1  •  1  •  2  •  3  •  5  •  8  •  13  •  ?',
+      options: [
+        BrainPlaygroundOption(
+          id: 'a',
+          labelKey: 'bp_p_seq_1_opt_a',
+          isCorrect: true,
+        ),
+        BrainPlaygroundOption(id: 'b', labelKey: 'bp_p_seq_1_opt_b'),
+        BrainPlaygroundOption(id: 'c', labelKey: 'bp_p_seq_1_opt_c'),
+        BrainPlaygroundOption(id: 'd', labelKey: 'bp_p_seq_1_opt_d'),
+      ],
+    ),
+    // 4. Sequence Logic — Triangular First-Difference Progression
+    BrainPlaygroundPuzzle(
+      id: 'bp_seq_2',
+      category: BrainPlaygroundCategory.sequenceLogic,
+      titleKey: 'bp_p_seq_2_title',
+      promptKey: 'bp_p_seq_2_prompt',
+      explanationKey: 'bp_p_seq_2_explain',
+      visualBanner: '2  (+2)  4  (+3)  7  (+4)  11  (+5)  16  →  ?',
+      options: [
+        BrainPlaygroundOption(
+          id: 'a',
+          labelKey: 'bp_p_seq_2_opt_a',
+          isCorrect: true,
+        ),
+        BrainPlaygroundOption(id: 'b', labelKey: 'bp_p_seq_2_opt_b'),
+        BrainPlaygroundOption(id: 'c', labelKey: 'bp_p_seq_2_opt_c'),
+        BrainPlaygroundOption(id: 'd', labelKey: 'bp_p_seq_2_opt_d'),
+      ],
+    ),
+    // 5. Spatial Reasoning — 3D Cube Net Opposite-Face Folding
+    BrainPlaygroundPuzzle(
+      id: 'bp_spa_1',
+      category: BrainPlaygroundCategory.spatialReasoning,
+      titleKey: 'bp_p_spa_1_title',
+      promptKey: 'bp_p_spa_1_prompt',
+      explanationKey: 'bp_p_spa_1_explain',
+      visualBanner: '[ ] [★] [ ] [●]',
+      options: [
+        BrainPlaygroundOption(
+          id: 'a',
+          labelKey: 'bp_p_spa_1_opt_a',
+          isCorrect: true,
+        ),
+        BrainPlaygroundOption(id: 'b', labelKey: 'bp_p_spa_1_opt_b'),
+        BrainPlaygroundOption(id: 'c', labelKey: 'bp_p_spa_1_opt_c'),
+        BrainPlaygroundOption(id: 'd', labelKey: 'bp_p_spa_1_opt_d'),
+      ],
+    ),
+    // 6. Spatial Reasoning — Horizontal Mirror Axis Reflection
+    BrainPlaygroundPuzzle(
+      id: 'bp_spa_2',
+      category: BrainPlaygroundCategory.spatialReasoning,
+      titleKey: 'bp_p_spa_2_title',
+      promptKey: 'bp_p_spa_2_prompt',
+      explanationKey: 'bp_p_spa_2_explain',
+      visualBanner: '┗   ⋮   ?',
+      options: [
+        BrainPlaygroundOption(
+          id: 'a',
+          labelKey: 'bp_p_spa_2_opt_a',
+          isCorrect: true,
+        ),
+        BrainPlaygroundOption(id: 'b', labelKey: 'bp_p_spa_2_opt_b'),
+        BrainPlaygroundOption(id: 'c', labelKey: 'bp_p_spa_2_opt_c'),
+        BrainPlaygroundOption(id: 'd', labelKey: 'bp_p_spa_2_opt_d'),
+      ],
+    ),
+  ];
+
+  static List<BrainPlaygroundPuzzle> puzzlesForCategory(
+    BrainPlaygroundCategory? category,
+  ) {
+    if (category == null || category == BrainPlaygroundCategory.all) {
+      return brainPlaygroundPuzzles;
+    }
+    return brainPlaygroundPuzzles
+        .where((p) => p.category == category)
+        .toList();
+  }
+}
+
+/// Calm cognitive warm-up categories in Echo's Brain Playground.
+enum BrainPlaygroundCategory {
+  all,
+  patternRecognition,
+  sequenceLogic,
+  spatialReasoning,
+}
+
+extension BrainPlaygroundCategoryExt on BrainPlaygroundCategory {
+  String get titleKey {
+    switch (this) {
+      case BrainPlaygroundCategory.all:
+        return 'bp_cat_all';
+      case BrainPlaygroundCategory.patternRecognition:
+        return 'bp_cat_pattern';
+      case BrainPlaygroundCategory.sequenceLogic:
+        return 'bp_cat_sequence';
+      case BrainPlaygroundCategory.spatialReasoning:
+        return 'bp_cat_spatial';
+    }
+  }
+
+  String get iconEmoji {
+    switch (this) {
+      case BrainPlaygroundCategory.all:
+        return '🧩';
+      case BrainPlaygroundCategory.patternRecognition:
+        return '💠';
+      case BrainPlaygroundCategory.sequenceLogic:
+        return '🔢';
+      case BrainPlaygroundCategory.spatialReasoning:
+        return '📐';
+    }
+  }
+}
+
+class BrainPlaygroundOption {
+  final String id;
+  final String labelKey;
+  final bool isCorrect;
+
+  const BrainPlaygroundOption({
+    required this.id,
+    required this.labelKey,
+    this.isCorrect = false,
+  });
+}
+
+class BrainPlaygroundPuzzle {
+  final String id;
+  final BrainPlaygroundCategory category;
+  final String titleKey;
+  final String promptKey;
+  final String explanationKey;
+  final String visualBanner;
+  final List<BrainPlaygroundOption> options;
+
+  const BrainPlaygroundPuzzle({
+    required this.id,
+    required this.category,
+    required this.titleKey,
+    required this.promptKey,
+    required this.explanationKey,
+    required this.visualBanner,
+    required this.options,
+  });
+
+  String get correctOptionId =>
+      options.firstWhere((o) => o.isCorrect, orElse: () => options.first).id;
 }
 
 /// Curated curiosity domains in Echo's Knowledge Arena.

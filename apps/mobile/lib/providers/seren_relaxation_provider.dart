@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../core/l10n/app_localizations.dart';
+import '../data/models/alarm.dart';
 import '../data/models/journal_entry.dart';
 import '../data/models/seren_relaxation_models.dart';
 import '../data/services/ambient_sound_service.dart';
@@ -842,6 +843,40 @@ class SerenRelaxationProvider extends ChangeNotifier
   void setGuidedNarrationEnabled(bool enabled) {
     _guidedNarrationEnabled = enabled;
     notifyListeners();
+  }
+
+  /// Launches the post-alarm Seren Peaceful Awakening Handoff (either a 3-minute
+  /// *Peaceful Morning Sanctuary* soundscape or a 3-minute *Gentle Morning Awakening Breath* session).
+  Future<void> launchMorningAwakeningHandoff(
+    SerenAwakeningHandoffMode mode, {
+    int durationMinutes = 3,
+  }) async {
+    if (mode == SerenAwakeningHandoffMode.none) return;
+    _timeOfDayMode = RelaxationTimeOfDayMode.morning;
+
+    switch (mode) {
+      case SerenAwakeningHandoffMode.none:
+        return;
+      case SerenAwakeningHandoffMode.peacefulMorningSoundscape:
+        final preset = SerenRelaxationCatalog.curatedPresets.firstWhere(
+          (p) => p.id == 'preset_peaceful_morning',
+          orElse: () => SerenRelaxationCatalog.curatedPresets.first,
+        );
+        await loadSoundscape(preset, autoPlay: true);
+        await startPlaybackTimer(durationMinutes);
+        return;
+      case SerenAwakeningHandoffMode.gentleMorningBreath:
+        final session = SerenRelaxationCatalog.guidedSessions.firstWhere(
+          (s) => s.id == 'breath_gentle_morning',
+          orElse: () => SerenRelaxationCatalog.guidedSessions.first,
+        );
+        await startGuidedSession(
+          session,
+          durationMinutes: durationMinutes,
+          playRecommendedSound: true,
+        );
+        return;
+    }
   }
 
   // ===========================================================================

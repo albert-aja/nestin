@@ -1197,6 +1197,8 @@ class StorageService {
       'experienceResults':
           loadExperienceResults().map((e) => e.toJson()).toList(),
       'disabledExperienceIds': loadDisabledExperienceIds(),
+      'cachedOpenLibraryBooks':
+          loadCachedOpenLibraryBooks().map((b) => b.toJson()).toList(),
     };
     return jsonEncode(backup);
   }
@@ -1205,6 +1207,8 @@ class StorageService {
   static const String _keyExperienceResults = 'nestin_experience_results_v1';
   static const String _keyDisabledExperienceIds =
       'nestin_disabled_experience_ids_v1';
+  static const String _keyCachedOpenLibraryBooks =
+      'nestin_open_library_books_cache_v1';
 
   Map<String, ExperienceSessionDraft> loadExperienceDrafts() {
     final raw = _prefs.getString(_keyExperienceDrafts);
@@ -1261,6 +1265,30 @@ class StorageService {
 
   Future<void> saveDisabledExperienceIds(List<String> ids) async {
     await _prefs.setStringList(_keyDisabledExperienceIds, ids);
+  }
+
+  List<BookRecommendationProfile> loadCachedOpenLibraryBooks() {
+    final raw = _prefs.getString(_keyCachedOpenLibraryBooks);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list
+          .map(
+            (item) => BookRecommendationProfile.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> saveCachedOpenLibraryBooks(
+    List<BookRecommendationProfile> books,
+  ) async {
+    final payload = books.map((b) => b.toJson()).toList();
+    await _prefs.setString(_keyCachedOpenLibraryBooks, jsonEncode(payload));
   }
 
   SerenRelaxationPreferences loadSerenRelaxationPreferences() {
@@ -1612,6 +1640,16 @@ class StorageService {
             .map((e) => e.toString())
             .toList();
         await saveDisabledExperienceIds(ids);
+      }
+      if (map['cachedOpenLibraryBooks'] is List) {
+        final cached = (map['cachedOpenLibraryBooks'] as List)
+            .map(
+              (b) => BookRecommendationProfile.fromJson(
+                Map<String, dynamic>.from(b as Map),
+              ),
+            )
+            .toList();
+        await saveCachedOpenLibraryBooks(cached);
       }
       return true;
     } catch (_) {
