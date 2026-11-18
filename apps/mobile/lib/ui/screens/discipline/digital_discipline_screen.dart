@@ -8,6 +8,7 @@ import '../../../data/models/app_restriction.dart';
 import '../../../data/models/device_capability.dart';
 import '../../../data/models/digital_wellbeing.dart';
 import '../../../providers/device_control_provider.dart';
+import '../../widgets/skeleton_shimmer.dart';
 import '../settings/permission_center_screen.dart';
 import 'wellbeing_app_fast_tab.dart';
 import 'wellbeing_app_picker_sheet.dart';
@@ -190,6 +191,13 @@ class _DigitalDisciplineScreenState extends State<DigitalDisciplineScreen>
     BuildContext context,
     DeviceControlProvider provider,
   ) {
+    if (provider.isRefreshing) {
+      return const SkeletonCardList(
+        itemCount: 4,
+        lineCount: 3,
+        showTrailingPill: true,
+      );
+    }
     final l10n = context.l10n;
     final now = DateTime.now();
     final snapshot = provider.usageSnapshot;

@@ -75,6 +75,7 @@ class Alarm {
   final int maxSnoozeCount;
   final int snoozeCount;
   final DateTime? snoozeUntil;
+  final bool shrinkingSnoozeEnabled;
 
   // Challenge Configuration & Inheritance
   final bool challengeInherited;
@@ -105,12 +106,57 @@ class Alarm {
     this.maxSnoozeCount = 3,
     this.snoozeCount = 0,
     this.snoozeUntil,
+    this.shrinkingSnoozeEnabled = false,
     this.challengeInherited = true,
     this.challengeOverride,
     this.serenAwakeningHandoff = SerenAwakeningHandoffMode.none,
     required this.createdAt,
     required this.updatedAt,
   });
+
+  /// Computes the snooze duration in minutes for [currentSnoozeCount].
+  /// When [shrinkingSnoozeEnabled] is true, progressively shortens on each
+  /// repeat (e.g. 10m -> 5m -> 3m -> 2m, floored at 2m).
+  static int computeShrinkingSnoozeMinutes({
+    required int baseMinutes,
+    required int currentSnoozeCount,
+    required bool shrinkingEnabled,
+  }) {
+    if (!shrinkingEnabled || currentSnoozeCount <= 0) {
+      return baseMinutes;
+    }
+    if (baseMinutes == 10 && currentSnoozeCount == 2) return 3;
+    if (baseMinutes == 9 && currentSnoozeCount == 2) return 3;
+
+    var duration = baseMinutes.toDouble();
+    for (int i = 0; i < currentSnoozeCount; i++) {
+      duration = (duration / 2.0).ceilToDouble();
+    }
+    return duration.round().clamp(2, baseMinutes);
+  }
+
+  /// Generates a preview list of snooze durations (e.g. [10, 5, 3]) for UI display.
+  static List<int> shrinkingPreviewSequence({
+    required int baseMinutes,
+    required int maxCount,
+  }) {
+    final steps = maxCount == 0 ? 3 : maxCount.clamp(1, 5);
+    return List<int>.generate(
+      steps,
+      (i) => computeShrinkingSnoozeMinutes(
+        baseMinutes: baseMinutes,
+        currentSnoozeCount: i,
+        shrinkingEnabled: true,
+      ),
+    );
+  }
+
+  /// Effective snooze duration in minutes for the next snooze tap.
+  int get nextSnoozeMinutes => computeShrinkingSnoozeMinutes(
+        baseMinutes: snoozeMinutes,
+        currentSnoozeCount: snoozeCount,
+        shrinkingEnabled: shrinkingSnoozeEnabled,
+      );
 
   /// Resolves the actual challenge profile to apply:
   /// If challengeInherited is true, uses the current global default.
@@ -223,6 +269,7 @@ class Alarm {
     int? snoozeCount,
     DateTime? snoozeUntil,
     bool? clearSnoozeUntil,
+    bool? shrinkingSnoozeEnabled,
     bool? challengeInherited,
     WakeUpChallengeProfile? challengeOverride,
     bool? clearChallengeOverride,
@@ -250,6 +297,8 @@ class Alarm {
       maxSnoozeCount: maxSnoozeCount ?? this.maxSnoozeCount,
       snoozeCount: snoozeCount ?? this.snoozeCount,
       snoozeUntil: clearSnoozeUntil == true ? null : (snoozeUntil ?? this.snoozeUntil),
+      shrinkingSnoozeEnabled:
+          shrinkingSnoozeEnabled ?? this.shrinkingSnoozeEnabled,
       challengeInherited: challengeInherited ?? this.challengeInherited,
       challengeOverride: clearChallengeOverride == true
           ? null
@@ -281,6 +330,7 @@ class Alarm {
       'maxSnoozeCount': maxSnoozeCount,
       'snoozeCount': snoozeCount,
       'snoozeUntil': snoozeUntil?.toIso8601String(),
+      'shrinkingSnoozeEnabled': shrinkingSnoozeEnabled,
       'challengeInherited': challengeInherited,
       'challengeOverride': challengeOverride?.toJson(),
       'serenAwakeningHandoff': serenAwakeningHandoff.name,
@@ -313,6 +363,7 @@ class Alarm {
       snoozeUntil: json['snoozeUntil'] != null
           ? DateTime.tryParse(json['snoozeUntil'] as String)
           : null,
+      shrinkingSnoozeEnabled: json['shrinkingSnoozeEnabled'] as bool? ?? false,
       challengeInherited: json['challengeInherited'] as bool? ?? true,
       challengeOverride: json['challengeOverride'] != null
           ? WakeUpChallengeProfile.fromJson(

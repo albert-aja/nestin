@@ -251,6 +251,41 @@ class AmbientSoundItem {
   String get subtitle => description;
 }
 
+/// Downloadable seasonal or regional nature sound pack (Group 8 Expansion).
+class SeasonalSoundPack {
+  final String id;
+  final String titleKey;
+  final String descriptionKey;
+  final String regionKey;
+  final String seasonKey;
+  final IconData icon;
+  final Color accentColor;
+  final int estimatedSizeKb;
+  final String manifestBucket;
+  final List<AmbientSoundItem> sounds;
+
+  const SeasonalSoundPack({
+    required this.id,
+    required this.titleKey,
+    required this.descriptionKey,
+    required this.regionKey,
+    required this.seasonKey,
+    required this.icon,
+    required this.accentColor,
+    required this.estimatedSizeKb,
+    this.manifestBucket = 'media_assets',
+    required this.sounds,
+  });
+
+  String get title => AppLocalizations.current.tr(titleKey);
+  String get description => AppLocalizations.current.tr(descriptionKey);
+  String get region => AppLocalizations.current.tr(regionKey);
+  String get season => AppLocalizations.current.tr(seasonKey);
+
+  String remoteStoragePathForSound(String soundId) =>
+      'seren-sound-packs/$id/$soundId.wav';
+}
+
 /// Configuration for one active track inside the Multi-Track Sound Mixer.
 class SoundMixerTrackConfig {
   final String soundId;
@@ -828,6 +863,7 @@ class SerenRelaxationPreferences {
   final bool eveningUnwindReminderEnabled;
   final bool pauseOnHeadphoneDisconnect;
   final bool lockScreenControlsEnabled;
+  final List<String> installedSoundPackIds;
 
   const SerenRelaxationPreferences({
     this.defaultPlaybackMode = RelaxationPlaybackMode.audioAndVisual,
@@ -852,6 +888,7 @@ class SerenRelaxationPreferences {
     this.eveningUnwindReminderEnabled = false,
     this.pauseOnHeadphoneDisconnect = true,
     this.lockScreenControlsEnabled = true,
+    this.installedSoundPackIds = const [],
   });
 
   SerenRelaxationPreferences copyWith({
@@ -877,6 +914,7 @@ class SerenRelaxationPreferences {
     bool? eveningUnwindReminderEnabled,
     bool? pauseOnHeadphoneDisconnect,
     bool? lockScreenControlsEnabled,
+    List<String>? installedSoundPackIds,
   }) {
     return SerenRelaxationPreferences(
       defaultPlaybackMode: defaultPlaybackMode ?? this.defaultPlaybackMode,
@@ -908,6 +946,8 @@ class SerenRelaxationPreferences {
           pauseOnHeadphoneDisconnect ?? this.pauseOnHeadphoneDisconnect,
       lockScreenControlsEnabled:
           lockScreenControlsEnabled ?? this.lockScreenControlsEnabled,
+      installedSoundPackIds:
+          installedSoundPackIds ?? this.installedSoundPackIds,
     );
   }
 
@@ -934,6 +974,7 @@ class SerenRelaxationPreferences {
         'eveningUnwindReminderEnabled': eveningUnwindReminderEnabled,
         'pauseOnHeadphoneDisconnect': pauseOnHeadphoneDisconnect,
         'lockScreenControlsEnabled': lockScreenControlsEnabled,
+        'installedSoundPackIds': installedSoundPackIds,
       };
 
   factory SerenRelaxationPreferences.fromJson(Map<String, dynamic> json) {
@@ -1000,6 +1041,10 @@ class SerenRelaxationPreferences {
           json['pauseOnHeadphoneDisconnect'] as bool? ?? true,
       lockScreenControlsEnabled:
           json['lockScreenControlsEnabled'] as bool? ?? true,
+      installedSoundPackIds: (json['installedSoundPackIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
     );
   }
 }
@@ -1292,11 +1337,183 @@ class SerenRelaxationCatalog {
     ),
   ];
 
+  /// Downloadable Seasonal & Regional Nature Sound Packs (Group 8 Expansion).
+  static const List<SeasonalSoundPack> seasonalSoundPacks = [
+    SeasonalSoundPack(
+      id: 'monsoon_courtyard',
+      titleKey: 'seren_pack_monsoon_courtyard_title',
+      descriptionKey: 'seren_pack_monsoon_courtyard_desc',
+      regionKey: 'seren_pack_region_south_asia',
+      seasonKey: 'seren_pack_season_monsoon',
+      icon: Icons.umbrella_rounded,
+      accentColor: Color(0xFF0EA5E9),
+      estimatedSizeKb: 520,
+      sounds: [
+        AmbientSoundItem(
+          id: 'monsoonCourtyardRain',
+          titleKey: 'seren_sound_monsoon_courtyard_rain_title',
+          descriptionKey: 'seren_sound_monsoon_courtyard_rain_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.water_drop_rounded,
+          accentColor: Color(0xFF0EA5E9),
+          defaultDistance: SoundDistance.balanced,
+          recommendedFor: RelaxationTimeOfDayMode.evening,
+          pairedVisualId: 'rainyWindow',
+        ),
+        AmbientSoundItem(
+          id: 'terracottaEavesDrip',
+          titleKey: 'seren_sound_terracotta_eaves_title',
+          descriptionKey: 'seren_sound_terracotta_eaves_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.roofing_rounded,
+          accentColor: Color(0xFF38BDF8),
+          defaultDistance: SoundDistance.near,
+          recommendedFor: RelaxationTimeOfDayMode.anytime,
+          pairedVisualId: 'rainyWindow',
+        ),
+      ],
+    ),
+    SeasonalSoundPack(
+      id: 'alpine_meadow',
+      titleKey: 'seren_pack_alpine_meadow_title',
+      descriptionKey: 'seren_pack_alpine_meadow_desc',
+      regionKey: 'seren_pack_region_alpine',
+      seasonKey: 'seren_pack_season_spring',
+      icon: Icons.landscape_rounded,
+      accentColor: Color(0xFF10B981),
+      estimatedSizeKb: 480,
+      sounds: [
+        AmbientSoundItem(
+          id: 'alpineMeadowBreeze',
+          titleKey: 'seren_sound_alpine_meadow_breeze_title',
+          descriptionKey: 'seren_sound_alpine_meadow_breeze_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.air_rounded,
+          accentColor: Color(0xFF10B981),
+          defaultDistance: SoundDistance.balanced,
+          recommendedFor: RelaxationTimeOfDayMode.morning,
+          pairedVisualId: 'forestBreeze',
+        ),
+        AmbientSoundItem(
+          id: 'distantCowbellsStream',
+          titleKey: 'seren_sound_alpine_brook_chimes_title',
+          descriptionKey: 'seren_sound_alpine_brook_chimes_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.water_rounded,
+          accentColor: Color(0xFF34D399),
+          defaultDistance: SoundDistance.far,
+          recommendedFor: RelaxationTimeOfDayMode.morning,
+          pairedVisualId: 'morningSunrise',
+        ),
+      ],
+    ),
+    SeasonalSoundPack(
+      id: 'tropical_bamboo_rain',
+      titleKey: 'seren_pack_tropical_bamboo_rain_title',
+      descriptionKey: 'seren_pack_tropical_bamboo_rain_desc',
+      regionKey: 'seren_pack_region_southeast_asia',
+      seasonKey: 'seren_pack_season_tropical',
+      icon: Icons.forest_rounded,
+      accentColor: Color(0xFF22C55E),
+      estimatedSizeKb: 540,
+      sounds: [
+        AmbientSoundItem(
+          id: 'tropicalBambooRain',
+          titleKey: 'seren_sound_tropical_bamboo_rain_title',
+          descriptionKey: 'seren_sound_tropical_bamboo_rain_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.grain_rounded,
+          accentColor: Color(0xFF22C55E),
+          defaultDistance: SoundDistance.balanced,
+          recommendedFor: RelaxationTimeOfDayMode.anytime,
+          pairedVisualId: 'leafCanopy',
+        ),
+        AmbientSoundItem(
+          id: 'jungleCicadaDusk',
+          titleKey: 'seren_sound_bamboo_grove_dusk_title',
+          descriptionKey: 'seren_sound_bamboo_grove_dusk_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.nightlight_round,
+          accentColor: Color(0xFF4ADE80),
+          defaultDistance: SoundDistance.far,
+          recommendedFor: RelaxationTimeOfDayMode.evening,
+          pairedVisualId: 'forestFireflies',
+        ),
+      ],
+    ),
+    SeasonalSoundPack(
+      id: 'harbor_foghorn',
+      titleKey: 'seren_pack_harbor_foghorn_title',
+      descriptionKey: 'seren_pack_harbor_foghorn_desc',
+      regionKey: 'seren_pack_region_north_coast',
+      seasonKey: 'seren_pack_season_autumn',
+      icon: Icons.sailing_rounded,
+      accentColor: Color(0xFF6366F1),
+      estimatedSizeKb: 510,
+      sounds: [
+        AmbientSoundItem(
+          id: 'harborFoghorn',
+          titleKey: 'seren_sound_harbor_foghorn_title',
+          descriptionKey: 'seren_sound_harbor_foghorn_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.directions_boat_rounded,
+          accentColor: Color(0xFF6366F1),
+          defaultDistance: SoundDistance.far,
+          recommendedFor: RelaxationTimeOfDayMode.evening,
+          pairedVisualId: 'moonlitLake',
+        ),
+        AmbientSoundItem(
+          id: 'pierLappingWaves',
+          titleKey: 'seren_sound_pier_lapping_waves_title',
+          descriptionKey: 'seren_sound_pier_lapping_waves_desc',
+          category: AmbientSoundCategory.nature,
+          icon: Icons.waves_rounded,
+          accentColor: Color(0xFF818CF8),
+          defaultDistance: SoundDistance.near,
+          recommendedFor: RelaxationTimeOfDayMode.anytime,
+          pairedVisualId: 'oceanSunset',
+        ),
+      ],
+    ),
+  ];
+
+  static SeasonalSoundPack? soundPackById(String packId) {
+    for (final pack in seasonalSoundPacks) {
+      if (pack.id == packId) return pack;
+    }
+    return null;
+  }
+
+  static SeasonalSoundPack? packForSoundId(String soundId) {
+    for (final pack in seasonalSoundPacks) {
+      if (pack.sounds.any((s) => s.id == soundId)) return pack;
+    }
+    return null;
+  }
+
+  static List<AmbientSoundItem> soundsIncludingInstalledPacks(
+    Set<String> installedPackIds,
+  ) {
+    if (installedPackIds.isEmpty) return sounds;
+    final expanded = <AmbientSoundItem>[...sounds];
+    for (final pack in seasonalSoundPacks) {
+      if (installedPackIds.contains(pack.id)) {
+        expanded.addAll(pack.sounds);
+      }
+    }
+    return expanded;
+  }
+
   static AmbientSoundItem soundById(String id) {
-    return sounds.firstWhere(
-      (s) => s.id == id,
-      orElse: () => sounds.first,
-    );
+    for (final s in sounds) {
+      if (s.id == id) return s;
+    }
+    for (final pack in seasonalSoundPacks) {
+      for (final s in pack.sounds) {
+        if (s.id == id) return s;
+      }
+    }
+    return sounds.first;
   }
 
   /// Curated starter soundscape presets (Feature B).

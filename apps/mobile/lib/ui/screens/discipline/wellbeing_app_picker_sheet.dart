@@ -5,6 +5,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/app_restriction.dart';
 import '../../../providers/device_control_provider.dart';
+import '../../widgets/skeleton_shimmer.dart';
 
 /// Native-aware application discovery & selection sheet for Roo Digital Discipline.
 ///
@@ -317,7 +318,16 @@ class _WellbeingAppPickerSheetState extends State<WellbeingAppPickerSheet> {
             ),
             const SizedBox(height: 6),
             Expanded(
-              child: apps.isEmpty
+              child: _loading
+                  ? const SkeletonCardList(
+                      itemCount: 5,
+                      leadingSize: 40,
+                      leadingBorderRadius: 20,
+                      lineCount: 2,
+                      showTrailingPill: false,
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    )
+                  : apps.isEmpty
                   ? Center(
                       child: Text(
                         l10n.tr('no_matching_apps_found'),

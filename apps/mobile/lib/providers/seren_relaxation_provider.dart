@@ -67,6 +67,7 @@ class SerenRelaxationProvider extends ChangeNotifier
   DateTime? _lastRouteDisconnectHandledAt;
   bool _isMediaSessionPinned = false;
   bool _isDisposed = false;
+  final Map<String, double> _soundPackDownloadProgress = {};
 
   static const int morningReminderNotificationId = 7250;
   static const int eveningReminderNotificationId = 7251;
@@ -205,19 +206,101 @@ class SerenRelaxationProvider extends ChangeNotifier
     );
   }
 
+  /// All built-in sounds plus stems from installed seasonal/regional packs.
+  List<AmbientSoundItem> get availableSounds =>
+      SerenRelaxationCatalog.soundsIncludingInstalledPacks(
+        _prefs.installedSoundPackIds.toSet(),
+      );
+
+  List<SeasonalSoundPack> get seasonalSoundPacks =>
+      SerenRelaxationCatalog.seasonalSoundPacks;
+
+  Set<String> get installedSoundPackIds =>
+      _prefs.installedSoundPackIds.toSet();
+
+  bool isSoundPackInstalled(String packId) =>
+      _prefs.installedSoundPackIds.contains(packId);
+
+  bool isSoundPackDownloading(String packId) =>
+      _soundPackDownloadProgress.containsKey(packId);
+
+  double soundPackDownloadProgress(String packId) =>
+      _soundPackDownloadProgress[packId] ?? 0.0;
+
+  /// Downloads / caches a seasonal or regional nature sound pack locally.
+  Future<bool> installSoundPack(String packId) async {
+    final pack = SerenRelaxationCatalog.soundPackById(packId);
+    if (pack == null) return false;
+    if (isSoundPackInstalled(packId) || isSoundPackDownloading(packId)) {
+      return isSoundPackInstalled(packId);
+    }
+
+    _soundPackDownloadProgress[packId] = 0.05;
+    if (!_isDisposed) notifyListeners();
+
+    final ok = await _ambientSoundService.installSoundPack(
+      pack,
+      onProgress: (p) {
+        _soundPackDownloadProgress[packId] = p.clamp(0.0, 1.0);
+        if (!_isDisposed) notifyListeners();
+      },
+    );
+
+    _soundPackDownloadProgress.remove(packId);
+    if (ok && !_prefs.installedSoundPackIds.contains(packId)) {
+      _prefs = _prefs.copyWith(
+        installedSoundPackIds: [..._prefs.installedSoundPackIds, packId],
+      );
+      await _storageService.saveSerenRelaxationPreferences(_prefs);
+    }
+    if (!_isDisposed) notifyListeners();
+    return ok;
+  }
+
+  /// Removes an installed sound pack from local cache and detaches its stems
+  /// from the active mixer if currently loaded.
+  Future<void> removeSoundPack(String packId) async {
+    final pack = SerenRelaxationCatalog.soundPackById(packId);
+    if (pack == null) return;
+
+    final packSoundIds = pack.sounds.map((s) => s.id).toSet();
+    final removedActive =
+        _activeTracks.any((t) => packSoundIds.contains(t.soundId));
+    if (removedActive) {
+      _activeTracks = _activeTracks
+          .where((t) => !packSoundIds.contains(t.soundId))
+          .toList();
+      if (_activeTracks.isEmpty && _isMixerPlaying) {
+        _isMixerPlaying = false;
+        await _ambientSoundService.stopMixer();
+      } else if (_isMixerPlaying) {
+        await _syncAudioEngine();
+      }
+    }
+
+    await _ambientSoundService.removeSoundPack(pack);
+    _prefs = _prefs.copyWith(
+      installedSoundPackIds: _prefs.installedSoundPackIds
+          .where((id) => id != packId)
+          .toList(),
+    );
+    await _storageService.saveSerenRelaxationPreferences(_prefs);
+    if (!_isDisposed) notifyListeners();
+  }
+
   /// Filtered sounds based on optional category or time-of-day recommendation.
   List<AmbientSoundItem> soundsForCategory(AmbientSoundCategory? category) {
-    if (category == null) return SerenRelaxationCatalog.sounds;
-    return SerenRelaxationCatalog.sounds
-        .where((s) => s.category == category)
-        .toList();
+    final pool = availableSounds;
+    if (category == null) return pool;
+    return pool.where((s) => s.category == category).toList();
   }
 
   List<AmbientSoundItem> get recommendedSoundsForCurrentMode {
+    final pool = availableSounds;
     if (_timeOfDayMode == RelaxationTimeOfDayMode.anytime) {
-      return SerenRelaxationCatalog.sounds;
+      return pool;
     }
-    return SerenRelaxationCatalog.sounds
+    return pool
         .where((s) =>
             s.recommendedFor == _timeOfDayMode ||
             s.recommendedFor == RelaxationTimeOfDayMode.anytime)

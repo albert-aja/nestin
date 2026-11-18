@@ -659,4 +659,105 @@ class InteractiveExperienceEngine {
 
     return scoredOutcomes.take(maxResults).toList();
   }
+
+  /// Deterministic, non-clinical scoring for Echo's Strengths & Quiet Life
+  /// Skills Lab (`strengths_life_skills_v1`).
+  List<ExperienceMatchedOutcome> evaluateStrengthsLab(
+    Map<String, dynamic> answers, {
+    int maxResults = 3,
+  }) {
+    final accumulatedTags = <String, double>{};
+    for (final question in StrengthsLabCatalog.questions) {
+      final selectedId = answers[question.id] as String?;
+      if (selectedId == null) continue;
+      for (final opt in question.options) {
+        if (opt.id == selectedId) {
+          opt.tagWeights.forEach((tag, weight) {
+            accumulatedTags[tag] = (accumulatedTags[tag] ?? 0.0) + weight;
+          });
+          break;
+        }
+      }
+    }
+
+    final scoredOutcomes = <ExperienceMatchedOutcome>[];
+    for (final profile in StrengthsLabCatalog.profiles) {
+      var rawScore = 0.0;
+      var maxPossibleTagScore = 0.0;
+      final matchedTags = <MapEntry<String, double>>[];
+
+      profile.tagAffinities.forEach((tag, affinity) {
+        maxPossibleTagScore += affinity * 3.0;
+        final userWeight = accumulatedTags[tag] ?? 0.0;
+        if (userWeight > 0) {
+          final contribution = userWeight * affinity;
+          rawScore += contribution;
+          matchedTags.add(MapEntry(tag, contribution));
+        }
+      });
+
+      matchedTags.sort((a, b) => b.value.compareTo(a.value));
+      final reasonKeys = <String>[];
+      for (final entry in matchedTags.take(2)) {
+        switch (entry.key) {
+          case 'boundaries':
+            reasonKeys.add('exp_sl_reason_boundaries');
+            break;
+          case 'calm':
+          case 'reset':
+            if (!reasonKeys.contains('exp_sl_reason_calm')) {
+              reasonKeys.add('exp_sl_reason_calm');
+            }
+            break;
+          case 'pacing':
+          case 'steady':
+            if (!reasonKeys.contains('exp_sl_reason_pacing')) {
+              reasonKeys.add('exp_sl_reason_pacing');
+            }
+            break;
+          case 'empathy':
+          case 'presence':
+            if (!reasonKeys.contains('exp_sl_reason_empathy')) {
+              reasonKeys.add('exp_sl_reason_empathy');
+            }
+            break;
+          case 'clarity':
+          case 'prioritize':
+            if (!reasonKeys.contains('exp_sl_reason_clarity')) {
+              reasonKeys.add('exp_sl_reason_clarity');
+            }
+            break;
+          case 'adaptable':
+            reasonKeys.add('exp_sl_reason_adaptable');
+            break;
+        }
+      }
+
+      if (reasonKeys.isEmpty) {
+        reasonKeys.add('exp_sl_reason_calm');
+      }
+
+      final denominator = maxPossibleTagScore.clamp(16.0, 80.0);
+      final normalizedRatio = (rawScore / denominator).clamp(0.15, 0.99);
+      final matchPercentage =
+          (60 + (normalizedRatio * 38)).round().clamp(58, 99);
+
+      scoredOutcomes.add(
+        ExperienceMatchedOutcome(
+          profileId: profile.id,
+          matchPercentage: matchPercentage,
+          rawScore: rawScore,
+          reasonKeys: reasonKeys,
+        ),
+      );
+    }
+
+    scoredOutcomes.sort((a, b) {
+      final byScore = b.rawScore.compareTo(a.rawScore);
+      if (byScore != 0) return byScore;
+      return a.profileId.compareTo(b.profileId);
+    });
+
+    return scoredOutcomes.take(maxResults).toList();
+  }
 }

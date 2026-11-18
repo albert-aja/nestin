@@ -4,6 +4,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/device_capability.dart';
 import '../../../providers/device_control_provider.dart';
+import '../../widgets/skeleton_shimmer.dart';
 
 class PermissionCenterScreen extends StatelessWidget {
   const PermissionCenterScreen({super.key});
@@ -47,7 +48,26 @@ class PermissionCenterScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: provider.isRefreshing
+          ? SkeletonShimmer(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: const [
+                  SkeletonPlaceholderCard(
+                    leadingSize: 44,
+                    lineCount: 3,
+                    showTrailingPill: false,
+                  ),
+                  SizedBox(height: 8),
+                  SkeletonBox(width: 150, height: 12),
+                  SizedBox(height: 10),
+                  SkeletonPlaceholderCard(lineCount: 2, showTrailingPill: true),
+                  SkeletonPlaceholderCard(lineCount: 2, showTrailingPill: true),
+                  SkeletonPlaceholderCard(lineCount: 2, showTrailingPill: true),
+                ],
+              ),
+            )
+          : ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildDeviceOverviewCard(context, registry),

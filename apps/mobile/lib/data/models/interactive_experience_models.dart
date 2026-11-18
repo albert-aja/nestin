@@ -1,7 +1,9 @@
 import 'package:uuid/uuid.dart';
 import 'book_matcher_catalog.dart';
+import 'strengths_lab_catalog.dart';
 import 'weekend_generator_catalog.dart';
 export 'book_matcher_catalog.dart';
+export 'strengths_lab_catalog.dart';
 export 'weekend_generator_catalog.dart';
 
 /// Conceptual groupings in Nestin Discover (Section 7 of Interactive Experiences Blueprint).
@@ -530,6 +532,14 @@ class ExperienceCatalog {
       WeekendGeneratorCatalog.weekendGeneratorId;
   static const ExperienceDefinition weekendGeneratorV1 =
       WeekendGeneratorCatalog.definition;
+  static const String strengthsLifeSkillsId =
+      StrengthsLabCatalog.strengthsLifeSkillsId;
+  static const ExperienceDefinition strengthsLabV1 =
+      StrengthsLabCatalog.definition;
+  static List<StrengthProfile> get strengthProfiles =>
+      StrengthsLabCatalog.profiles;
+  static StrengthProfile findStrengthProfileById(String id) =>
+      StrengthsLabCatalog.findById(id);
   static List<BookRecommendationProfile> get curatedBooks =>
       BookMatcherCatalog.curatedBooks;
 

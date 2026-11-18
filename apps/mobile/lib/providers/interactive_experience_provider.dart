@@ -9,6 +9,7 @@ import '../data/models/entity_link.dart';
 import '../data/models/focus_session_log.dart';
 import '../data/models/hobby_item.dart';
 import '../data/models/interactive_experience_models.dart';
+import '../data/models/journal_entry.dart';
 import '../data/models/location_reminder.dart';
 import '../data/models/money_category.dart';
 import '../data/models/note_item.dart';
@@ -28,6 +29,7 @@ import 'collection_provider.dart';
 import 'cross_module_link_provider.dart';
 import 'geofence_provider.dart';
 import 'hobby_provider.dart';
+import 'journal_provider.dart';
 import 'money_provider.dart';
 import 'note_provider.dart';
 import 'reading_provider.dart';
@@ -1867,5 +1869,57 @@ class InteractiveExperienceProvider extends ChangeNotifier {
       ),
     );
     return collection;
+  }
+
+  // ===========================================================================
+  // ECHO'S STRENGTHS & QUIET LIFE SKILLS LAB (strengths_life_skills_v1)
+  // ===========================================================================
+
+  /// Evaluates Echo's 5 everyday non-clinical scenarios, persists the
+  /// version-pinned result, and clears the active draft.
+  Future<ExperienceResultRecord> completeStrengthsLab(
+    Map<String, dynamic> answers,
+  ) async {
+    final topMatches = engine.evaluateStrengthsLab(answers);
+    final record = ExperienceResultRecord(
+      id: _uuid.v4(),
+      experienceId: ExperienceCatalog.strengthsLifeSkillsId,
+      definitionVersion: StrengthsLabCatalog.definition.version,
+      completedAt: DateTime.now(),
+      answersSnapshot: Map<String, dynamic>.from(answers),
+      topMatches: topMatches,
+    );
+
+    _results = [record, ..._results];
+    _drafts.remove(ExperienceCatalog.strengthsLifeSkillsId);
+    await _storage.saveExperienceResults(_results);
+    await _storage.saveExperienceDrafts(_drafts);
+    notifyListeners();
+    return record;
+  }
+
+  /// Echo 1-Tap Handoff: Saves the top discovered strength & quiet skill
+  /// practice into [JournalProvider] tagged `#Strength` & `#SelfDiscovery`.
+  Future<JournalEntry> saveStrengthInsightToJournal({
+    required JournalProvider journalProvider,
+    required String strengthTitle,
+    required String strengthDescription,
+    required String quietPractice,
+    String? practicePromptPrefix,
+  }) async {
+    final now = DateTime.now();
+    final prefix = practicePromptPrefix ?? 'Quiet Life Skill Practice';
+    final entry = JournalEntry(
+      id: _uuid.v4(),
+      title: strengthTitle,
+      content: '$strengthDescription\n\n$prefix: $quietPractice',
+      date: now,
+      mood: JournalMood.good,
+      tags: const ['Strength', 'SelfDiscovery'],
+      createdAt: now,
+      updatedAt: now,
+    );
+    await journalProvider.addJournalEntry(entry);
+    return entry;
   }
 }

@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/device_capability.dart';
 import '../../../data/models/phone_mode.dart';
 import '../../../providers/device_control_provider.dart';
+import '../../widgets/skeleton_shimmer.dart';
 import '../settings/permission_center_screen.dart';
 
 /// Scout Everyday Assistance -> Phone Modes & Device Controls.
@@ -71,7 +72,13 @@ class PhoneModesScreen extends StatelessWidget {
           else if (lastSummary != null && lastSummary.restorationNotes.isNotEmpty)
             _buildRestorationSummaryBanner(context, lastSummary),
           Expanded(
-            child: ListView(
+            child: provider.isRefreshing
+                ? const SkeletonCardList(
+                    itemCount: 4,
+                    lineCount: 2,
+                    showTrailingPill: true,
+                  )
+                : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 Card(

@@ -291,22 +291,25 @@ To stay 100% compatible with `scripts/Slicer.cs` (`3 columns × 2 rows = 6 cells
 - **`seren_expressions_4.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/seren_expressions_4.jpg`):** `seren_headphones_bliss`, `seren_spatial_conductor`, `seren_custom_mix_jar`, `seren_window_rain_gaze`, `seren_storyteller_lantern`, `seren_timer_sandglass_fade`
 - **`seren_expressions_5.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/seren_expressions_5.jpg` — ready for slicing):** `seren_breath_inhale_expand`, `seren_breath_exhale_settle`, `seren_body_scan_feather`, `seren_caffeine_herbal_swap`, `seren_pill_refill_alert`, `seren_walking_shoes_step`
 - **`seren_expressions_6.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/seren_expressions_6.jpg` — ready for slicing):** `seren_breath_hold_still`, `seren_low_motion_stillness`, `seren_tts_whisper_duck`, `seren_morning_sun_tea`, `seren_warmth_dial`, `seren_cozy_book_lantern`
-- **`seren_expressions_7.jpg` (Pending Next Quota Window — hit 429 `RESOURCE_EXHAUSTED`):** `seren_seamless_ribbon`, `seren_headphone_unplug_pause`, `seren_bluetooth_sleep_pause`, `seren_lock_screen_transport`, `seren_caffeine_clear_sleep`, `seren_sleep_debt_blanket`
+- **`seren_expressions_7.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/seren_expressions_7.jpg` — ready for slicing):** `seren_seamless_ribbon`, `seren_headphone_unplug_pause`, `seren_bluetooth_sleep_pause`, `seren_lock_screen_transport`, `seren_caffeine_clear_sleep`, `seren_sleep_debt_blanket`
 - **`scout_expressions_4.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/scout_expressions_4.jpg`):** `scout_cold_scarf_jacket`, `scout_heavy_storm_raincoat`, `scout_geofence_radar_pulse`, `scout_all_ready_salute`, `scout_phone_mode_sliders`, `scout_oem_knight_armor`
-- **`scout_expressions_5.jpg` (Pending Next Quota Window):** `scout_snooze_pocketwatch`, `scout_state_restored_rewind`, `scout_automation_gears`, `scout_permission_inspector`, `scout_cross_link_chain`, `scout_guest_cloud_bridge`
+- **`scout_expressions_5.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/scout_expressions_5.jpg` — ready for slicing):** `scout_snooze_pocketwatch`, `scout_state_restored_rewind`, `scout_automation_gears`, `scout_permission_inspector`, `scout_cross_link_chain`, `scout_guest_cloud_bridge` *(source-art QA note: rightmost edge of cloud island in bottom-right cell slightly touches canvas border)*
 - **`pippin_expressions_4.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/pippin_expressions_4.jpg`):** `pippin_seedling_spark`, `pippin_artisan_chisel`, `pippin_virtuoso_conductor`, `pippin_reading_streak_lantern`, `pippin_book_finished_star`, `pippin_bucket_globe_pin`
 - **`pippin_expressions_5.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/pippin_expressions_5.jpg` — ready for slicing):** `pippin_reading_spectacles_stack`, `pippin_curious_magnifying_glass`, `pippin_aquascape_planting`, `pippin_sketchbook_watercolor`, `pippin_eureka_match_reveal`, `pippin_coding_laptop`
 - **`twill_expressions_4.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/twill_expressions_4.jpg`):** `twill_ledger_quill_entry`, `twill_wallet_trio_organizer`, `twill_internal_transfer_bridge`, `twill_budget_shield_green`, `twill_monthly_chart_easel`, `twill_markdown_blocks`
-- **`twill_expressions_5.jpg` (Pending Next Quota Window):** `twill_budget_caution_amber`, `twill_budget_overflow_patch`, `twill_recurring_calendar_stamp`, `twill_inline_check_tap`, `twill_unpack_reset_suitcase`, `twill_wishlist_star_scale`
+- **`twill_expressions_5.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/twill_expressions_5.jpg` — ready for slicing):** `twill_budget_caution_amber`, `twill_budget_overflow_patch`, `twill_recurring_calendar_stamp`, `twill_inline_check_tap`, `twill_unpack_reset_suitcase`, `twill_wishlist_star_scale`
 - **`echo_expressions_4.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/echo_expressions_4.jpg`):** `echo_gratitude_jar_shake`, `echo_tough_day_lantern_hug`, `echo_seren_pebble_catch`, `echo_custom_pin_vault`, `echo_quote_painter_beret`, `echo_paper_plane_submit`
-- **`echo_expressions_5.jpg` (Pending Next Quota Window):** `echo_clue_whisper_scroll`, `echo_prompt_dice_shuffle`, `echo_offline_draft_quill`, `echo_dawn_quote_bell`, `echo_scholar_scroll`, `echo_rubik_constellation_cube`
+- **`echo_expressions_5.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/echo_expressions_5.jpg` — ready for slicing):** `echo_clue_whisper_scroll`, `echo_prompt_dice_shuffle`, `echo_offline_draft_quill`, `echo_dawn_quote_bell`, `echo_scholar_scroll`, `echo_rubik_constellation_cube`
+- **`story_anthology_expressions_1.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/story_anthology_expressions_1.jpg` — ready for slicing):** `seren_reading_lantern`, `seren_rainy_window`, `seren_starlight_blanket`, `seren_moonflower_calm`, `pippin_train_window`, `pippin_canal_skiff`
+- **`misc_expressions_1.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/misc_expressions_1.jpg` — ready for slicing):** `echo_brass_compass`, `echo_observatory_perch`, `seren_med_snooze_pillow`, `seren_headset_remote_click`, `roo_discipline_streak_proud`, `pippin_gardening_trowel` *(source-art QA note: minor polish items queued for next quota — `roo_discipline_streak_proud` chart card floating, `echo_brass_compass` tiny contour squiggles, `seren_headset_remote_click` phone angle)*
 
 ### 11.2 Multi-Mascot Duo & Trio Sheets (`3 × 2` = 6 Collaborative Scenes per Sheet)
 - **`flock_duos_1.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/flock_duos_1.jpg`):** `duo_roo_scout_dawn_handoff`, `duo_roo_seren_morning_peace`, `duo_seren_echo_evening_sanctuary`, `duo_pippin_echo_bucket_memory` *(source-art QA note: passport cover text `"REESPORT"` baked in raw sheet)*, `duo_scout_twill_packing_departure` *(source-art QA note: Twill wearing brown sleeping-mask cover over eyes in raw sheet)*, `duo_pippin_twill_dream_jar` *(source-art QA note: Twill and dream jar omitted in raw sheet, only Pippin + globe/piggy/envelopes)* — re-queue those 3 cells cleanly on next image quota window *(partial clean dream-jar/packing draft in artifact `flock_duos_1_v2_1794833190156.jpg`)*.
 - **`flock_duos_2.jpg` (✅ Clean 3×2 Generated in `apps/mobile/source_art/mascots/sheets/flock_duos_2.jpg` — ready for slicing):** `duo_roo_scout_focus_mode_shield`, `duo_roo_seren_pomodoro_hydrate`, `duo_roo_twill_recurring_sync`, `duo_roo_twill_task_blueprint`, `duo_scout_twill_backup_vault`, `duo_scout_twill_market_geofence`
 - **`flock_duos_3.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/flock_duos_3.jpg`):** `duo_scout_pippin_adventure_pin`, `duo_scout_pippin_weather_outing`, `duo_scout_seren_sleep_shield`, `duo_seren_echo_tough_day_comfort`, `duo_pippin_echo_book_quote_vault`, `duo_twill_echo_annual_archive`
-- **`flock_duos_4.jpg` (Pending Next Quota Window):** Clean replacements for `duo_pippin_echo_bucket_memory`, `duo_scout_twill_packing_departure`, `duo_pippin_twill_dream_jar` + `duo_scout_seren_audio_guard`, `echo_roo_focus_relay`, `duo_pippin_seren_book_tea`
+- **`flock_duos_4.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/flock_duos_4.jpg` — ready for slicing):** Clean replacements for `duo_pippin_echo_bucket_memory`, `duo_scout_twill_packing_departure`, `duo_pippin_twill_dream_jar` + `duo_scout_seren_audio_guard`, `echo_roo_focus_relay`, `duo_pippin_seren_book_tea`
 - **`flock_trios_quartets_1.jpg` (✅ Generated & Sliced in `apps/mobile/source_art/mascots/sheets/flock_trios_quartets_1.jpg`):** `trio_morning_awakening_squad`, `trio_evening_wind_down_crew`, `trio_travel_adventure_packers`, `trio_inspiration_quote_atelier`, `quartet_quick_capture_express`, `quartet_cross_module_web`
+- **`flock_trios_quartets_2.jpg` (✅ Generated in `apps/mobile/source_art/mascots/sheets/flock_trios_quartets_2.jpg` — ready for slicing):** `trio_weekend_life_reset`, `trio_device_reliability_guard` *(source-art QA note: Seren holding bell instead of Roo — queue refinement on next quota)*, `trio_mindful_study_sanctuary`, `trio_wishlist_occasion_planners`, `seren_vitals_stethoscope`, `seren_wearable_watch_sync`
 
 ### 11.3 Full-Flock "Family Photo" & Panorama Canvases (`apps/mobile/source_art/mascots/family/`)
 - **Generated Canvases (`10 / 10` Complete!):**
@@ -320,3 +323,102 @@ To stay 100% compatible with `scripts/Slicer.cs` (`3 columns × 2 rows = 6 cells
   - ✅ **`family_milestone_confetti_cheer.jpg`** (`apps/mobile/source_art/mascots/family/family_milestone_confetti_cheer.jpg`)
   - ✅ **`family_quiet_starlight_slumber.jpg`** (`apps/mobile/source_art/mascots/family/family_quiet_starlight_slumber.jpg`)
   - ✅ **`family_search_detective_squad.jpg`** (`apps/mobile/source_art/mascots/family/family_search_detective_squad.jpg`)
+
+---
+
+## 12. Feature-Specific & Backlog Mascot Expressions (Consolidated from `about_project.md`)
+
+### 12.1 Morning Alarm → Seren Peaceful Awakening Handoff (Roo & Seren)
+
+| Pose Slug | Bird(s) | Pose & Prop Description | Feature / Screen Trigger |
+| :--- | :--- | :--- | :--- |
+| `roo_sunrise_baton_handoff` | **Roo** | Roo turning off a ringing brass alarm bell with one wing while gently passing a glowing sunrise feather to Seren. | `ActiveAlarmScreen` dismissal handoff trigger (`SerenAwakeningHandoffMode`). |
+| `seren_morning_sunrise_stretch` | **Seren** | Seren stretching wings in warm golden morning light beside a steaming cup and singing songbirds. | `SerenRelaxationProvider` *Peaceful Morning Sanctuary* (`peacefulMorningSoundscape`). |
+| `seren_gentle_breath_lotus` | **Seren** | Seren inhaling peacefully with soft expanding golden aura rings for the 4-2-4 Gentle Morning Awakening Breath. | `SerenRelaxationProvider` *Gentle Morning Awakening Breath* (`gentleMorningBreath`). |
+| `roo_seren_dawn_duet` | **Roo + Seren** | Roo and Seren perched together on a sunlit window sill welcoming an unhurried morning start. | `AlarmEditScreen` (`alarm_seren_handoff_card`) & `ActiveAlarmScreen` handoff selector. |
+
+### 12.2 Instrumental-Nature Soundscape Poses (Seren & Pippin)
+
+| Pose Slug | Bird(s) | Pose & Prop Description | Feature / Screen Trigger |
+| :--- | :--- | :--- | :--- |
+| `seren_singing_bowl` | **Seren** | Seren rests with closed eyes holding a small wooden mallet beside a glowing brass singing bowl emitting soft golden concentric sound ripples. | `SerenRelaxationScreen` when playing *Singing Bowls* (`singingBowls`). |
+| `seren_soft_kalimba` | **Seren** | Seren perched on a mossy branch gently tapping a wooden thumb-piano while golden morning leaves drift past. | `SerenRelaxationScreen` when playing *Soft Kalimba* (`softKalimba`). |
+| `seren_warm_cello` | **Seren** | Seren nestled beside a resonant wooden cello scroll wrapped in a lavender scarf under starry twilight. | `SerenRelaxationScreen` when playing *Warm Cello Drone* (`warmCelloDrone`). |
+| `seren_nylon_guitar_duo` | **Seren + Pippin** | Seren listening peacefully with a lavender sprig while Pippin strums a miniature nylon acoustic guitar beside rainy window light. | `SerenRelaxationScreen` when playing *Nylon Acoustic Guitar* (`nylonAcousticGuitar`). |
+
+### 12.3 Interactive Experiences (`NestinDiscoverScreen` — Implemented & Phase 4 Backlog)
+
+| Pose Slug | Bird(s) | Pose & Prop Description | Feature / Screen Trigger |
+| :--- | :--- | :--- | :--- |
+| `twill_starter_kit_blueprint` | **Twill** | Twill unrolling a neat starter gear checklist scroll with a pencil tucked behind ear. | *Hobby Finder* (`hobby_finder_v1`) starter checklist handoff. |
+| `twill_piggybank_abacus_estimate` | **Twill** | Twill calmly calculating starter kit budget tiers on a wooden abacus (non-banking personal budget pose). | *Hobby Finder* (`hobby_finder_v1`) wishlist budget estimate handoff. |
+| `roo_starter_session_stopwatch` | **Roo** | Roo giving an encouraging thumbs-up with a 30-minute starter practice ribbon and checklist clip. | *Hobby Finder* (`hobby_finder_v1`) first-session task handoff. |
+| `seren_forest_stream_tea` | **Seren** | Seren resting peacefully beside a warm ceramic teacup and flowing stream ripples while playing paired hobby ambience. | *Hobby Finder* (`hobby_finder_v1`) paired soundscape handoff. |
+| `echo_knowledge_lantern` | **Echo** | Echo perched on an encyclopedic tome holding a warm lantern for Knowledge Arena & reflection prompts. | *Knowledge Arena* (`knowledge_arena_v1`) hub & curiosity cards. |
+| `echo_lantern_eureka` | **Echo** | Echo fluffing feathers with a warm golden lightbulb spark above head when a Knowledge Arena curiosity card is unlocked. | *Knowledge Arena* (`knowledge_arena_v1`) explainable curiosity reveal. |
+| `echo_curiosity_globe` | **Echo** | Echo spinning a vintage brass terrestrial & celestial globe while guiding Geography and History cards. | *Knowledge Arena* (`knowledge_arena_v1`) Geography/History topics. |
+| `pippin_book_bookmark_wing` | **Pippin** | Pippin tucking a ribbon bookmark into a newly added Knowledge Arena suggested book on the *Want to Read* shelf. | *Knowledge Arena* (`knowledge_arena_v1`) 1-tap add related book to Pippin. |
+| `echo_fibonacci_pinecone_spiral` | **Echo** | Echo tracing a golden Fibonacci spiral across a pinecone and sunflower with a feather quill. | *Brain Playground* (`brain_playground_v1`) pattern & sequence puzzles. |
+| `roo_pomodoro_warmup_whistle` | **Roo** | Roo holding a 25-minute Pomodoro timer ready to launch right after Echo's 3-minute cognitive warm-up. | *Brain Playground* (`brain_playground_v1`) 1-tap Pomodoro sprint launch. |
+| `echo_roo_focus_relay` | **Echo + Roo** | Echo passing a glowing puzzle piece to Roo to transition from Brain Playground warm-up into a focused Pomodoro sprint. | *Brain Playground* (`brain_playground_v1`) pre-focus warm-up handoff. |
+| `scout_weekend_compass_map` | **Scout** | Scout wearing a trail bandana and pointing to a sunny weekend micro-adventure map. | *Weekend Generator* (`weekend_generator_v1`) questionnaire & itinerary header. |
+| `scout_weekend_picnic_basket` | **Scout** | Scout holding a folded trail map and picnic thermos ready for a weather-checked weekend outing. | *Weekend Generator* (`weekend_generator_v1`) BeforeYouGo preset handoff. |
+| `twill_weekend_budget_coin_pouch` | **Twill** | Twill tying a neat linen ribbon onto a small weekend pocket-budget envelope (strictly personal offline budgeting). | *Weekend Generator* (`weekend_generator_v1`) Twill packing & budget handoff. |
+| `roo_weekend_calendar_pin` | **Roo** | Roo pinning a tiny compass sticker onto Saturday/Sunday inside an open weekend calendar spread. | *Weekend Generator* (`weekend_generator_v1`) Calendar event handoff. |
+| `seren_moonlight_hourglass` | **Seren** | Seren holding a glowing lavender hourglass. | *Phase 4 Backlog:* Seren's Evening Wind-Down Ritual Architect (`wind_down_architect_v1`). |
+| `scout_night_watch_shield` | **Scout** | Scout dimming a glowing phone screen with a gentle wing. | *Phase 4 Backlog:* Evening Wind-Down Phone Mode handoff (`wind_down_architect_v1`). |
+| `twill_envelope_organizer` | **Twill** | Twill sorting pastel budget envelopes into a wooden box. | *Phase 4 Backlog:* Twill's Mindful Spending & Saving Style Quiz (`money_mindset_v1`). |
+| `roo_sunday_ledger_bell` | **Roo** | Roo ringing a small brass reminder bell beside a calendar. | *Phase 4 Backlog:* Sunday evening expense review reminder (`money_mindset_v1`). |
+| `roo_ultradian_conductor` | **Roo** | Roo holding a baton and pocket watch. | *Phase 4 Backlog:* Roo's Focus & Work-Rhythm Diagnostic (`focus_rhythm_v1`). |
+| `scout_focus_gatekeeper` | **Scout** | Scout standing guard in front of locked distraction icons. | *Phase 4 Backlog:* Focus Lock preset handoff (`focus_rhythm_v1`). |
+| `pippin_sketchbook_easel` | **Pippin** | Pippin holding charcoal pencil beside miniature sunlit sketchbook. | *Phase 4 Backlog:* Pippin's Daily Creative Prompt (`daily_creative_prompt_v1`). |
+| `echo_ink_quill_smile` | **Echo** | Echo smiling warmly over short poetic notebook lines. | *Phase 4 Backlog:* Echo micro-poetry journal capture (`daily_creative_prompt_v1`). |
+| `pippin_echo_stepping_stones` | **Pippin + Echo** | Pippin pointing along three glowing stepping stones while Echo notes Day 1 in a star journal. | *Phase 4 Backlog:* Bucket-List Micro-Step Deconstructor (`dream_deconstructor_v1`). |
+| `echo_wax_seal_capsule` | **Echo** | Echo pressing a golden star wax seal onto a folded cream letter. | *Phase 4 Backlog:* Digital Time Capsule seal (`digital_time_capsule_v1`). |
+| `seren_capsule_open_bloom` | **Seren** | Seren cradling an opened keepsake box glowing with warm lavender light. | *Phase 4 Backlog:* Digital Time Capsule unlock chime (`digital_time_capsule_v1`). |
+| `twill_palette_swatches` | **Twill** | Twill arranging warm linen and sage color swatches around a tidy desk. | *Phase 4 Backlog:* Personal Sanctuary Style Discovery (`personal_style_v1`). |
+| `pippin_aesthetic_frame` | **Pippin** | Pippin peeking through a wooden picture frame admiring warm studio light. | *Phase 4 Backlog:* Personal Sanctuary Style Discovery (`personal_style_v1`). |
+| `pippin_forked_trail_sign` | **Pippin** | Pippin holding a cheerful two-arrow wooden signpost with tiny hobby emblems. | *Phase 4 Backlog:* Pippin's Interest Explorer (`interest_explorer_v1`). |
+| `roo_seren_rhythm_balance` | **Roo + Seren** | Roo holding a gentle wooden metronome beside Seren holding a lavender sprig in calm harmony. | *Phase 4 Backlog:* Lifestyle Rhythm Calibration (`lifestyle_finder_v1`). |
+| `echo_lantern_strength_mirror` | **Echo** | Echo holding a warm star-shaped lantern reflecting calm golden light onto an open diary. | *Echo's Strengths & Quiet Life Skills Lab* (`strengths_life_skills_v1`) hero & result reveal. |
+| `scout_pippin_doorstep_compass` | **Scout + Pippin** | Scout checking sky clouds beside Pippin holding a cozy thermos and pocket map. | *Phase 4 Backlog:* "What Should I Do Today?" Home Spark (`today_spark_v1`). |
+| `flock_season_fireside_recap` | **Echo + Seren (Full Flock)** | Echo and Seren reviewing a glowing scrapbook surrounded softly by tiny keepsakes from Roo, Scout, Pippin, and Twill. | *Phase 4 Backlog:* Whole-Flock Season & Progress Recap (`season_recap_v1`). |
+
+### 12.4 Earlier Concept Aliases (Mapped to Current Sliced Sprites)
+- `roo_focus_lock_guard` → implemented as `roo_focus_lock_padlock`
+- `roo_app_fast_commitment` → implemented as `roo_app_fast_shield`
+- `roo_gentle_limit_nudge` → implemented as `roo_usage_limit_hourglass`
+- `roo_app_shield_intervention` → implemented as `roo_shield_interceptor_stop`
+- `scout_phone_modes_toggle` → implemented as `scout_phone_mode_sliders`
+
+### 12.5 Skeleton Shimmer & Smooth Tab Transitions (OS Query & Navigation Polish)
+| Sprite Key | Mascot | Pose / Expression Description | Target Context |
+| :--- | :--- | :--- | :--- |
+| `scout_capability_radar_scan` | **Scout** | Scout squinting through a small brass pocket loupe while soft shimmering status cards load beside a tiny clipboard. | `PermissionCenterScreen` & `PhoneModesScreen` async OS capability shimmer state. |
+| `roo_usage_hourglass_wait` | **Roo** | Roo tapping one foot patiently beside a gently glowing sandglass while daily app-usage telemetry refreshes. | `DigitalDisciplineScreen` & `WellbeingAppPickerSheet` async OS usage/package discovery shimmer state. |
+| `flock_tab_glide_transition` | **Full Flock** | Subtle wing-glide pose of Roo, Scout, Echo, Twill, and Pippin stepping smoothly across soft-edged sanctuary cards. | `MainNavigationScreen` `FadeThroughIndexedStack` main tab transitions. |
+
+### 12.6 Seasonal & Regional Nature Sound Packs (Seren Expansion)
+| Sprite Key | Mascot | Pose / Expression Description | Target Context |
+| :--- | :--- | :--- | :--- |
+| `seren_monsoon_courtyard_tea` | **Seren** | Seren cradling a warm ceramic teacup beneath terracotta eaves while gentle monsoon rain falls into a stone courtyard. | *Monsoon Courtyard* sound pack (`monsoon_courtyard`). |
+| `seren_alpine_meadow_breeze` | **Seren** | Seren closing eyes peacefully in a sunlit high-mountain meadow with wildflowers and soft breeze ribbons. | *Alpine Meadow* sound pack (`alpine_meadow`). |
+| `seren_bamboo_rain_lantern` | **Seren** | Seren resting beside swaying green bamboo stalks as warm dusk fireflies and soft rain shimmer nearby. | *Tropical Bamboo Rain* sound pack (`tropical_bamboo_rain`). |
+| `seren_harbor_mist_scarf` | **Seren** | Seren wrapped in a cozy twilight scarf on a quiet wooden pier watching gentle harbor ripples in sea mist. | *Harbor Foghorn* sound pack (`harbor_foghorn`). |
+| `echo_strength_keepsake_stamp` | **Echo** | Echo pressing a soft indigo-and-gold feather stamp onto a keepsake quote card after a Strengths Lab reveal. | *Strengths & Quiet Life Skills Lab* (`strengths_life_skills_v1`) `QuoteCardStudioScreen` handoff. |
+| `echo_journal_quill_insight` | **Echo** | Echo tucking a freshly inked `#Strength` bookmark ribbon into an open linen journal. | *Strengths & Quiet Life Skills Lab* (`strengths_life_skills_v1`) `JournalProvider` handoff. |
+| `roo_shrinking_snooze_tap` | **Roo** | Roo gently tapping a pocket stopwatch whose dial shrinks from `10m` to `5m` to `3m` with an encouraging morning grin. | `AlarmEditScreen` Smart Shrinking Snooze toggle & `ActiveAlarmScreen` repeat snooze. |
+
+### 12.7 Seren — Mental Wellness Support (`MentalWellnessScreen`, Emotional First Aid & Break the Cycle)
+
+> **Non-Clinical & Anti-Guilt Art Rule:** All Mental Wellness Support sprites MUST stay calm, gentle, and non-judgmental—never depicting stop signs, whistles, warning sirens, clinical stethoscopes/clipboards, or broken-streak gauges. All speech bubbles are rendered dynamically in Flutter via `app_translations.dart` (`en` / `id`).
+
+| Pose Slug | Bird(s) | Pose & Prop Description | Feature / Screen Trigger | Suggested EN / ID Quip (`app_translations.dart`) |
+| :--- | :--- | :--- | :--- | :--- |
+| `seren_open_arms_welcome` | **Seren** | Seren perched softly with open wings and a warm, unhurried gaze welcoming the user into the Mental Wellness Support sanctuary. | `MentalWellnessScreen` hero header, `EFA-01` felt-state triage, and `nestin://mental_aid` landing view. | EN: *"Take all the time you need—I'm right here with you."* / ID: *"Ambil waktu sebanyak yang Anda perlukan—saya di sini menemani Anda."* |
+| `seren_grounding_pebble_feather` | **Seren** | Seren holding a smooth river stone and lavender sprig in calm stillness. | `EFA-03` **5-4-3-2-1 Sensory Grounding** interactive stepper and grounding exercises. | EN: *"Notice five things around you—one quiet sense at a time."* / ID: *"Perhatikan lima hal di sekitarmu—satu indra tenang setiap langkah."* |
+| `seren_mindful_doorway_lantern` | **Seren** | Seren holding a warm paper lantern beside a half-open wooden doorway (calm and inviting, never holding a stop sign or whistle). | `BTC-02` **Mindful App Pause** intention check displaying the user's own *"My Why"*. | EN: *"Pause for a breath—do you have a clear purpose right now?"* / ID: *"Jeda sejenak—apakah Anda memiliki tujuan yang jelas saat ini?"* |
+| `seren_urge_wave_breath` | **Seren** | Seren riding a gentle watercolor ocean wave with calm closed eyes and steady posture. | `BTC-03` **Urge Surfing** guided observation timer and `BTC-02` immediate urge support. | EN: *"Notice the wave rise and pass—you don't have to fight it alone."* / ID: *"Rasakan gelombang dorongan datang dan berlalu—Anda tak harus melawannya sendirian."* |
+| `seren_compassionate_tea_reset` | **Seren** | Seren offering a warm ceramic mug beside an open blank page with zero judgment or streak counters. | `BTC-09` voluntary **Recovery Reflection** post-setback and `SU-04` *"Let It Out"* release. | EN: *"Setbacks are moments to learn gently—never starting from zero."* / ID: *"Kemunduran adalah momen belajar dengan lembut—bukan mengulang dari nol."* |
+| `duo_seren_echo_unsent_letter` | **Seren + Echo** | Seren and Echo sitting quietly by candlelight as a folded letter either enters Echo's locked diary or dissolves peacefully into starlight. | `SU-04` **Let It Out** & `SU-05` **Unsent Letters** dual *Save to Echo (Locked)* vs *Let It Go (Don't Save)* action. | EN: *"Keep it locked safely with Echo, or let it dissolve without a trace."* / ID: *"Simpan aman bersama Echo, atau lepaskan tanpa jejak di perangkat."* |
+| `duo_seren_pippin_healthy_spark` | **Seren + Pippin** | Seren offering a calm nod while Pippin holds a sketchbook and trail map for gentle daytime redirection. | `BTC-06` & `HL-01` **Healthy Alternatives** cross-bird launcher (*Stimulation*, *Movement*, *Creative Expression*). | EN: *"Ready for a gentle shift? Pippin has a fresh idea when you're ready."* / ID: *"Siap beralih dengan tenang? Pippin punya ide segar saat Anda siap."* |

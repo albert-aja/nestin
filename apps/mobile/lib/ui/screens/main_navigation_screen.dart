@@ -34,6 +34,7 @@ import 'discipline/digital_discipline_screen.dart';
 import 'scout/phone_modes_screen.dart';
 import 'settings/permission_center_screen.dart';
 import 'automation/automation_hub_screen.dart';
+import '../widgets/fade_through_indexed_stack.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -301,7 +302,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     ];
 
     return Scaffold(
-      body: IndexedStack(
+      body: FadeThroughIndexedStack(
         index: _currentIndex,
         children: pages,
       ),

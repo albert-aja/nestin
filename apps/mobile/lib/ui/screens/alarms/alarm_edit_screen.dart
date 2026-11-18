@@ -41,6 +41,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   late int _snoozeMinutes;
   late int _maxSnoozeCount;
+  late bool _shrinkingSnoozeEnabled;
 
   // Challenge settings
   late bool _challengeInherited;
@@ -73,6 +74,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
     _snoozeMinutes = a?.snoozeMinutes ?? 9;
     _maxSnoozeCount = a?.maxSnoozeCount ?? 3;
+    _shrinkingSnoozeEnabled = a?.shrinkingSnoozeEnabled ?? false;
 
     _challengeInherited = a?.challengeInherited ?? true;
     final override = a?.challengeOverride;
@@ -152,6 +154,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       vibration: _vibration,
       snoozeMinutes: _snoozeMinutes,
       maxSnoozeCount: _maxSnoozeCount,
+      shrinkingSnoozeEnabled: _shrinkingSnoozeEnabled,
       challengeInherited: _challengeInherited,
       challengeOverride: challengeOverride,
       serenAwakeningHandoff: _serenAwakeningHandoff,
@@ -593,6 +596,36 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  SwitchListTile.adaptive(
+                    key: const Key('alarm_shrinking_snooze_switch'),
+                    contentPadding: EdgeInsets.zero,
+                    value: _shrinkingSnoozeEnabled,
+                    onChanged: (val) {
+                      setState(() => _shrinkingSnoozeEnabled = val);
+                    },
+                    title: Text(
+                      context.l10n.tr('smart_shrinking_snooze_title'),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      _shrinkingSnoozeEnabled
+                          ? context.l10n.tr('smart_shrinking_snooze_preview', {
+                              'sequence': Alarm.shrinkingPreviewSequence(
+                                baseMinutes: _snoozeMinutes,
+                                maxCount: _maxSnoozeCount,
+                              ).map((m) => '${m}m').join(' → '),
+                            })
+                          : context.l10n.tr('smart_shrinking_snooze_desc'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ),
                   ),
                 ],
                 ),

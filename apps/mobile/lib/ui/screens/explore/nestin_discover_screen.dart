@@ -20,6 +20,7 @@ import '../../../providers/routine_provider.dart';
 import '../../../providers/seren_relaxation_provider.dart';
 import '../../../providers/task_provider.dart';
 import '../../../providers/timer_provider.dart';
+import 'strengths_lab_section.dart';
 
 /// Compact summary card for ExploreHubScreen & HobbyPracticeSheet that opens [NestinDiscoverScreen].
 class NestinDiscoverBannerCard extends StatelessWidget {
@@ -370,6 +371,37 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                       l10n,
                       expProvider,
                       latestWeekendResult,
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+              // Hero Experience Card 6: Echo's Strengths & Quiet Life Skills Lab
+              StrengthsLabHeroCard(
+                expProvider: expProvider,
+                draft: expProvider.draftFor(
+                  ExperienceCatalog.strengthsLifeSkillsId,
+                ),
+                latestResult: expProvider.latestResultFor(
+                  ExperienceCatalog.strengthsLifeSkillsId,
+                ),
+              ),
+
+              Builder(
+                builder: (context) {
+                  final latestStrengthsResult = expProvider.latestResultFor(
+                    ExperienceCatalog.strengthsLifeSkillsId,
+                  );
+                  if (latestStrengthsResult == null ||
+                      latestStrengthsResult.topMatches.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: StrengthsLabResultCard(
+                      expProvider: expProvider,
+                      result: latestStrengthsResult,
                     ),
                   );
                 },

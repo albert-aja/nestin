@@ -210,46 +210,57 @@ class DeviceControlProvider extends ChangeNotifier
   /// Inspects live OS capabilities & compares against previously granted
   /// permissions to catch silent OS/user revocations cleanly.
   Future<DeviceCapabilityRegistry> refreshCapabilities() async {
-    final inspected = await _service.inspectCapabilities();
-    final previousEntries = _storage.loadPermissionHistory();
-    final previousByKind = {for (final p in previousEntries) p.kind: p};
+    final startedHere = !_isRefreshing;
+    if (startedHere) {
+      _isRefreshing = true;
+      _safeNotify();
+    }
+    try {
+      final inspected = await _service.inspectCapabilities();
+      final previousEntries = _storage.loadPermissionHistory();
+      final previousByKind = {for (final p in previousEntries) p.kind: p};
 
-    final mergedPermissions = inspected.permissions.map((live) {
-      final prev = previousByKind[live.kind];
-      final wasGrantedBefore =
-          (prev?.isGranted ?? false) || (prev?.wasPreviouslyGranted ?? false);
-      if (live.isGranted) {
-        return live.copyWith(
-          status: PermissionStatus.granted,
-          wasPreviouslyGranted: true,
-        );
+      final mergedPermissions = inspected.permissions.map((live) {
+        final prev = previousByKind[live.kind];
+        final wasGrantedBefore =
+            (prev?.isGranted ?? false) || (prev?.wasPreviouslyGranted ?? false);
+        if (live.isGranted) {
+          return live.copyWith(
+            status: PermissionStatus.granted,
+            wasPreviouslyGranted: true,
+          );
+        }
+        if (wasGrantedBefore && live.status == PermissionStatus.denied) {
+          return live.copyWith(
+            status: PermissionStatus.revoked,
+            wasPreviouslyGranted: true,
+          );
+        }
+        return live.copyWith(wasPreviouslyGranted: wasGrantedBefore);
+      }).toList();
+
+      _registry = DeviceCapabilityRegistry(
+        platform: inspected.platform,
+        manufacturer: inspected.manufacturer,
+        brand: inspected.brand,
+        model: inspected.model,
+        osVersion: inspected.osVersion,
+        sdkInt: inspected.sdkInt,
+        isSamsungOneUi: inspected.isSamsungOneUi,
+        hasFamilyControlsEntitlement: inspected.hasFamilyControlsEntitlement,
+        capabilities: inspected.capabilities,
+        permissions: mergedPermissions,
+        inspectedAt: inspected.inspectedAt,
+      );
+
+      await _storage.savePermissionHistory(mergedPermissions);
+      return _registry;
+    } finally {
+      if (startedHere) {
+        _isRefreshing = false;
       }
-      if (wasGrantedBefore && live.status == PermissionStatus.denied) {
-        return live.copyWith(
-          status: PermissionStatus.revoked,
-          wasPreviouslyGranted: true,
-        );
-      }
-      return live.copyWith(wasPreviouslyGranted: wasGrantedBefore);
-    }).toList();
-
-    _registry = DeviceCapabilityRegistry(
-      platform: inspected.platform,
-      manufacturer: inspected.manufacturer,
-      brand: inspected.brand,
-      model: inspected.model,
-      osVersion: inspected.osVersion,
-      sdkInt: inspected.sdkInt,
-      isSamsungOneUi: inspected.isSamsungOneUi,
-      hasFamilyControlsEntitlement: inspected.hasFamilyControlsEntitlement,
-      capabilities: inspected.capabilities,
-      permissions: mergedPermissions,
-      inspectedAt: inspected.inspectedAt,
-    );
-
-    await _storage.savePermissionHistory(mergedPermissions);
-    _safeNotify();
-    return _registry;
+      _safeNotify();
+    }
   }
 
   /// Recovers any interrupted Phone Mode whose scheduled duration elapsed

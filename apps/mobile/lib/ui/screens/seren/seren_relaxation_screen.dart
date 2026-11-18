@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../data/models/seren_relaxation_models.dart';
 import '../../../providers/journal_provider.dart';
 import '../../../providers/seren_relaxation_provider.dart';
@@ -448,6 +449,8 @@ class _SerenRelaxationScreenState extends State<SerenRelaxationScreen>
           ),
         ],
         const SizedBox(height: 18),
+        _buildSeasonalSoundPacksSection(context, seren, l10n),
+        const SizedBox(height: 18),
         Text(
           l10n.tr('seren_section_sound_library'),
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
@@ -549,6 +552,199 @@ class _SerenRelaxationScreenState extends State<SerenRelaxationScreen>
             ),
           );
         }),
+      ],
+    );
+  }
+
+  Widget _buildSeasonalSoundPacksSection(
+    BuildContext context,
+    SerenRelaxationProvider seren,
+    AppLocalizations l10n,
+  ) {
+    final packs = seren.seasonalSoundPacks;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.tr('seren_section_seasonal_packs'),
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          l10n.tr('seren_seasonal_packs_subtitle'),
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary(context),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 178,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: packs.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final pack = packs[index];
+              final installed = seren.isSoundPackInstalled(pack.id);
+              final downloading = seren.isSoundPackDownloading(pack.id);
+              final progress = seren.soundPackDownloadProgress(pack.id);
+
+              return SizedBox(
+                width: 264,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: installed
+                          ? pack.accentColor.withValues(alpha: 0.55)
+                          : AppColors.border(context),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor:
+                                  pack.accentColor.withValues(alpha: 0.16),
+                              child: Icon(
+                                pack.icon,
+                                size: 19,
+                                color: pack.accentColor,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    pack.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13.5,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${pack.region} · ${pack.season}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: Text(
+                            pack.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ),
+                        if (downloading) ...[
+                          const SizedBox(height: 6),
+                          LinearProgressIndicator(
+                            value: progress > 0 ? progress : null,
+                            minHeight: 5,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.tr('seren_pack_downloading'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ] else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  l10n.tr('seren_pack_stems_size', {
+                                    'count': pack.sounds.length,
+                                    'size_kb': pack.estimatedSizeKb,
+                                  }),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                                ),
+                              ),
+                              if (installed) ...[
+                                TextButton.icon(
+                                  key: Key('seren_pack_remove_${pack.id}'),
+                                  onPressed: () =>
+                                      seren.removeSoundPack(pack.id),
+                                  icon: Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 16,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                                  label: Text(
+                                    l10n.tr('seren_pack_remove'),
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: AppColors.textSecondary(context),
+                                    ),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                  ),
+                                ),
+                              ] else
+                                FilledButton.tonalIcon(
+                                  key: Key('seren_pack_download_${pack.id}'),
+                                  onPressed: () =>
+                                      seren.installSoundPack(pack.id),
+                                  icon: const Icon(
+                                    Icons.download_rounded,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    l10n.tr('seren_pack_download'),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  style: FilledButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }

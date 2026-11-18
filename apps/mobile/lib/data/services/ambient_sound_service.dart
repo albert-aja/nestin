@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../core/config/app_environment.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../models/seren_relaxation_models.dart';
 
@@ -393,6 +394,117 @@ class AmbientSoundService {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<Directory> _packCacheDirectory(String packId) async {
+    Directory dir;
+    try {
+      dir = await getApplicationDocumentsDirectory()
+          .timeout(const Duration(milliseconds: 100));
+    } catch (_) {
+      dir = Directory.systemTemp;
+    }
+    return Directory('${dir.path}/ambient_sounds/packs/$packId');
+  }
+
+  /// Checks whether all audio stems for [pack] are cached on disk.
+  Future<bool> isSoundPackCached(SeasonalSoundPack pack) async {
+    try {
+      final dir = await _packCacheDirectory(pack.id);
+      if (!dir.existsSync()) return false;
+      for (final sound in pack.sounds) {
+        final file = File('${dir.path}/seren_pack_${sound.id}.wav');
+        if (!file.existsSync() || file.lengthSync() <= 1000) {
+          return false;
+        }
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Installs [pack] by fetching remote stems from Supabase Storage when
+  /// configured and reachable, or synthesizing click-free loopable stereo WAV
+  /// stems locally so packs work seamlessly offline.
+  Future<bool> installSoundPack(
+    SeasonalSoundPack pack, {
+    void Function(double progress)? onProgress,
+  }) async {
+    try {
+      final packDir = await _packCacheDirectory(pack.id);
+      if (!packDir.existsSync()) {
+        packDir.createSync(recursive: true);
+      }
+
+      final total = pack.sounds.length;
+      if (total == 0) {
+        onProgress?.call(1.0);
+        return true;
+      }
+
+      final baseUrl = AppEnvironment.supabaseUrl.trim();
+      for (int i = 0; i < total; i++) {
+        final sound = pack.sounds[i];
+        onProgress?.call((i + 0.15) / total);
+
+        Uint8List? bytes;
+        if (baseUrl.isNotEmpty) {
+          bytes = await _tryDownloadRemoteStem(
+            '$baseUrl/storage/v1/object/public/${pack.manifestBucket}/${pack.remoteStoragePathForSound(sound.id)}',
+          );
+        }
+
+        bytes ??= synthesizeTrackWavBytes(
+          sound.id,
+          distance: sound.defaultDistance,
+        );
+
+        final file = File('${packDir.path}/seren_pack_${sound.id}.wav');
+        await file.writeAsBytes(bytes, flush: true);
+        onProgress?.call((i + 1.0) / total);
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<Uint8List?> _tryDownloadRemoteStem(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme) return null;
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 2);
+    try {
+      final req = await client.getUrl(uri);
+      final resp = await req.close().timeout(const Duration(seconds: 3));
+      if (resp.statusCode != HttpStatus.ok) return null;
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in resp) {
+        builder.add(chunk);
+      }
+      final result = builder.takeBytes();
+      return result.length > 1000 ? result : null;
+    } catch (_) {
+      return null;
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  /// Removes cached audio stems for [pack] from local storage.
+  Future<void> removeSoundPack(SeasonalSoundPack pack) async {
+    try {
+      final packDir = await _packCacheDirectory(pack.id);
+      if (packDir.existsSync()) {
+        await packDir.delete(recursive: true);
+      }
+      for (final sound in pack.sounds) {
+        _generatedTrackFiles.removeWhere(
+          (key, _) => key.startsWith('v2_${sound.id}_'),
+        );
+      }
+    } catch (_) {}
   }
 
   /// Legacy mono WAV synthesis preserved for backwards compatibility.
@@ -887,6 +999,128 @@ class AmbientSoundService {
               (0.6 + 0.4 * sin(2 * pi * 0.25 * (i / sampleRate)));
 
           out[i] = pluck + prevSustain + bassHold;
+        }
+        break;
+
+      case 'monsoonCourtyardRain':
+        // Rich courtyard rain against stone tiles with warm low-mid wash.
+        double b0 = 0, b1 = 0, b2 = 0;
+        for (int i = 0; i < n; i++) {
+          final t = i / sampleRate;
+          final white = rnd.nextDouble() * 2 - 1;
+          b0 = 0.997 * b0 + white * 0.11;
+          b1 = 0.958 * b1 + white * 0.30;
+          b2 = 0.560 * b2 + white * 0.92;
+          final swell = 0.82 + 0.18 * sin(2 * pi * 0.25 * t);
+          double rain = (b0 + b1 + b2 + white * 0.15) * 0.125 * swell;
+          if (rnd.nextDouble() < 0.0042) {
+            rain += (rnd.nextDouble() * 0.24);
+          }
+          out[i] = rain;
+        }
+        break;
+
+      case 'terracottaEavesDrip':
+        // Rhythmic water droplets falling off clay eaves over soft rain wash.
+        double lp = 0;
+        for (int i = 0; i < n; i++) {
+          final white = rnd.nextDouble() * 2 - 1;
+          lp = 0.92 * lp + 0.08 * white;
+          final cycle = i % (sampleRate ~/ 2);
+          final dt = cycle / sampleRate;
+          final dripFreq = 860 + 220 * (cycle / (sampleRate ~/ 2));
+          final drip = cycle < 2200
+              ? sin(2 * pi * dripFreq * dt) * 0.20 * exp(-18.0 * dt)
+              : 0.0;
+          out[i] = lp * 0.55 + drip;
+        }
+        break;
+
+      case 'alpineMeadowBreeze':
+        // Airy mountain meadow wind sweeping tall grass and pines.
+        double state = 0;
+        for (int i = 0; i < n; i++) {
+          final t = i / sampleRate;
+          final white = rnd.nextDouble() * 2 - 1;
+          state = 0.989 * state + 0.011 * white;
+          final gust = 0.42 + 0.58 * (0.5 + 0.5 * sin(2 * pi * 0.25 * t));
+          final airShimmer = sin(2 * pi * 520 * t) * 0.012 * gust;
+          out[i] = state * 2.6 * gust + airShimmer;
+        }
+        break;
+
+      case 'distantCowbellsStream':
+        // Clear alpine brook paired with distant bronze meadow chimes.
+        double lp = 0;
+        const bellFreqs = <double>[587.33, 659.25, 783.99];
+        final step = sampleRate;
+        for (int i = 0; i < n; i++) {
+          final t = i / sampleRate;
+          final white = rnd.nextDouble() * 2 - 1;
+          lp = 0.89 * lp + 0.11 * white;
+          final idx = (i ~/ step) % bellFreqs.length;
+          final bt = (i % step) / sampleRate;
+          final bell = sin(2 * pi * bellFreqs[idx] * bt) *
+              0.08 *
+              exp(-2.8 * bt) *
+              (0.6 + 0.4 * sin(2 * pi * 0.5 * t));
+          out[i] = lp * 0.72 + bell;
+        }
+        break;
+
+      case 'tropicalBambooRain':
+        // Crisp pattering drops on hollow bamboo stalks and broad leaves.
+        double b0 = 0, b1 = 0;
+        for (int i = 0; i < n; i++) {
+          final white = rnd.nextDouble() * 2 - 1;
+          b0 = 0.985 * b0 + white * 0.14;
+          b1 = 0.86 * b1 + white * 0.28;
+          double bambooTap = 0.0;
+          if (rnd.nextDouble() < 0.0045) {
+            bambooTap = sin(2 * pi * 640 * (i / sampleRate)) * 0.18;
+          }
+          out[i] = (b0 + b1) * 0.19 + bambooTap;
+        }
+        break;
+
+      case 'jungleCicadaDusk':
+        // Warm tropical evening chorus with soft swaying canopy air.
+        double air = 0;
+        for (int i = 0; i < n; i++) {
+          final t = i / sampleRate;
+          final white = rnd.nextDouble() * 2 - 1;
+          air = 0.97 * air + 0.03 * white;
+          final pulse = 0.4 + 0.6 * (0.5 + 0.5 * sin(2 * pi * 2.5 * t));
+          final chorus = sin(2 * pi * 3400 * t) * 0.06 +
+              sin(2 * pi * 3680 * t) * 0.04;
+          out[i] = air * 0.75 + chorus * pulse;
+        }
+        break;
+
+      case 'harborFoghorn':
+        // Distant warm brass foghorn swelling gently across coastal mist.
+        double mist = 0;
+        for (int i = 0; i < n; i++) {
+          final t = i / sampleRate;
+          final white = rnd.nextDouble() * 2 - 1;
+          mist = 0.985 * mist + 0.015 * white;
+          final hornEnv = pow(sin(pi * (t % 4.0) / 4.0), 3).toDouble();
+          final horn = (sin(2 * pi * 110.0 * t) * 0.20 +
+                  sin(2 * pi * 164.81 * t) * 0.10) *
+              hornEnv;
+          out[i] = mist * 0.95 + horn;
+        }
+        break;
+
+      case 'pierLappingWaves':
+        // Gentle rhythmic water lapping against wooden harbor pilings.
+        double pinkState = 0;
+        for (int i = 0; i < n; i++) {
+          final t = i / sampleRate;
+          final white = rnd.nextDouble() * 2 - 1;
+          pinkState = 0.94 * pinkState + 0.06 * white;
+          final lap = 0.30 + 0.65 * (0.5 + 0.5 * sin(2 * pi * 0.5 * t));
+          out[i] = pinkState * lap * 1.35;
         }
         break;
 

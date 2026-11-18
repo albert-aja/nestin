@@ -202,8 +202,9 @@ class AlarmProvider extends ChangeNotifier {
     if (index != -1) {
       final alarm = _alarms[index];
       final newSnoozeCount = alarm.snoozeCount + 1;
+      final nextMinutes = alarm.nextSnoozeMinutes;
       final snoozeTarget = DateTime.now().add(
-        Duration(minutes: alarm.snoozeMinutes),
+        Duration(minutes: nextMinutes),
       );
 
       _alarms[index] = alarm.copyWith(

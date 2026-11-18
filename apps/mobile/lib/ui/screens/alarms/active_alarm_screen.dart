@@ -382,8 +382,11 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                   icon: const Icon(Icons.snooze_rounded, size: 20),
                   label: Text(
                     canSnooze
-                        ? 'Snooze for ${widget.alarm.snoozeMinutes} mins'
-                        : 'Snooze Limit Reached',
+                        ? context.l10n.tr(
+                            'snooze_for_x_mins',
+                            {'mins': widget.alarm.nextSnoozeMinutes},
+                          )
+                        : context.l10n.tr('snooze_limit_reached'),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
