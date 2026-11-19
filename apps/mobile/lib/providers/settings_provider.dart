@@ -8,6 +8,7 @@ import '../data/models/journal_entry.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/widget_sync_service.dart';
 import '../domain/security/diary_lock_helper.dart';
+import '../ui/screens/splash/seasonal_loading_theme.dart';
 
 class SettingsProvider extends ChangeNotifier {
   final StorageService _storageService;
@@ -96,6 +97,21 @@ class SettingsProvider extends ChangeNotifier {
   bool get showThrowbacks => _preferences.showThrowbacks;
   bool get hasCompletedOnboarding => _preferences.hasCompletedOnboarding;
   bool get showWidgetMascots => _preferences.showWidgetMascots;
+  SplashSpeed get splashSpeed => _preferences.splashSpeed;
+  SeasonalSplashTheme? get seasonalSplashOverride =>
+      _preferences.seasonalSplashOverride;
+
+  Future<void> setSplashSpeed(SplashSpeed speed) async {
+    await updatePreferences(_preferences.copyWith(splashSpeed: speed));
+  }
+
+  Future<void> setSeasonalSplashOverride(SeasonalSplashTheme? theme) async {
+    await updatePreferences(
+      theme == null
+          ? _preferences.copyWith(clearSeasonalSplashOverride: true)
+          : _preferences.copyWith(seasonalSplashOverride: theme),
+    );
+  }
 
   // Ephemeral in-session unlock state
   bool _isDiaryUnlocked = false;

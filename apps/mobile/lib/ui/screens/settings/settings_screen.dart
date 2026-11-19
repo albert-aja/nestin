@@ -33,6 +33,7 @@ import '../../widgets/location_reminders_sheet.dart';
 import '../../widgets/money/money_editor_dialogs.dart';
 import '../../widgets/nestin_brand_header.dart';
 import '../../widgets/security_pin_gate_sheet.dart';
+import '../splash/seasonal_loading_theme.dart';
 import '../../widgets/nestin_account_sheet.dart';
 import '../alarms/sound_picker_sheet.dart';
 import '../discipline/digital_discipline_screen.dart';
@@ -481,6 +482,61 @@ class SettingsScreen extends StatelessWidget {
                     ],
                     onChanged: (mode) {
                       if (mode != null) provider.setThemeMode(mode);
+                    },
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: const Key('settings_splash_speed_tile'),
+                  leading: const Icon(Icons.speed_rounded),
+                  title: Text(l10n.tr('splash_speed_title')),
+                  subtitle: Text(prefs.splashSpeed.localizedDescription(l10n)),
+                  trailing: DropdownButton<SplashSpeed>(
+                    key: const Key('settings_splash_speed_dropdown'),
+                    value: prefs.splashSpeed,
+                    underline: const SizedBox(),
+                    items: SplashSpeed.values.map((speed) {
+                      return DropdownMenuItem<SplashSpeed>(
+                        value: speed,
+                        child: Text(speed.localizedShortLabel(l10n)),
+                      );
+                    }).toList(),
+                    onChanged: (speed) {
+                      if (speed != null) provider.setSplashSpeed(speed);
+                    },
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: const Key('settings_seasonal_splash_tile'),
+                  leading: const Icon(Icons.auto_awesome_rounded),
+                  title: Text(l10n.tr('splash_season_setting_title')),
+                  subtitle: Text(
+                    prefs.seasonalSplashOverride == null
+                        ? l10n.tr('splash_season_setting_auto_desc')
+                        : l10n.tr(prefs.seasonalSplashOverride!.labelKey),
+                  ),
+                  trailing: DropdownButton<String>(
+                    key: const Key('settings_seasonal_splash_dropdown'),
+                    value: prefs.seasonalSplashOverride?.name ?? 'auto',
+                    underline: const SizedBox(),
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: 'auto',
+                        child: Text(l10n.tr('splash_season_opt_auto')),
+                      ),
+                      ...SeasonalSplashTheme.values.map((theme) {
+                        return DropdownMenuItem<String>(
+                          value: theme.name,
+                          child: Text(l10n.tr(theme.labelKey)),
+                        );
+                      }),
+                    ],
+                    onChanged: (val) {
+                      if (val == null) return;
+                      provider.setSeasonalSplashOverride(
+                        SeasonalSplashThemeExt.fromNameOrNull(val),
+                      );
                     },
                   ),
                 ),

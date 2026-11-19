@@ -16,6 +16,7 @@ import '../../providers/journal_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../domain/nlp/natural_language_date_parser.dart';
 import '../screens/alarms/alarm_edit_screen.dart';
+import '../screens/seren/mental_wellness_screen.dart';
 import 'nlp_date_detector_chip.dart';
 import 'location_reminders_sheet.dart';
 import 'before_you_go_sheet.dart';
@@ -247,6 +248,26 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                               onPressed: () {
                                 Navigator.of(context).pop();
                                 showMoneyTransactionSheet(context);
+                              },
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ActionChip(
+                              key: const Key('qc_mental_aid_chip'),
+                              avatar: const Icon(
+                                Icons.spa_rounded,
+                                size: 14,
+                                color: Color(0xFF8B5CF6),
+                              ),
+                              label: Text(l10n.tr('qc_mental_aid')),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MentalWellnessScreen(),
+                                  ),
+                                );
                               },
                             ),
                           ),

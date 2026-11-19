@@ -14,6 +14,9 @@ import '../../providers/before_you_go_provider.dart';
 import '../../providers/reading_provider.dart';
 import '../../providers/inspiration_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/break_the_cycle_provider.dart';
+import 'seren/mental_wellness_screen.dart';
+import '../widgets/seren/mindful_app_pause_dialog.dart';
 import 'home/home_dashboard_screen.dart';
 import 'time/time_hub_screen.dart';
 import 'organize/organize_hub_screen.dart';
@@ -90,6 +93,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
               payload == 'nestin://reading') {
             _onTabSelected(4);
             ReadingTrackerSheet.show(context);
+          } else if (payload == 'mental_aid' ||
+              payload == 'nestin://mental_aid' ||
+              payload == 'mental_wellness') {
+            _onTabSelected(4);
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MentalWellnessScreen()),
+            );
           } else if (payload.startsWith('nestin://inspiration')) {
             final uri = Uri.tryParse(payload);
             if (uri != null) {
@@ -116,6 +126,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       try {
         Provider.of<HydrationProvider>(context, listen: false)
             .reloadFromStorage();
+      } catch (_) {}
+      try {
+        final btc = Provider.of<BreakTheCycleProvider>(context, listen: false);
+        btc.reloadFromStorage();
+        btc.checkForegroundAppForMindfulPause().then((pkg) {
+          if (pkg != null && mounted) {
+            MindfulAppPauseDialog.show(
+              context,
+              packageName: pkg,
+              onStepBackToUrgeSupport: () {
+                if (!mounted) return;
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MentalWellnessScreen(initialLayer: 3),
+                  ),
+                );
+              },
+            );
+          }
+        });
       } catch (_) {}
       try {
         final settings = Provider.of<SettingsProvider>(context, listen: false);
@@ -168,6 +198,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     } else if (uri.host == 'medication') {
       _onTabSelected(4);
       MedicationTrackerSheet.show(context);
+    } else if (uri.host == 'mental_aid' || uri.host == 'mental_wellness') {
+      _onTabSelected(4);
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const MentalWellnessScreen()),
+      );
     } else if (uri.host == 'reading') {
       _onTabSelected(4);
       ReadingTrackerSheet.show(context);

@@ -6,6 +6,7 @@ import '../../core/l10n/app_localizations.dart';
 import '../../providers/health_wellness_provider.dart';
 import '../../providers/hydration_provider.dart';
 import '../screens/seren/seren_relaxation_screen.dart';
+import '../screens/seren/mental_wellness_screen.dart';
 import 'health_wellness_sheet.dart';
 
 class SerenWellnessSummaryCard extends StatelessWidget {
@@ -304,6 +305,32 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  key: const Key('seren_summary_open_mental_wellness_btn'),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const MentalWellnessScreen(),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _serenPurple,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.spa_rounded, size: 16),
+                  label: Text(
+                    l10n.tr('seren_summary_open_mental_wellness'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.tonalIcon(

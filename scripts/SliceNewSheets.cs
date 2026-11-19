@@ -764,6 +764,132 @@ public class SliceNewSheets
                 SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_trios_quartets_1.jpg",
                 OutputDir = @"apps\mobile\assets\mascots\sprites\ensembles",
                 PoseNames = new[] { "trio_morning_awakening_squad", "trio_evening_wind_down_crew", "trio_travel_adventure_packers", "trio_inspiration_quote_atelier", "quartet_quick_capture_express", "quartet_cross_module_web" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_expressions_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
+                PoseNames = new[] { "breath_inhale_expand", "breath_exhale_settle", "body_scan_feather", "caffeine_herbal_swap", "pill_refill_alert", "walking_shoes_step" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren6",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_expressions_6.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
+                PoseNames = new[] { "breath_hold_still", "low_motion_stillness", "tts_whisper_duck", "morning_sun_tea", "warmth_dial", "cozy_book_lantern" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren7",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_expressions_7.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
+                PoseNames = new[] { "seamless_ribbon", "headphone_unplug_pause", "bluetooth_sleep_pause", "lock_screen_transport", "caffeine_clear_sleep", "sleep_debt_blanket" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren_mental1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_mental_wellness_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
+                PoseNames = new[] { "open_arms_welcome", "grounding_pebble_feather", "mindful_doorway_lantern", "urge_wave_breath", "compassionate_tea_reset", "capsule_open_bloom" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren_sound1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_soundscapes_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
+                PoseNames = new[] { "singing_bowl", "soft_kalimba", "warm_cello", "monsoon_courtyard_tea", "alpine_meadow_breeze", "bamboo_rain_lantern" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "scout5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\scout_expressions_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\scout",
+                PoseNames = new[] { "snooze_pocketwatch", "state_restored_rewind", "automation_gears", "permission_inspector", "cross_link_chain", "guest_cloud_bridge" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "pippin5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\pippin_expressions_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\pippin",
+                PoseNames = new[] { "reading_spectacles_stack", "curious_magnifying_glass", "aquascape_planting", "sketchbook_watercolor", "eureka_match_reveal", "coding_laptop" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "twill5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\twill_expressions_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\twill",
+                PoseNames = new[] { "budget_caution_amber", "budget_overflow_patch", "recurring_calendar_stamp", "inline_check_tap", "unpack_reset_suitcase", "wishlist_star_scale" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "echo5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\echo_expressions_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\echo",
+                PoseNames = new[] { "clue_whisper_scroll", "prompt_dice_shuffle", "offline_draft_quill", "dawn_quote_bell", "scholar_scroll", "rubik_constellation_cube" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "echo_ka1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\echo_knowledge_arena_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\echo",
+                PoseNames = new[] { "knowledge_lantern", "lantern_eureka", "curiosity_globe", "fibonacci_pinecone_spiral", "ink_quill_smile", "wax_seal_capsule" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "roo_handoff1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\roo_handoff_focus_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\roo",
+                PoseNames = new[] { "sunrise_baton_handoff", "starter_session_stopwatch", "pomodoro_warmup_whistle", "weekend_calendar_pin", "ultradian_conductor", "shrinking_snooze_tap" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "duos2",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_duos_2.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\duos",
+                PoseNames = new[] { "duo_roo_scout_focus_mode_shield", "duo_roo_seren_pomodoro_hydrate", "duo_roo_twill_recurring_sync", "duo_roo_twill_task_blueprint", "duo_scout_twill_backup_vault", "duo_scout_twill_market_geofence" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "duos4",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_duos_4.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\duos",
+                PoseNames = new[] { "duo_pippin_echo_bucket_memory", "duo_scout_twill_packing_departure", "duo_pippin_twill_dream_jar", "duo_scout_seren_audio_guard", "duo_echo_roo_focus_relay", "duo_pippin_seren_book_tea" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "trios2",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_trios_quartets_2.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "trio_weekend_life_reset", "trio_device_reliability_guard", "trio_mindful_study_sanctuary", "trio_wishlist_occasion_planners", "seren_vitals_stethoscope", "seren_wearable_watch_sync" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "story1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\story_anthology_expressions_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "seren_reading_lantern", "seren_rainy_window", "seren_starlight_blanket", "seren_moonflower_calm", "pippin_train_window", "pippin_canal_skiff" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "misc1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\misc_expressions_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "echo_brass_compass", "echo_observatory_perch", "seren_med_snooze_pillow", "seren_headset_remote_click", "roo_discipline_streak_proud", "pippin_gardening_trowel" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "scout_twill1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\scout_twill_weekend_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "scout_weekend_compass_map", "scout_weekend_picnic_basket", "scout_night_watch_shield", "scout_focus_gatekeeper", "twill_starter_kit_blueprint", "twill_weekend_budget_coin_pouch" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "pippin_disc1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\pippin_discover_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "pippin_book_bookmark_wing", "pippin_sketchbook_easel", "pippin_aesthetic_frame", "pippin_forked_trail_sign", "twill_piggybank_abacus_estimate", "twill_palette_swatches" }
             }
         };
 

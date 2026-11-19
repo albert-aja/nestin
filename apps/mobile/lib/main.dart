@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'data/models/user_preferences.dart';
 import 'data/services/storage_service.dart';
 import 'data/services/audio_service.dart';
 import 'data/services/notification_service.dart';
@@ -39,6 +40,7 @@ import 'providers/cross_module_link_provider.dart';
 import 'providers/account_provider.dart';
 import 'providers/inspiration_provider.dart';
 import 'providers/seren_relaxation_provider.dart';
+import 'providers/break_the_cycle_provider.dart';
 import 'providers/interactive_experience_provider.dart';
 import 'data/services/backend_gateway_service.dart';
 import 'data/services/inspiration_service.dart';
@@ -105,7 +107,9 @@ class _NestinAppState extends State<NestinApp> {
   @override
   void initState() {
     super.initState();
-    _splashFinished = !widget.showSplash;
+    final initialSplashSpeed =
+        widget.storageService.loadPreferences().splashSpeed;
+    _splashFinished = !widget.showSplash || initialSplashSpeed.isInstant;
   }
 
   void _onSplashFinish() {
@@ -258,6 +262,9 @@ class _NestinAppState extends State<NestinApp> {
           ),
         ),
         ChangeNotifierProvider(
+          create: (_) => BreakTheCycleProvider(storageService),
+        ),
+        ChangeNotifierProvider(
           create: (_) => InteractiveExperienceProvider(storageService),
         ),
         Provider<WeatherProviderInterface>.value(
@@ -273,6 +280,9 @@ class _NestinAppState extends State<NestinApp> {
           if (!_splashFinished) {
             homeWidget = SplashScreen(
               key: const ValueKey('splash_screen'),
+              minDuration: settings.splashSpeed.duration,
+              animationDuration: settings.splashSpeed.animationDuration,
+              seasonalThemeOverride: settings.seasonalSplashOverride,
               onFinish: _onSplashFinish,
             );
           } else if (settings.hasCompletedOnboarding) {

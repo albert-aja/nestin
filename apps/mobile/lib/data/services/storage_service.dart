@@ -48,6 +48,7 @@ import '../models/phone_mode.dart';
 import '../models/automation_rule.dart';
 import '../models/entity_link.dart';
 import '../models/seren_relaxation_models.dart';
+import '../models/mental_wellness_models.dart';
 import 'weather_service.dart';
 
 class StorageService {
@@ -136,6 +137,8 @@ class StorageService {
   static const String _keyEntityLinks = 'nestin_entity_links_v1';
   static const String _keySerenRelaxationPrefs =
       'nestin_seren_relaxation_prefs_v1';
+  static const String _keyMentalWellnessData =
+      'nestin_mental_wellness_data_v1';
 
   final SharedPreferences _prefs;
 
@@ -1191,6 +1194,7 @@ class StorageService {
       'automationLogs': loadAutomationLogs().map((e) => e.toJson()).toList(),
       'entityLinks': loadEntityLinks().map((e) => e.toJson()).toList(),
       'serenRelaxationPrefs': loadSerenRelaxationPreferences().toJson(),
+      'mentalWellnessData': loadMentalWellnessData().toJson(),
       'experienceDrafts': loadExperienceDrafts().map(
         (key, value) => MapEntry(key, value.toJson()),
       ),
@@ -1311,6 +1315,27 @@ class StorageService {
     await _prefs.setString(
       _keySerenRelaxationPrefs,
       jsonEncode(prefs.toJson()),
+    );
+  }
+
+  MentalWellnessStateData loadMentalWellnessData() {
+    final raw = _prefs.getString(_keyMentalWellnessData);
+    if (raw == null || raw.isEmpty) {
+      return const MentalWellnessStateData();
+    }
+    try {
+      return MentalWellnessStateData.fromJson(
+        Map<String, dynamic>.from(jsonDecode(raw) as Map),
+      );
+    } catch (_) {
+      return const MentalWellnessStateData();
+    }
+  }
+
+  Future<void> saveMentalWellnessData(MentalWellnessStateData data) async {
+    await _prefs.setString(
+      _keyMentalWellnessData,
+      jsonEncode(data.toJson()),
     );
   }
 
@@ -1650,6 +1675,13 @@ class StorageService {
             )
             .toList();
         await saveCachedOpenLibraryBooks(cached);
+      }
+      if (map['mentalWellnessData'] is Map) {
+        await saveMentalWellnessData(
+          MentalWellnessStateData.fromJson(
+            Map<String, dynamic>.from(map['mentalWellnessData'] as Map),
+          ),
+        );
       }
       return true;
     } catch (_) {

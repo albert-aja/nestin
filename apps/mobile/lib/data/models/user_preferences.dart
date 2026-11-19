@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/l10n/app_language.dart';
 import '../../core/l10n/app_localizations.dart';
+import '../../ui/screens/splash/seasonal_loading_theme.dart';
 import 'challenge_profile.dart';
 
 /// Auto-lock timeout options after leaving the Diary / backgrounding the app.
@@ -57,6 +58,60 @@ extension DiaryAutoLockDelayExt on DiaryAutoLockDelay {
       };
 }
 
+/// Configurable dwell duration & animation speed on cold launch (`SplashScreen`).
+enum SplashSpeed {
+  quick,
+  normal,
+  relaxed,
+  instant,
+}
+
+extension SplashSpeedExt on SplashSpeed {
+  Duration get duration => switch (this) {
+        SplashSpeed.quick => const Duration(milliseconds: 800),
+        SplashSpeed.normal => const Duration(milliseconds: 1400),
+        SplashSpeed.relaxed => const Duration(milliseconds: 2200),
+        SplashSpeed.instant => Duration.zero,
+      };
+
+  Duration get animationDuration => switch (this) {
+        SplashSpeed.quick => const Duration(milliseconds: 650),
+        SplashSpeed.normal => const Duration(milliseconds: 1100),
+        SplashSpeed.relaxed => const Duration(milliseconds: 1500),
+        SplashSpeed.instant => Duration.zero,
+      };
+
+  bool get isInstant => this == SplashSpeed.instant;
+
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+        SplashSpeed.quick => l10n.tr('splash_speed_quick'),
+        SplashSpeed.normal => l10n.tr('splash_speed_normal'),
+        SplashSpeed.relaxed => l10n.tr('splash_speed_relaxed'),
+        SplashSpeed.instant => l10n.tr('splash_speed_instant'),
+      };
+
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+        SplashSpeed.quick => l10n.tr('splash_speed_short_quick'),
+        SplashSpeed.normal => l10n.tr('splash_speed_short_normal'),
+        SplashSpeed.relaxed => l10n.tr('splash_speed_short_relaxed'),
+        SplashSpeed.instant => l10n.tr('splash_speed_short_instant'),
+      };
+
+  String localizedDescription(AppLocalizations l10n) => switch (this) {
+        SplashSpeed.quick => l10n.tr('splash_speed_desc_quick'),
+        SplashSpeed.normal => l10n.tr('splash_speed_desc_normal'),
+        SplashSpeed.relaxed => l10n.tr('splash_speed_desc_relaxed'),
+        SplashSpeed.instant => l10n.tr('splash_speed_desc_instant'),
+      };
+
+  static SplashSpeed fromName(String? name) {
+    return SplashSpeed.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => SplashSpeed.normal,
+    );
+  }
+}
+
 class UserPreferences {
   final ThemeMode themeMode;
   final AppLanguage language;
@@ -79,6 +134,8 @@ class UserPreferences {
   final bool showThrowbacks;
   final bool hasCompletedOnboarding;
   final bool showWidgetMascots;
+  final SplashSpeed splashSpeed;
+  final SeasonalSplashTheme? seasonalSplashOverride;
 
   const UserPreferences({
     this.themeMode = ThemeMode.dark,
@@ -102,6 +159,8 @@ class UserPreferences {
     this.showThrowbacks = true,
     this.hasCompletedOnboarding = false,
     this.showWidgetMascots = true,
+    this.splashSpeed = SplashSpeed.normal,
+    this.seasonalSplashOverride,
   });
 
   factory UserPreferences.defaults() {
@@ -134,6 +193,9 @@ class UserPreferences {
     bool? showThrowbacks,
     bool? hasCompletedOnboarding,
     bool? showWidgetMascots,
+    SplashSpeed? splashSpeed,
+    SeasonalSplashTheme? seasonalSplashOverride,
+    bool clearSeasonalSplashOverride = false,
   }) {
     return UserPreferences(
       themeMode: themeMode ?? this.themeMode,
@@ -162,6 +224,10 @@ class UserPreferences {
       hasCompletedOnboarding:
           hasCompletedOnboarding ?? this.hasCompletedOnboarding,
       showWidgetMascots: showWidgetMascots ?? this.showWidgetMascots,
+      splashSpeed: splashSpeed ?? this.splashSpeed,
+      seasonalSplashOverride: clearSeasonalSplashOverride
+          ? null
+          : (seasonalSplashOverride ?? this.seasonalSplashOverride),
     );
   }
 
@@ -188,6 +254,8 @@ class UserPreferences {
       'showThrowbacks': showThrowbacks,
       'hasCompletedOnboarding': hasCompletedOnboarding,
       'showWidgetMascots': showWidgetMascots,
+      'splashSpeed': splashSpeed.name,
+      'seasonalSplashOverride': seasonalSplashOverride?.name,
     };
   }
 
@@ -231,6 +299,10 @@ class UserPreferences {
       showThrowbacks: json['showThrowbacks'] as bool? ?? true,
       hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool? ?? false,
       showWidgetMascots: json['showWidgetMascots'] as bool? ?? true,
+      splashSpeed: SplashSpeedExt.fromName(json['splashSpeed'] as String?),
+      seasonalSplashOverride: SeasonalSplashThemeExt.fromNameOrNull(
+        json['seasonalSplashOverride'] as String?,
+      ),
     );
   }
 }

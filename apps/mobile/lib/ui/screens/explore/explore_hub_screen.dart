@@ -35,6 +35,7 @@ import '../search/universal_search_screen.dart';
 import '../automation/automation_hub_screen.dart';
 import '../scout/phone_modes_screen.dart';
 import '../seren/seren_relaxation_screen.dart';
+import '../seren/mental_wellness_screen.dart';
 import '../../../providers/device_control_provider.dart';
 import '../../../providers/automation_provider.dart';
 
@@ -642,6 +643,59 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
 
           // Seren Health & Activity Card (Steps, Sleep Tracking, Vitals, Breathing)
           const SerenWellnessSummaryCard(),
+          const SizedBox(height: 12),
+
+          // Seren Mental Wellness Support Hero Card
+          Card(
+            margin: EdgeInsets.zero,
+            color: AppColors.cardSurface(context),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
+              ),
+            ),
+            child: ListTile(
+              key: const Key('explore_seren_mental_wellness_card'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MentalWellnessScreen(),
+                  ),
+                );
+              },
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.spa_rounded,
+                  color: Color(0xFF8B5CF6),
+                ),
+              ),
+              title: Text(
+                l10n.tr('explore_mw_card_title'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: Text(
+                l10n.tr('explore_mw_card_subtitle'),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary(context),
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded),
+            ),
+          ),
           const SizedBox(height: 12),
 
           // Seren Daily Relaxation & Ambient Soundscape Studio Card

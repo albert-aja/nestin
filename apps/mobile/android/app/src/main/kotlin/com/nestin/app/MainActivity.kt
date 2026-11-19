@@ -188,6 +188,22 @@ class MainActivity : FlutterActivity() {
                             result.error("UPDATE_ERROR", e.message, null)
                         }
                     }
+                    "launchExternalUri" -> {
+                        try {
+                            val rawUri = call.argument<String>("uri")
+                            if (rawUri.isNullOrBlank()) {
+                                result.success(false)
+                            } else {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(rawUri)).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                startActivity(intent)
+                                result.success(true)
+                            }
+                        } catch (_: Exception) {
+                            result.success(false)
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
