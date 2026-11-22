@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../widgets/inspiration/inspiration_explore_card.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -255,8 +255,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: config.isConnected
-                                    ? AppColors.success.withOpacity(0.18)
-                                    : AppColors.accent.withOpacity(0.18),
+                                    ? AppColors.success.withValues(alpha: 0.18)
+                                    : AppColors.accent.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(

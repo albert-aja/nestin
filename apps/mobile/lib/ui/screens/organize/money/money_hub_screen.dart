@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/money_budget.dart';
@@ -67,11 +67,29 @@ class MoneyHubScreen extends StatefulWidget {
 
 class _MoneyHubScreenState extends State<MoneyHubScreen> {
   late MoneySection _section;
+  MoneyTransactionFilterPreset? _txFilterPreset;
+  int _txFilterRevision = 0;
 
   @override
   void initState() {
     super.initState();
     _section = widget.initialSection;
+  }
+
+  void _handleCategoryDrillDown({
+    required String categoryId,
+    required DateTimeRange dateRange,
+  }) {
+    setState(() {
+      _txFilterRevision++;
+      _txFilterPreset = MoneyTransactionFilterPreset(
+        type: MoneyTransactionType.expense,
+        categoryId: categoryId,
+        dateRange: dateRange,
+        revision: _txFilterRevision,
+      );
+      _section = MoneySection.transactions;
+    });
   }
 
   @override
@@ -169,11 +187,15 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
               MoneySection.overview => _MoneyOverviewView(
                   onJumpSection: (sec) => setState(() => _section = sec),
                 ),
-              MoneySection.transactions => const MoneyTransactionsView(),
+              MoneySection.transactions => MoneyTransactionsView(
+                  filterPreset: _txFilterPreset,
+                ),
               MoneySection.accounts => const MoneyAccountsView(),
               MoneySection.budgets => const MoneyBudgetsView(),
               MoneySection.recurring => const MoneyRecurringView(),
-              MoneySection.reports => const MoneyReportsView(),
+              MoneySection.reports => MoneyReportsView(
+                  onDrillDownCategory: _handleCategoryDrillDown,
+                ),
             },
           ),
         ],

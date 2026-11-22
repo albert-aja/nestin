@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/l10n/app_localizations.dart';
@@ -20,6 +20,8 @@ import '../../../providers/routine_provider.dart';
 import '../../../providers/seren_relaxation_provider.dart';
 import '../../../providers/task_provider.dart';
 import '../../../providers/timer_provider.dart';
+import 'daily_creative_prompt_section.dart';
+import 'interest_explorer_section.dart';
 import 'strengths_lab_section.dart';
 
 /// Compact summary card for ExploreHubScreen & HobbyPracticeSheet that opens [NestinDiscoverScreen].
@@ -402,6 +404,46 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                     child: StrengthsLabResultCard(
                       expProvider: expProvider,
                       result: latestStrengthsResult,
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+              // Hero Experience Card 7: Pippin's Daily Creative Prompt
+              DailyCreativePromptHeroCard(
+                expProvider: expProvider,
+                latestResult: expProvider.latestResultFor(
+                  ExperienceCatalog.dailyCreativePromptId,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+              // Hero Experience Card 8: Pippin's Interest Explorer ("This or That")
+              InterestExplorerHeroCard(
+                expProvider: expProvider,
+                draft: expProvider.draftFor(
+                  ExperienceCatalog.interestExplorerId,
+                ),
+                latestResult: expProvider.latestResultFor(
+                  ExperienceCatalog.interestExplorerId,
+                ),
+              ),
+
+              Builder(
+                builder: (context) {
+                  final latestInterestResult = expProvider.latestResultFor(
+                    ExperienceCatalog.interestExplorerId,
+                  );
+                  if (latestInterestResult == null ||
+                      latestInterestResult.topMatches.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: InterestExplorerResultCard(
+                      expProvider: expProvider,
+                      result: latestInterestResult,
                     ),
                   );
                 },

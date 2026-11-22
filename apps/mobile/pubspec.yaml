@@ -46,6 +46,8 @@ dependencies:
   file_picker: ^13.3.3
   path_provider: ^2.1.6
 
+  material_ui: any
+  cupertino_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -70,8 +72,27 @@ flutter:
 
   assets:
     - assets/l10n/
+    - assets/images/
     - assets/logo.jpg
     - assets/banner.jpg
+    - assets/mascots/wallpapers/seasonal/christmas_wallpaper.jpg
+    - assets/mascots/wallpapers/seasonal/happy_new_year.jpg
+    - assets/mascots/wallpapers/seasonal/lunar_new_year_potrait.jpg
+    - assets/mascots/wallpapers/seasonal/friendship_cozy_letters.jpg
+    - assets/mascots/wallpapers/seasonal/eid_lantern_courtyard.jpg
+    - assets/mascots/wallpapers/seasonal/spring_gardening_festival.jpg
+    - assets/mascots/wallpapers/seasonal/earth_day_rainy_planting.jpg
+    - assets/mascots/wallpapers/seasonal/summer_splash_river.jpg
+    - assets/mascots/wallpapers/seasonal/midsummer_kite_camp.jpg
+    - assets/mascots/wallpapers/seasonal/mid_autumn_moon_festival.jpg
+    - assets/mascots/wallpapers/seasonal/autumn_harvest_festival.jpg
+    - assets/mascots/wallpapers/seasonal/halloween_pumpkin_night.jpg
+    - assets/mascots/wallpapers/seasonal/november_cozy_hearth.jpg
+    - assets/mascots/wallpapers/seasonal/gratitude_harvest_table.jpg
+    - assets/mascots/wallpapers/everyday/everyday_sunny_picnic.jpg
+    - assets/mascots/wallpapers/everyday/everyday_treehouse_welcome.jpg
+    - assets/mascots/wallpapers/everyday/everyday_rainy_fireplace.jpg
+    - assets/mascots/wallpapers/everyday/everyday_starlight_slumber.jpg
     - assets/mascots/flock_mascots.jpg
     - assets/mascots/sprites/roo/
     - assets/mascots/sprites/seren/

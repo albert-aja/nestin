@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nestin/core/l10n/app_language.dart';
 import 'package:nestin/core/l10n/app_localizations.dart';
@@ -382,24 +383,68 @@ void main() {
         SeasonalSplashTheme.newYear,
       );
       expect(
-        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 2, 14)),
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 2, 5)),
         SeasonalSplashTheme.lunarLantern,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 2, 14)),
+        SeasonalSplashTheme.friendshipLetters,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 3, 20)),
+        SeasonalSplashTheme.eidLantern,
       );
       expect(
         SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 4, 10)),
         SeasonalSplashTheme.springBloom,
       );
       expect(
-        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 7, 15)),
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 4, 22)),
+        SeasonalSplashTheme.earthDay,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 6, 15)),
         SeasonalSplashTheme.summerSun,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 7, 15)),
+        SeasonalSplashTheme.midsummerKite,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 9, 20)),
+        SeasonalSplashTheme.midAutumn,
       );
       expect(
         SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 10, 5)),
         SeasonalSplashTheme.autumnHarvest,
       );
       expect(
-        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 19)),
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 10, 31)),
+        SeasonalSplashTheme.halloween,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 5)),
         SeasonalSplashTheme.cozyLantern,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 21, 9)),
+        SeasonalSplashTheme.everydaySunnyPicnic,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 21, 14)),
+        SeasonalSplashTheme.everydayTreehouse,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 21, 19)),
+        SeasonalSplashTheme.everydayFireplace,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 21, 23)),
+        SeasonalSplashTheme.everydayStarlight,
+      );
+      expect(
+        SeasonalSplashResolver.resolveTheme(now: DateTime(2026, 11, 26)),
+        SeasonalSplashTheme.gratitudeHarvest,
       );
       expect(
         SeasonalSplashResolver.resolveTheme(
@@ -444,6 +489,18 @@ void main() {
         expect(find.text('Warm Holiday Wishes'), findsOneWidget);
         expect(find.text('Preparing your sanctuary...'), findsOneWidget);
         expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+        final imageWidgets =
+            tester.widgetList<Image>(find.byType(Image)).toList();
+        final assetNames = imageWidgets
+            .map((img) =>
+                img.image is AssetImage ? (img.image as AssetImage).assetName : '')
+            .toList();
+        expect(
+          assetNames,
+          contains('assets/mascots/wallpapers/seasonal/christmas_wallpaper.jpg'),
+        );
+
         expect(finished, isFalse);
 
         // Advance past minDuration
@@ -493,6 +550,32 @@ void main() {
 
       final cleared = restored.copyWith(clearSeasonalSplashOverride: true);
       expect(cleared.seasonalSplashOverride, isNull);
+    });
+
+    test('All 18 seasonal & everyday loading specs resolve to bundled flock wallpapers and EN/ID strings', () {
+      const en = AppLocalizations(AppLanguage.en);
+      const id = AppLocalizations(AppLanguage.id);
+      expect(SeasonalSplashTheme.values.length, 18);
+
+      for (final theme in SeasonalSplashTheme.values) {
+        final spec = SeasonalSplashResolver.specFor(theme);
+        expect(spec.wallpaperAsset, isNotNull);
+        expect(
+          spec.wallpaperAsset,
+          startsWith('assets/mascots/wallpapers/'),
+        );
+        expect(File(spec.wallpaperAsset!).existsSync(), isTrue);
+
+        for (final key in [
+          theme.labelKey,
+          spec.badgeKey,
+          spec.titleKey,
+          spec.subtitleKey,
+        ]) {
+          expect(en.tr(key), isNot(equals(key)));
+          expect(id.tr(key), isNot(equals(key)));
+        }
+      }
     });
   });
 }

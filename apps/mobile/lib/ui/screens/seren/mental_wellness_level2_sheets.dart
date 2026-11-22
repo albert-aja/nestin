@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -271,12 +271,32 @@ class _ComfortKitAddSheetState extends State<_ComfortKitAddSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  l10n.tr('mw_l2_comfort_add_title'),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary(context),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _kSerenPurple.withValues(alpha: 0.14),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Image.asset(
+                    'assets/mascots/sprites/seren/comfort_kit_treasure_box.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.inventory_2_outlined,
+                      color: _kSerenPurple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.tr('mw_l2_comfort_add_title'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary(context),
+                    ),
                   ),
                 ),
                 IconButton(
@@ -664,6 +684,24 @@ class _VoiceJournalSessionSheetState extends State<VoiceJournalSessionSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _kSerenPurple.withValues(alpha: 0.14),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Image.asset(
+                    'assets/mascots/sprites/duos/echo_seren_voice_memo_feather.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.mic_none_rounded,
+                      color: _kSerenPurple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1171,6 +1209,24 @@ class _QuickReachOutSheetState extends State<QuickReachOutSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _kSerenPurple.withValues(alpha: 0.14),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Image.asset(
+                    'assets/mascots/sprites/duos/scout_seren_trusted_messenger.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.send_rounded,
+                      color: _kSerenPurple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

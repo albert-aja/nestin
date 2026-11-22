@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -82,7 +82,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                           Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: AppColors.accent.withOpacity(0.18),
+                              color: AppColors.accent.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(Icons.note_alt_rounded,
@@ -668,7 +668,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     itemCount: notes.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final note = notes[index];
                       final checklistSummary = note.checklistSummary;
@@ -743,7 +743,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                                         vertical: 2),
                                                 decoration: BoxDecoration(
                                                   color: const Color(0xFF8B5CF6)
-                                                      .withOpacity(0.18),
+                                                      .withValues(alpha: 0.18),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                 ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,8 +11,32 @@ import '../../../widgets/money/money_editor_dialogs.dart';
 // Transactions View (Search, Filters, Edit, Delete / Archive)
 // ---------------------------------------------------------------------------
 
+/// Optional pre-populated filter state passed when drilling down from reports.
+class MoneyTransactionFilterPreset {
+  final MoneyTransactionType? type;
+  final String? accountId;
+  final String? categoryId;
+  final DateTimeRange? dateRange;
+  final String query;
+  final int revision;
+
+  const MoneyTransactionFilterPreset({
+    this.type,
+    this.accountId,
+    this.categoryId,
+    this.dateRange,
+    this.query = '',
+    this.revision = 0,
+  });
+}
+
 class MoneyTransactionsView extends StatefulWidget {
-  const MoneyTransactionsView({super.key});
+  final MoneyTransactionFilterPreset? filterPreset;
+
+  const MoneyTransactionsView({
+    super.key,
+    this.filterPreset,
+  });
 
   @override
   State<MoneyTransactionsView> createState() => _MoneyTransactionsViewState();
@@ -24,6 +48,49 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
   String? _accountFilterId;
   String? _categoryFilterId;
   DateTimeRange? _dateRange;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.filterPreset != null) {
+      _applyPreset(widget.filterPreset!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant MoneyTransactionsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nextPreset = widget.filterPreset;
+    if (nextPreset != null &&
+        nextPreset.revision != oldWidget.filterPreset?.revision) {
+      setState(() => _applyPreset(nextPreset));
+    }
+  }
+
+  void _applyPreset(MoneyTransactionFilterPreset preset) {
+    _typeFilter = preset.type;
+    _accountFilterId = preset.accountId;
+    _categoryFilterId = preset.categoryId;
+    _dateRange = preset.dateRange;
+    _searchCtrl.text = preset.query;
+  }
+
+  bool get _hasActiveFilters =>
+      _typeFilter != null ||
+      _accountFilterId != null ||
+      _categoryFilterId != null ||
+      _dateRange != null ||
+      _searchCtrl.text.trim().isNotEmpty;
+
+  void _clearAllFilters() {
+    setState(() {
+      _typeFilter = null;
+      _accountFilterId = null;
+      _categoryFilterId = null;
+      _dateRange = null;
+      _searchCtrl.clear();
+    });
+  }
 
   @override
   void dispose() {
@@ -52,14 +119,32 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final provider = Provider.of<MoneyProvider>(context);
+    final effectiveAccountId = _accountFilterId != null &&
+            provider.accounts.any((a) => a.id == _accountFilterId)
+        ? _accountFilterId
+        : null;
+    final effectiveCategoryId = _categoryFilterId != null &&
+            provider.categories.any((c) => c.id == _categoryFilterId)
+        ? _categoryFilterId
+        : null;
+
     final filtered = provider.filterTransactions(
       type: _typeFilter,
-      accountId: _accountFilterId,
-      categoryId: _categoryFilterId,
+      accountId: effectiveAccountId,
+      categoryId: effectiveCategoryId,
       startDate: _dateRange?.start,
       endDate: _dateRange?.end,
       query: _searchCtrl.text,
     );
+
+    var filteredNetMinor = 0;
+    for (final tx in filtered) {
+      if (tx.type == MoneyTransactionType.income) {
+        filteredNetMinor += tx.amountMinor;
+      } else if (tx.type == MoneyTransactionType.expense) {
+        filteredNetMinor -= tx.amountMinor;
+      }
+    }
 
     return Column(
       children: [
@@ -132,8 +217,9 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String?>(
+                      key: ValueKey('acct_${effectiveAccountId ?? "all"}'),
                       isExpanded: true,
-                      initialValue: _accountFilterId,
+                      initialValue: effectiveAccountId,
                       dropdownColor: AppColors.cardSurface(context),
                       isDense: true,
                       decoration: InputDecoration(
@@ -165,8 +251,9 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: DropdownButtonFormField<String?>(
+                      key: ValueKey('cat_${effectiveCategoryId ?? "all"}'),
                       isExpanded: true,
-                      initialValue: _categoryFilterId,
+                      initialValue: effectiveCategoryId,
                       dropdownColor: AppColors.cardSurface(context),
                       isDense: true,
                       decoration: InputDecoration(
@@ -197,6 +284,42 @@ class _MoneyTransactionsViewState extends State<MoneyTransactionsView> {
                   ),
                 ],
               ),
+              if (_hasActiveFilters) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.tr('money_filtered_summary', {
+                          'count': filtered.length,
+                          'net': provider.formatAmount(
+                            filteredNetMinor,
+                            showPlusSign: true,
+                          ),
+                        }),
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _clearAllFilters,
+                      icon: const Icon(Icons.filter_alt_off_rounded, size: 14),
+                      label: Text(
+                        l10n.tr('money_clear_filters'),
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

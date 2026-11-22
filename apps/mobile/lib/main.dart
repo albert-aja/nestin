@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'core/l10n/app_localizations.dart';
@@ -128,6 +128,9 @@ class _NestinAppState extends State<NestinApp> {
     final localWeatherService = widget.weatherService ?? LocalWeatherService();
     return MultiProvider(
       providers: [
+        Provider<StorageService>.value(
+          value: storageService,
+        ),
         ChangeNotifierProvider(
           create: (_) => SettingsProvider(storageService),
         ),

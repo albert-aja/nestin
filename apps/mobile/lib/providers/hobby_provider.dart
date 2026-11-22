@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 import '../data/models/hobby_item.dart';
 import '../data/models/hobby_practice_session.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
@@ -377,7 +377,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: displayedTasks.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final task = displayedTasks[index];
                       final isOverdue = task.isOverdue(now);
@@ -430,7 +430,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: task.priorityColor.withOpacity(0.18),
+                                                  color: task.priorityColor.withValues(alpha: 0.18),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                                 child: Text(
@@ -449,7 +449,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.error.withOpacity(0.18),
+                                                    color: AppColors.error.withValues(alpha: 0.18),
                                                     borderRadius: BorderRadius.circular(6),
                                                   ),
                                                   child: const Text(

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -315,15 +315,12 @@ void main() {
 
       await tester.pumpWidget(env.wrap(const MainNavigationScreen()));
       await tester.pumpAndSettle();
-      expect(find.text('Hari Ini'), findsAtLeastNWidgets(1));
-      expect(find.text('Waktu'), findsAtLeastNWidgets(1));
-      expect(find.text('Kelola'), findsAtLeastNWidgets(1));
-      expect(find.text('Jurnal'), findsAtLeastNWidgets(1));
-      expect(find.text('Jelajah'), findsAtLeastNWidgets(1));
+      expect(find.text('Beranda'), findsAtLeastNWidgets(1));
+      expect(find.text('Sarang'), findsAtLeastNWidgets(1));
 
       await tester.pumpWidget(env.wrap(HomeDashboardScreen(onNavigateTab: (_, [_]) {})));
-      await tester.pumpAndSettle();
-      expect(find.text('Catat Cepat'), findsAtLeastNWidgets(1));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Agenda Hari Ini'), findsAtLeastNWidgets(1));
 
       await tester.pumpWidget(env.wrap(const TimeHubScreen()));
       await tester.pumpAndSettle();

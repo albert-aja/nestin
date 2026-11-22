@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/oem_hardening_provider.dart';
@@ -23,13 +23,13 @@ class OemWarningBanner extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFE04A3A).withOpacity(0.18),
-                const Color(0xFFF59E0B).withOpacity(0.12),
+                const Color(0xFFE04A3A).withValues(alpha: 0.18),
+                const Color(0xFFF59E0B).withValues(alpha: 0.12),
               ],
             ),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: const Color(0xFFE04A3A).withOpacity(0.35),
+              color: const Color(0xFFE04A3A).withValues(alpha: 0.35),
             ),
           ),
           child: Row(
@@ -37,7 +37,7 @@ class OemWarningBanner extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE04A3A).withOpacity(0.2),
+                  color: const Color(0xFFE04A3A).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(

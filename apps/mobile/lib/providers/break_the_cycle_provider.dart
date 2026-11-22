@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../core/l10n/app_localizations.dart';
 import '../data/models/journal_entry.dart';
 import '../data/models/mental_wellness_models.dart';
 import '../data/models/routine_item.dart';
@@ -75,18 +77,110 @@ class BreakTheCycleProvider extends ChangeNotifier {
       );
       _storageService.saveMentalWellnessData(_data);
     }
+    syncNativeMindfulAppPause();
   }
 
   Future<void> _commit(MentalWellnessStateData next) async {
     _data = next;
     await _storageService.saveMentalWellnessData(_data);
+    unawaited(syncNativeMindfulAppPause());
     _safeNotify();
   }
 
-  /// Reloads Mental Wellness state from storage after backup restore or resume.
+  /// Reloads Mental Wellness state from storage after backup restore or resume,
+  /// consuming any native Mindful App Pause events recorded by Android's shield.
   void reloadFromStorage() {
     _load();
+    unawaited(consumeNativeMindfulPauseEvents());
     _safeNotify();
+  }
+
+  /// Pushes the current `MindfulAppPauseConfig`, active *"My Why"*, and per-app
+  /// cooldown grace windows to native Android (`NestinAppShieldService` and
+  /// `DeviceControlPlugin`'s foreground watcher) so opening any paused app
+  /// outside Nestin immediately triggers the warning/pause shield.
+  Future<bool> syncNativeMindfulAppPause() async {
+    final cfg = _data.mindfulAppPauseConfig;
+    final activeWhys = activeCommitments
+        .map((c) => c.myWhy.trim())
+        .where((w) => w.isNotEmpty)
+        .toList();
+    final defaultWhy =
+        AppLocalizations.current.tr('btc_mindful_pause_default_why');
+    final myWhy = activeWhys.isNotEmpty ? activeWhys.first : defaultWhy;
+    final cooldownsMs = <String, int>{
+      for (final entry in _packageCooldownUntil.entries)
+        entry.key: entry.value.millisecondsSinceEpoch,
+    };
+    return _deviceControlService.syncMindfulAppPauseConfig({
+      'isEnabled': cfg.isEnabled,
+      'monitoredPackages': cfg.monitoredPackages,
+      'monitoredAppNames': cfg.monitoredAppNames,
+      'pauseDurationSeconds': cfg.pauseDurationSeconds,
+      'cooldownGraceMinutes': cfg.cooldownGraceMinutes,
+      'vulnerableHoursOnly': cfg.vulnerableHoursOnly,
+      'vulnerableStartHour': cfg.vulnerableStartHour,
+      'vulnerableEndHour': cfg.vulnerableEndHour,
+      'snoozedUntilMs': cfg.snoozedUntil?.millisecondsSinceEpoch ?? 0,
+      'strictBlockMode': cfg.strictBlockMode,
+      'myWhy': myWhy,
+      'packageCooldownsMs': cooldownsMs,
+    });
+  }
+
+  /// Synchronizes actions taken on the native Android `NestinShieldActivity`
+  /// (*Step Back*, *Continue with Clear Purpose* cooldown grace, or *Snooze 1h*)
+  /// back into Flutter state.
+  Future<void> consumeNativeMindfulPauseEvents() async {
+    final events =
+        await _deviceControlService.consumeMindfulPauseNativeEvents();
+    if (events.isEmpty) return;
+
+    var mutated = false;
+    var nextData = _data;
+
+    final stepBacks = (events['stepBackCount'] as num?)?.toInt() ?? 0;
+    if (stepBacks > 0) {
+      final p = nextData.qualitativeProgress;
+      nextData = nextData.copyWith(
+        qualitativeProgress: p.copyWith(
+          strategiesTriedCount: p.strategiesTriedCount + stepBacks,
+        ),
+      );
+      mutated = true;
+    }
+
+    final snoozedUntilMs = (events['snoozedUntilMs'] as num?)?.toInt() ?? 0;
+    if (snoozedUntilMs > DateTime.now().millisecondsSinceEpoch) {
+      final nativeSnooze =
+          DateTime.fromMillisecondsSinceEpoch(snoozedUntilMs);
+      final currentSnooze = nextData.mindfulAppPauseConfig.snoozedUntil;
+      if (currentSnooze == null || nativeSnooze.isAfter(currentSnooze)) {
+        nextData = nextData.copyWith(
+          mindfulAppPauseConfig: nextData.mindfulAppPauseConfig.copyWith(
+            snoozedUntil: nativeSnooze,
+          ),
+        );
+        mutated = true;
+      }
+    }
+
+    final rawGraces = events['gracePackagesMs'];
+    if (rawGraces is Map) {
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      for (final entry in rawGraces.entries) {
+        final pkg = entry.key.toString();
+        final untilMs = (entry.value as num?)?.toInt() ?? 0;
+        if (pkg.isNotEmpty && untilMs > nowMs) {
+          _packageCooldownUntil[pkg] =
+              DateTime.fromMillisecondsSinceEpoch(untilMs);
+        }
+      }
+    }
+
+    if (mutated) {
+      await _commit(nextData);
+    }
   }
 
   // --- Getters ---
@@ -402,6 +496,7 @@ class BreakTheCycleProvider extends ChangeNotifier {
     _packageCooldownUntil[packageName] = checkNow.add(
       Duration(minutes: _data.mindfulAppPauseConfig.cooldownGraceMinutes),
     );
+    syncNativeMindfulAppPause();
   }
 
   DateTime? cooldownUntilForPackage(String packageName) =>

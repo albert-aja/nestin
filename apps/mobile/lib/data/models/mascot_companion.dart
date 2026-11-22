@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Canonical identifiers for Nestin's 6 everyday bird companions.
 enum NestinMascotId {

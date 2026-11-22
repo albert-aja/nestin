@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../core/l10n/app_language.dart';
 import '../core/l10n/app_localizations.dart';
 import '../data/models/user_preferences.dart';
@@ -8,6 +8,7 @@ import '../data/models/journal_entry.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/widget_sync_service.dart';
 import '../domain/security/diary_lock_helper.dart';
+import '../ui/screens/nest/treehouse_painters.dart';
 import '../ui/screens/splash/seasonal_loading_theme.dart';
 
 class SettingsProvider extends ChangeNotifier {
@@ -100,9 +101,33 @@ class SettingsProvider extends ChangeNotifier {
   SplashSpeed get splashSpeed => _preferences.splashSpeed;
   SeasonalSplashTheme? get seasonalSplashOverride =>
       _preferences.seasonalSplashOverride;
+  NestViewMode get nestViewMode => _preferences.nestViewMode;
+  TreehouseDayPhase? get treehousePhaseOverride =>
+      _preferences.treehousePhaseOverride;
 
   Future<void> setSplashSpeed(SplashSpeed speed) async {
     await updatePreferences(_preferences.copyWith(splashSpeed: speed));
+  }
+
+  Future<void> setNestViewMode(NestViewMode mode) async {
+    if (_preferences.nestViewMode == mode) return;
+    await updatePreferences(_preferences.copyWith(nestViewMode: mode));
+  }
+
+  Future<void> toggleNestViewMode() async {
+    final next = _preferences.nestViewMode == NestViewMode.roomsGrid
+        ? NestViewMode.treehouseScene
+        : NestViewMode.roomsGrid;
+    await setNestViewMode(next);
+  }
+
+  Future<void> setTreehousePhaseOverride(TreehouseDayPhase? phase) async {
+    if (_preferences.treehousePhaseOverride == phase) return;
+    await updatePreferences(
+      phase == null
+          ? _preferences.copyWith(clearTreehousePhaseOverride: true)
+          : _preferences.copyWith(treehousePhaseOverride: phase),
+    );
   }
 
   Future<void> setSeasonalSplashOverride(SeasonalSplashTheme? theme) async {

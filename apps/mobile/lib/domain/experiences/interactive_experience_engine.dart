@@ -760,4 +760,102 @@ class InteractiveExperienceEngine {
 
     return scoredOutcomes.take(maxResults).toList();
   }
+
+  /// Deterministic scoring for Pippin's Interest Explorer ("This or That"
+  /// Scenarios, `interest_explorer_v1`).
+  List<ExperienceMatchedOutcome> evaluateInterestExplorer(
+    Map<String, dynamic> answers, {
+    int maxResults = 3,
+  }) {
+    final accumulatedTags = <String, double>{};
+    for (final question in InterestExplorerCatalog.questions) {
+      final selectedId = answers[question.id] as String?;
+      if (selectedId == null) continue;
+      for (final opt in question.options) {
+        if (opt.id == selectedId) {
+          opt.tagWeights.forEach((tag, weight) {
+            accumulatedTags[tag] = (accumulatedTags[tag] ?? 0.0) + weight;
+          });
+          break;
+        }
+      }
+    }
+
+    final scoredOutcomes = <ExperienceMatchedOutcome>[];
+    for (final profile in InterestExplorerCatalog.profiles) {
+      var rawScore = 0.0;
+      var maxPossibleTagScore = 0.0;
+      final matchedTags = <MapEntry<String, double>>[];
+
+      profile.tagAffinities.forEach((tag, affinity) {
+        maxPossibleTagScore += affinity * 3.2;
+        final userWeight = accumulatedTags[tag] ?? 0.0;
+        if (userWeight > 0) {
+          final contribution = userWeight * affinity;
+          rawScore += contribution;
+          matchedTags.add(MapEntry(tag, contribution));
+        }
+      });
+
+      matchedTags.sort((a, b) => b.value.compareTo(a.value));
+      final reasonKeys = <String>[];
+      for (final entry in matchedTags.take(2)) {
+        switch (entry.key) {
+          case 'cartography':
+            reasonKeys.add('exp_ie_reason_cartography');
+            break;
+          case 'acoustic_craft':
+          case 'rhythmic':
+            if (!reasonKeys.contains('exp_ie_reason_acoustic')) {
+              reasonKeys.add('exp_ie_reason_acoustic');
+            }
+            break;
+          case 'botanical':
+            reasonKeys.add('exp_ie_reason_botanical');
+            break;
+          case 'artisan_ritual':
+          case 'sensory':
+            if (!reasonKeys.contains('exp_ie_reason_artisan')) {
+              reasonKeys.add('exp_ie_reason_artisan');
+            }
+            break;
+          case 'tactile_studio':
+            reasonKeys.add('exp_ie_reason_tactile');
+            break;
+          case 'reading':
+            reasonKeys.add('exp_ie_reason_reading');
+            break;
+          case 'observational':
+            reasonKeys.add('exp_ie_reason_observational');
+            break;
+        }
+      }
+
+      if (reasonKeys.isEmpty) {
+        reasonKeys.add('exp_ie_reason_tactile');
+      }
+
+      final denominator = maxPossibleTagScore.clamp(18.0, 90.0);
+      final normalizedRatio = (rawScore / denominator).clamp(0.15, 0.99);
+      final matchPercentage =
+          (60 + (normalizedRatio * 38)).round().clamp(58, 99);
+
+      scoredOutcomes.add(
+        ExperienceMatchedOutcome(
+          profileId: profile.id,
+          matchPercentage: matchPercentage,
+          rawScore: rawScore,
+          reasonKeys: reasonKeys,
+        ),
+      );
+    }
+
+    scoredOutcomes.sort((a, b) {
+      final byScore = b.rawScore.compareTo(a.rawScore);
+      if (byScore != 0) return byScore;
+      return a.profileId.compareTo(b.profileId);
+    });
+
+    return scoredOutcomes.take(maxResults).toList();
+  }
 }

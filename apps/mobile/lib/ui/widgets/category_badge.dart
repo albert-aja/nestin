@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../data/models/alarm_category.dart';
 
@@ -20,10 +20,10 @@ class CategoryBadge extends StatelessWidget {
         vertical: compact ? 2 : 4,
       ),
       decoration: BoxDecoration(
-        color: category.color.withOpacity(0.14),
+        color: category.color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: category.color.withOpacity(0.3),
+          color: category.color.withValues(alpha: 0.3),
           width: 0.8,
         ),
       ),

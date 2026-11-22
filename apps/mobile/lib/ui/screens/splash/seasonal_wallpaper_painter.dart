@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'seasonal_loading_theme.dart';
 
 /// Deterministic atmospheric wallpaper painter for Phase 2 of [SplashScreen].
@@ -21,20 +21,42 @@ class SeasonalWallpaperPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     switch (theme) {
+      case SeasonalSplashTheme.everydaySunnyPicnic:
+        _paintEverydaySunnyPicnic(canvas, size);
+      case SeasonalSplashTheme.everydayTreehouse:
+        _paintEverydayTreehouse(canvas, size);
+      case SeasonalSplashTheme.everydayFireplace:
+        _paintEverydayFireplace(canvas, size);
+      case SeasonalSplashTheme.everydayStarlight:
+        _paintEverydayStarlight(canvas, size);
       case SeasonalSplashTheme.christmas:
         _paintChristmas(canvas, size);
       case SeasonalSplashTheme.newYear:
         _paintNewYear(canvas, size);
       case SeasonalSplashTheme.lunarLantern:
         _paintLunarLantern(canvas, size);
+      case SeasonalSplashTheme.friendshipLetters:
+        _paintFriendshipLetters(canvas, size);
+      case SeasonalSplashTheme.eidLantern:
+        _paintEidLantern(canvas, size);
       case SeasonalSplashTheme.springBloom:
         _paintSpringBloom(canvas, size);
+      case SeasonalSplashTheme.earthDay:
+        _paintEarthDay(canvas, size);
       case SeasonalSplashTheme.summerSun:
         _paintSummerSun(canvas, size);
+      case SeasonalSplashTheme.midsummerKite:
+        _paintMidsummerKite(canvas, size);
+      case SeasonalSplashTheme.midAutumn:
+        _paintMidAutumn(canvas, size);
       case SeasonalSplashTheme.autumnHarvest:
         _paintAutumnHarvest(canvas, size);
+      case SeasonalSplashTheme.halloween:
+        _paintHalloween(canvas, size);
       case SeasonalSplashTheme.cozyLantern:
         _paintCozyLantern(canvas, size);
+      case SeasonalSplashTheme.gratitudeHarvest:
+        _paintGratitudeHarvest(canvas, size);
     }
   }
 
@@ -218,6 +240,45 @@ class SeasonalWallpaperPainter extends CustomPainter {
     canvas.drawPath(wavePath, wavePaint);
   }
 
+  void _paintMidsummerKite(Canvas canvas, Size size) {
+    // Golden meadow fireflies gently bobbing in the breeze
+    for (var i = 0; i < 18; i++) {
+      final x = ((i * 0.193 + math.sin(progress * math.pi * 2 + i) * 0.03) % 1.0) *
+          size.width;
+      final y = (0.35 + ((i * 0.117 + progress * 0.15) % 0.55)) * size.height;
+      final glow = 0.25 + 0.20 * math.sin(progress * math.pi * 2 + i * 1.3);
+      final paint = Paint()
+        ..color = secondaryAccentColor.withValues(alpha: glow);
+      canvas.drawCircle(Offset(x, y), 2.4 + (i % 3) * 0.7, paint);
+    }
+  }
+
+  void _paintMidAutumn(Canvas canvas, Size size) {
+    // Soft lantern bokeh & moonlit glints
+    for (var i = 0; i < 16; i++) {
+      final x = ((i * 0.181) % 1.0) * size.width;
+      final y = ((i * 0.143 + progress * 0.10) % 0.72) * size.height;
+      final twinkle = 0.22 + 0.16 * math.sin(progress * math.pi * 2 + i);
+      final paint = Paint()
+        ..color = (i.isEven ? secondaryAccentColor : accentColor)
+            .withValues(alpha: twinkle);
+      canvas.drawCircle(Offset(x, y), i % 4 == 0 ? 3.0 : 1.6, paint);
+    }
+  }
+
+  void _paintHalloween(Canvas canvas, Size size) {
+    // Friendly glowing fireflies & drifting autumn leaves
+    for (var i = 0; i < 16; i++) {
+      final x = ((i * 0.167 + math.sin(progress * math.pi * 2 + i) * 0.04) % 1.0) *
+          size.width;
+      final y = ((i * 0.131 + progress * 0.20) % 1.0) * size.height;
+      final paint = Paint()
+        ..color = (i.isEven ? secondaryAccentColor : accentColor)
+            .withValues(alpha: isDark ? 0.34 : 0.24);
+      canvas.drawCircle(Offset(x, y), 2.0 + (i % 3) * 0.8, paint);
+    }
+  }
+
   void _paintAutumnHarvest(Canvas canvas, Size size) {
     for (var i = 0; i < 18; i++) {
       final x = ((i * 0.21 + math.sin(progress * math.pi * 2 + i) * 0.04) % 1.0) *
@@ -244,6 +305,110 @@ class SeasonalWallpaperPainter extends CustomPainter {
         ..color = (i % 4 == 0 ? secondaryAccentColor : Colors.white)
             .withValues(alpha: isDark ? twinkle : twinkle * 0.85);
       canvas.drawCircle(Offset(x, y), i % 3 == 0 ? 2.2 : 1.3, paint);
+    }
+  }
+
+  void _paintFriendshipLetters(Canvas canvas, Size size) {
+    // Soft drifting rose petals & warm golden sparkles
+    for (var i = 0; i < 16; i++) {
+      final x = ((i * 0.18 + progress * 0.16) % 1.0) * size.width;
+      final y = ((i * 0.15 + progress * 0.20) % 1.0) * size.height;
+      final paint = Paint()
+        ..color = (i.isEven ? accentColor : secondaryAccentColor)
+            .withValues(alpha: isDark ? 0.26 : 0.22);
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(i * 0.6 + progress);
+      canvas.drawOval(const Rect.fromLTWH(-4.5, -2.2, 9, 4.4), paint);
+      canvas.restore();
+    }
+  }
+
+  void _paintEidLantern(Canvas canvas, Size size) {
+    // Twinkling crescent starlight & warm brass lantern bokeh
+    for (var i = 0; i < 18; i++) {
+      final x = ((i * 0.169) % 1.0) * size.width;
+      final y = ((i * 0.131 + progress * 0.08) % 0.72) * size.height;
+      final twinkle = 0.22 + 0.18 * math.sin(progress * math.pi * 2 + i);
+      final paint = Paint()
+        ..color = (i.isEven ? secondaryAccentColor : accentColor)
+            .withValues(alpha: twinkle);
+      canvas.drawCircle(Offset(x, y), i % 4 == 0 ? 2.8 : 1.5, paint);
+    }
+  }
+
+  void _paintEarthDay(Canvas canvas, Size size) {
+    // Refreshing spring rain droplets gently slanting down
+    final dropPaint = Paint()
+      ..color = secondaryAccentColor.withValues(alpha: isDark ? 0.28 : 0.22)
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 18; i++) {
+      final x = ((i * 0.173) % 1.0) * size.width;
+      final y = (((i * 0.139) + progress * 0.55) % 1.0) * size.height;
+      canvas.drawLine(Offset(x, y), Offset(x - 4, y + 12), dropPaint);
+    }
+  }
+
+  void _paintGratitudeHarvest(Canvas canvas, Size size) {
+    // Warm golden starlight & gratitude jar embers rising softly
+    for (var i = 0; i < 16; i++) {
+      final x = ((i * 0.19 + math.sin(progress * math.pi * 2 + i) * 0.03) % 1.0) *
+          size.width;
+      final y = (1.0 - (((i * 0.12 + progress * 0.22) % 0.85))) * size.height;
+      final twinkle = 0.24 + 0.18 * math.sin(progress * math.pi * 2 + i);
+      final paint = Paint()
+        ..color = (i.isEven ? secondaryAccentColor : accentColor)
+            .withValues(alpha: twinkle);
+      canvas.drawCircle(Offset(x, y), i % 3 == 0 ? 2.6 : 1.5, paint);
+    }
+  }
+
+  void _paintEverydaySunnyPicnic(Canvas canvas, Size size) {
+    // Gentle morning sunbeams & floating pollen motes
+    for (var i = 0; i < 14; i++) {
+      final x = ((i * 0.197 + progress * 0.12) % 1.0) * size.width;
+      final y = ((i * 0.151 + math.sin(progress * math.pi * 2 + i) * 0.04) % 0.85) *
+          size.height;
+      final paint = Paint()
+        ..color = secondaryAccentColor.withValues(alpha: isDark ? 0.28 : 0.22);
+      canvas.drawCircle(Offset(x, y), 2.0 + (i % 3) * 0.7, paint);
+    }
+  }
+
+  void _paintEverydayTreehouse(Canvas canvas, Size size) {
+    // Warm golden lantern fireflies drifting gently around treehouse canopy
+    for (var i = 0; i < 16; i++) {
+      final x = ((i * 0.183 + math.sin(progress * math.pi * 2 + i) * 0.03) % 1.0) *
+          size.width;
+      final y = ((i * 0.137 + progress * 0.10) % 0.90) * size.height;
+      final twinkle = 0.22 + 0.16 * math.sin(progress * math.pi * 2 + i);
+      final paint = Paint()
+        ..color = secondaryAccentColor.withValues(alpha: twinkle);
+      canvas.drawCircle(Offset(x, y), i % 3 == 0 ? 2.6 : 1.5, paint);
+    }
+  }
+
+  void _paintEverydayFireplace(Canvas canvas, Size size) {
+    // Soft warm hearth embers & window raindrop shimmer
+    for (var i = 0; i < 14; i++) {
+      final x = ((i * 0.179) % 1.0) * size.width;
+      final y = (1.0 - (((i * 0.13 + progress * 0.18) % 0.85))) * size.height;
+      final paint = Paint()
+        ..color = secondaryAccentColor.withValues(alpha: isDark ? 0.26 : 0.20);
+      canvas.drawCircle(Offset(x, y), 1.8 + (i % 3) * 0.6, paint);
+    }
+  }
+
+  void _paintEverydayStarlight(Canvas canvas, Size size) {
+    // Twinkling night sky stars & canopy firefly glints
+    for (var i = 0; i < 18; i++) {
+      final x = ((i * 0.171) % 1.0) * size.width;
+      final y = ((i * 0.123) % 0.92) * size.height;
+      final twinkle = 0.20 + 0.18 * math.sin(progress * math.pi * 2 + i * 1.2);
+      final paint = Paint()
+        ..color = secondaryAccentColor.withValues(alpha: twinkle);
+      canvas.drawCircle(Offset(x, y), i % 4 == 0 ? 2.6 : 1.4, paint);
     }
   }
 

@@ -103,3 +103,40 @@ class MonthlyBudgetOverview {
     return count;
   }
 }
+
+/// Strictly offline 12-month personal ledger rollup for a single calendar year.
+class AnnualLedgerSummary {
+  final int year;
+  final int totalIncomeMinor;
+  final int totalExpenseMinor;
+  final int netCashFlowMinor;
+  final int internalTransferMinor;
+  final int transactionCount;
+  final int activeMonthsCount;
+  final List<MonthlyCashFlowPoint> monthlyPoints;
+
+  const AnnualLedgerSummary({
+    required this.year,
+    required this.totalIncomeMinor,
+    required this.totalExpenseMinor,
+    required this.netCashFlowMinor,
+    required this.internalTransferMinor,
+    required this.transactionCount,
+    required this.activeMonthsCount,
+    required this.monthlyPoints,
+  });
+
+  bool get isEmpty =>
+      totalIncomeMinor == 0 &&
+      totalExpenseMinor == 0 &&
+      internalTransferMinor == 0 &&
+      transactionCount == 0;
+
+  int get averageMonthlyIncomeMinor => totalIncomeMinor ~/ 12;
+  int get averageMonthlyExpenseMinor => totalExpenseMinor ~/ 12;
+
+  int get netSavingsRatePercent {
+    if (totalIncomeMinor <= 0) return 0;
+    return ((netCashFlowMinor * 100) / totalIncomeMinor).round();
+  }
+}

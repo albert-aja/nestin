@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
@@ -955,7 +955,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                     ),
                     Switch(
                       value: med.isActive,
-                      activeColor: const Color(0xFF8B5CF6),
+                      activeThumbColor: const Color(0xFF8B5CF6),
                       onChanged: (_) => provider.toggleActive(med.id),
                     ),
                   ],

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Supported display languages in Nestin (100% offline/local-first).
 enum AppLanguage {

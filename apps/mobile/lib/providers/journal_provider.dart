@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 import '../data/models/gratitude_pebble.dart';
 import '../data/models/journal_entry.dart';
@@ -101,6 +101,17 @@ class JournalProvider extends ChangeNotifier {
       if (entry.id == id) return entry;
     }
     return null;
+  }
+
+  /// True when at least one mood or diary reflection exists on [date]'s
+  /// local calendar day.
+  bool hasEntryForDate(DateTime date) {
+    return _journalEntries.any(
+      (entry) =>
+          entry.date.year == date.year &&
+          entry.date.month == date.month &&
+          entry.date.day == date.day,
+    );
   }
 
   List<TimelineFeedItem> getUnifiedTimeline() {

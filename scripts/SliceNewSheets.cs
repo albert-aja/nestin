@@ -691,6 +691,59 @@ public class SliceNewSheets
             { "geofence_radar_pulse", new[] {
                 new HoleSeed(982, 252, 28, 25)    // pocket between Scout's talons & map pin
             } },
+            { "seren_comfort_kit_treasure_box", new[] {
+                new HoleSeed(234, 268, 28, 35)    // pocket between Seren's ankles & treasure box
+            } },
+            { "roo_seren_calm_ritual_tea", new[] {
+                new HoleSeed(309, 757, 28, 35)    // pocket between Roo's ankles
+            } },
+            { "seren_scout_crisis_lighthouse", new[] {
+                new HoleSeed(964, 742, 28, 55),   // pocket between Seren's ankles & lighthouse base
+                new HoleSeed(1032, 743, 28, 55)   // pocket between lighthouse base & Scout's ankles
+            } },
+            { "flock_healthy_living_compass", new[] {
+                new HoleSeed(359, 374, 28, 35),   // pocket between Scout's ankles
+                new HoleSeed(140, 381, 28, 35)    // pocket between Twill's ankles
+            } },
+            { "echo_seren_encrypted_vault_key", new[] {
+                new HoleSeed(577, 336, 28, 45)    // pocket between Echo's right talon & lockbox
+            } },
+            { "seren_strict_sanctuary_gate", new[] {
+                // diamond lattice openings in woven wooden garden gate
+                new HoleSeed(740, 657, 28, 30),
+                new HoleSeed(770, 657, 28, 30),
+                new HoleSeed(533, 663, 28, 30),
+                new HoleSeed(756, 670, 28, 35),
+                new HoleSeed(720, 673, 28, 35),
+                new HoleSeed(785, 669, 28, 30),
+                new HoleSeed(514, 676, 28, 35),
+                new HoleSeed(486, 678, 28, 30),
+                new HoleSeed(774, 688, 28, 35),
+                new HoleSeed(738, 691, 28, 35),
+                new HoleSeed(703, 693, 28, 35),
+                new HoleSeed(493, 699, 28, 30),
+                new HoleSeed(757, 709, 28, 35),
+                new HoleSeed(721, 710, 28, 35),
+                new HoleSeed(686, 712, 28, 35),
+                new HoleSeed(785, 707, 28, 30),
+                new HoleSeed(515, 716, 28, 35),
+                new HoleSeed(551, 715, 28, 35),
+                new HoleSeed(585, 715, 28, 35),
+                new HoleSeed(486, 716, 28, 30),
+                new HoleSeed(777, 721, 28, 30),
+                new HoleSeed(703, 726, 28, 30),
+                new HoleSeed(569, 732, 28, 35),
+                new HoleSeed(500, 733, 28, 35),
+                new HoleSeed(534, 733, 28, 35),
+                new HoleSeed(598, 730, 28, 30),
+                new HoleSeed(586, 743, 28, 30),
+                new HoleSeed(516, 747, 28, 30),
+                new HoleSeed(551, 746, 28, 30),
+                new HoleSeed(487, 750, 28, 30)
+            } },
+            { "duo_seren_scout_shield_ready", new[] {
+                new HoleSeed(1095, 670, 28, 30)   // pocket between Seren's wing & signpost
+            } },
         };
 
         var configs = new[]
@@ -890,6 +943,104 @@ public class SliceNewSheets
                 SourcePath = @"apps\mobile\source_art\mascots\sheets\pippin_discover_1.jpg",
                 OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
                 PoseNames = new[] { "pippin_book_bookmark_wing", "pippin_sketchbook_easel", "pippin_aesthetic_frame", "pippin_forked_trail_sign", "twill_piggybank_abacus_estimate", "twill_palette_swatches" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "backlog3",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_backlog_3.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "twill_envelope_organizer", "roo_sunday_ledger_bell", "roo_usage_hourglass_wait", "scout_capability_radar_scan", "echo_strength_keepsake_stamp", "echo_journal_quill_insight" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "duos5",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_duos_5.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\duos",
+                PoseNames = new[] { "duo_roo_seren_dawn_duet", "duo_seren_pippin_nylon_guitar", "duo_pippin_echo_stepping_stones", "duo_roo_seren_rhythm_balance", "duo_scout_pippin_doorstep_compass", "duo_seren_echo_unsent_letter" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren_b2",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_backlog_2.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "seren_morning_sunrise_stretch", "seren_gentle_breath_lotus", "seren_forest_stream_tea", "seren_moonlight_hourglass", "seren_harbor_mist_scarf", "duo_seren_pippin_healthy_spark" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "qa_polish1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_qa_polish_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "trio_device_reliability_guard", "roo_app_fast_victory_crown", "roo_discipline_streak_proud", "echo_lantern_strength_mirror", "flock_season_fireside_recap", "flock_tab_glide_transition" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seasonal1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_seasonal_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "roo_dawn_lantern_stretch", "scout_rainy_umbrella_puddle", "seren_autumn_maple_tea", "pippin_winter_snow_scarf", "twill_spring_blossom_basket", "echo_midnight_crescent_book" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seasonal2",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_seasonal_2.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "roo_new_year_sparkler", "seren_eid_crescent_lantern", "pippin_summer_sunhat_compass", "twill_winter_cocoa_scarf", "echo_autumn_moon_lantern", "scout_birthday_gift_balloon" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "empty1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_empty_states_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "roo_empty_tasks_coffee", "scout_empty_places_binoculars", "seren_empty_journal_tea", "pippin_empty_bookshelf_feather", "twill_empty_wallet_jar", "echo_empty_memories_camera" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "milestones1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_milestones_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "roo_streak_100_flame", "scout_geofence_home_welcome", "seren_breath_100_lotus", "pippin_reading_10_books", "twill_savings_goal_confetti", "echo_diary_30_days_star" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "everyday1",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_everyday_1.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "roo_morning_coffee_sunrise", "scout_commute_train_map", "seren_rainy_tea_cozy", "pippin_stargazing_telescope", "twill_grocery_basket_list", "echo_midnight_candle_diary" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "hobbies2",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_hobbies_2.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "pippin_origami_crane", "pippin_ukulele_melody", "twill_receipt_folder_tidy", "scout_flashlight_path", "roo_stretching_warmup", "echo_vinyl_chill" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "duos6",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_duos_6.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\duos",
+                PoseNames = new[] { "duo_roo_echo_study_timer", "duo_twill_seren_budget_calm", "duo_pippin_twill_travel_map", "duo_scout_echo_night_patrol", "duo_roo_twill_habit_ledger", "duo_pippin_scout_trail_hike" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "duos7",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\flock_duos_7.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\duos",
+                PoseNames = new[] { "duo_roo_pippin_morning_walk", "duo_seren_twill_evening_plan", "duo_scout_roo_morning_brief", "duo_echo_twill_memory_ledger", "duo_pippin_roo_hobby_sprint", "duo_seren_scout_calm_commute" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren_mental2",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_mental_wellness_2.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "seren_comfort_kit_treasure_box", "scout_seren_trusted_messenger", "echo_seren_voice_memo_feather", "roo_seren_calm_ritual_tea", "seren_echo_library_lantern", "seren_scout_crisis_lighthouse" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren_mental3",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_mental_wellness_3.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
+                PoseNames = new[] { "flock_healthy_living_compass", "echo_seren_encrypted_vault_key", "seren_launcher_moment_badge", "seren_mindful_doorway_hourglass", "seren_strict_sanctuary_gate", "duo_seren_scout_shield_ready" }
             }
         };
 

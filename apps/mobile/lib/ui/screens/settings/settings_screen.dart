@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_language.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -33,6 +33,7 @@ import '../../widgets/location_reminders_sheet.dart';
 import '../../widgets/money/money_editor_dialogs.dart';
 import '../../widgets/nestin_brand_header.dart';
 import '../../widgets/security_pin_gate_sheet.dart';
+import '../nest/treehouse_painters.dart';
 import '../splash/seasonal_loading_theme.dart';
 import '../../widgets/nestin_account_sheet.dart';
 import '../alarms/sound_picker_sheet.dart';
@@ -110,10 +111,10 @@ class SettingsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.12),
+                        color: AppColors.accent.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                         border:
-                            Border.all(color: AppColors.accent.withOpacity(0.3)),
+                            Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         l10n.tr('global_challenge_banner'),
@@ -134,7 +135,7 @@ class SettingsScreen extends StatelessWidget {
                     if (profile.isEnabled) ...[
                       const SizedBox(height: 10),
                       DropdownButtonFormField<ChallengeType>(
-                        value: profile.type,
+                        initialValue: profile.type,
                         decoration: InputDecoration(
                           labelText: l10n.tr('default_challenge_type'),
                         ),
@@ -160,7 +161,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<ChallengeDifficulty>(
-                        value: profile.difficulty,
+                        initialValue: profile.difficulty,
                         decoration: InputDecoration(
                           labelText: l10n.tr('default_difficulty'),
                         ),
@@ -187,7 +188,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<int>(
-                        value: profile.questionsCount,
+                        initialValue: profile.questionsCount,
                         decoration: InputDecoration(
                           labelText: l10n.tr('questions_rounds'),
                         ),
@@ -284,7 +285,7 @@ class SettingsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.18),
+                            color: AppColors.accent.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(Icons.psychology_rounded,
@@ -486,58 +487,310 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1),
-                ListTile(
+                Padding(
                   key: const Key('settings_splash_speed_tile'),
-                  leading: const Icon(Icons.speed_rounded),
-                  title: Text(l10n.tr('splash_speed_title')),
-                  subtitle: Text(prefs.splashSpeed.localizedDescription(l10n)),
-                  trailing: DropdownButton<SplashSpeed>(
-                    key: const Key('settings_splash_speed_dropdown'),
-                    value: prefs.splashSpeed,
-                    underline: const SizedBox(),
-                    items: SplashSpeed.values.map((speed) {
-                      return DropdownMenuItem<SplashSpeed>(
-                        value: speed,
-                        child: Text(speed.localizedShortLabel(l10n)),
-                      );
-                    }).toList(),
-                    onChanged: (speed) {
-                      if (speed != null) provider.setSplashSpeed(speed);
-                    },
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Icon(
+                              Icons.speed_rounded,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.tr('splash_speed_title'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  prefs.splashSpeed.localizedDescription(l10n),
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.elevatedSurface(context),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.border(context),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<SplashSpeed>(
+                              key: const Key('settings_splash_speed_dropdown'),
+                              value: prefs.splashSpeed,
+                              isExpanded: true,
+                              dropdownColor: AppColors.cardSurface(context),
+                              items: SplashSpeed.values.map((speed) {
+                                return DropdownMenuItem<SplashSpeed>(
+                                  value: speed,
+                                  child: Text(
+                                    speed.localizedShortLabel(l10n),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (speed) {
+                                if (speed != null) {
+                                  provider.setSplashSpeed(speed);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const Divider(height: 1),
-                ListTile(
+                Padding(
                   key: const Key('settings_seasonal_splash_tile'),
-                  leading: const Icon(Icons.auto_awesome_rounded),
-                  title: Text(l10n.tr('splash_season_setting_title')),
-                  subtitle: Text(
-                    prefs.seasonalSplashOverride == null
-                        ? l10n.tr('splash_season_setting_auto_desc')
-                        : l10n.tr(prefs.seasonalSplashOverride!.labelKey),
-                  ),
-                  trailing: DropdownButton<String>(
-                    key: const Key('settings_seasonal_splash_dropdown'),
-                    value: prefs.seasonalSplashOverride?.name ?? 'auto',
-                    underline: const SizedBox(),
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: 'auto',
-                        child: Text(l10n.tr('splash_season_opt_auto')),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Icon(
+                              Icons.auto_awesome_rounded,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.tr('splash_season_setting_title'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  prefs.seasonalSplashOverride == null
+                                      ? l10n.tr('splash_season_setting_auto_desc')
+                                      : l10n.tr(
+                                          prefs.seasonalSplashOverride!.labelKey,
+                                        ),
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      ...SeasonalSplashTheme.values.map((theme) {
-                        return DropdownMenuItem<String>(
-                          value: theme.name,
-                          child: Text(l10n.tr(theme.labelKey)),
-                        );
-                      }),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.elevatedSurface(context),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.border(context),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              key: const Key(
+                                'settings_seasonal_splash_dropdown',
+                              ),
+                              value: prefs.seasonalSplashOverride?.name ?? 'auto',
+                              isExpanded: true,
+                              dropdownColor: AppColors.cardSurface(context),
+                              items: [
+                                DropdownMenuItem<String>(
+                                  value: 'auto',
+                                  child: Text(
+                                    l10n.tr('splash_season_opt_auto'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                ...SeasonalSplashTheme.values.map((theme) {
+                                  return DropdownMenuItem<String>(
+                                    value: theme.name,
+                                    child: Text(
+                                      l10n.tr(theme.labelKey),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }),
+                              ],
+                              onChanged: (val) {
+                                if (val == null) return;
+                                provider.setSeasonalSplashOverride(
+                                  SeasonalSplashThemeExt.fromNameOrNull(val),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
-                    onChanged: (val) {
-                      if (val == null) return;
-                      provider.setSeasonalSplashOverride(
-                        SeasonalSplashThemeExt.fromNameOrNull(val),
-                      );
-                    },
+                  ),
+                ),
+                const Divider(height: 1),
+                Padding(
+                  key: const Key('settings_treehouse_phase_tile'),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Icon(
+                              Icons.park_rounded,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.tr('treehouse_phase_setting_title'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  prefs.treehousePhaseOverride == null
+                                      ? l10n.tr(
+                                          'treehouse_phase_setting_auto_desc',
+                                        )
+                                      : l10n.tr(
+                                          'treehouse_phase_setting_override_desc',
+                                          {
+                                            'phase': l10n.tr(
+                                              prefs.treehousePhaseOverride!
+                                                  .shortLabelKey,
+                                            ),
+                                          },
+                                        ),
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40),
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            ChoiceChip(
+                              key: const Key(
+                                'settings_treehouse_phase_chip_auto',
+                              ),
+                              label: Text(
+                                l10n.tr('treehouse_phase_short_auto'),
+                              ),
+                              selected: prefs.treehousePhaseOverride == null,
+                              selectedColor:
+                                  AppColors.accent.withValues(alpha: 0.22),
+                              backgroundColor:
+                                  AppColors.elevatedSurface(context),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: prefs.treehousePhaseOverride == null
+                                    ? AppColors.accent
+                                    : AppColors.textSecondary(context),
+                              ),
+                              side: BorderSide(
+                                color: prefs.treehousePhaseOverride == null
+                                    ? AppColors.accent
+                                    : Colors.transparent,
+                              ),
+                              onSelected: (_) =>
+                                  provider.setTreehousePhaseOverride(null),
+                            ),
+                            ...TreehouseDayPhase.values.map((phase) {
+                              final selected =
+                                  prefs.treehousePhaseOverride == phase;
+                              return ChoiceChip(
+                                key: Key(
+                                  'settings_treehouse_phase_chip_${phase.name}',
+                                ),
+                                label: Text(l10n.tr(phase.shortLabelKey)),
+                                selected: selected,
+                                selectedColor:
+                                    AppColors.accent.withValues(alpha: 0.22),
+                                backgroundColor:
+                                    AppColors.elevatedSurface(context),
+                                labelStyle: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: selected
+                                      ? AppColors.accent
+                                      : AppColors.textSecondary(context),
+                                ),
+                                side: BorderSide(
+                                  color: selected
+                                      ? AppColors.accent
+                                      : Colors.transparent,
+                                ),
+                                onSelected: (_) =>
+                                    provider.setTreehousePhaseOverride(phase),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const Divider(height: 1),
@@ -740,7 +993,7 @@ class SettingsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.accent.withOpacity(0.18),
+                              color: AppColors.accent.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(Icons.audio_file_rounded,
@@ -815,7 +1068,7 @@ class SettingsScreen extends StatelessWidget {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.18),
+                        color: AppColors.accent.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -839,7 +1092,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.isDiaryLockEnabled,
-                    activeColor: AppColors.accent,
+                    activeThumbColor: AppColors.accent,
                     onChanged: (val) async {
                       if (val && !provider.hasPin) {
                         await SecurityPinGateSheet.verifyOrPrompt(context);
@@ -878,7 +1131,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.isBiometricEnabled,
-                    activeColor: AppColors.accent,
+                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => provider.toggleBiometric(val),
                   ),
                   const Divider(height: 16),
@@ -1007,7 +1260,7 @@ class SettingsScreen extends StatelessWidget {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withOpacity(0.18),
+                        color: const Color(0xFF10B981).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -1031,7 +1284,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.showThrowbacks,
-                    activeColor: AppColors.accent,
+                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => provider.toggleThrowbacks(val),
                   ),
                   const Divider(height: 16),
@@ -1064,7 +1317,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.showJournalPrompts,
-                    activeColor: AppColors.accent,
+                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => provider.toggleJournalPrompts(val),
                   ),
                 ],
@@ -1093,8 +1346,8 @@ class SettingsScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: config.isConnected
-                                ? AppColors.success.withOpacity(0.18)
-                                : AppColors.accent.withOpacity(0.18),
+                                ? AppColors.success.withValues(alpha: 0.18)
+                                : AppColors.accent.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -1159,7 +1412,7 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                         value: config.autoSyncOnLaunch,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => wearable.updateConfig(
                           config.copyWith(autoSyncOnLaunch: val),
                         ),
@@ -1195,13 +1448,13 @@ class SettingsScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: isProt
-                                ? AppColors.success.withOpacity(0.12)
-                                : const Color(0xFFE04A3A).withOpacity(0.12),
+                                ? AppColors.success.withValues(alpha: 0.12)
+                                : const Color(0xFFE04A3A).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isProt
-                                  ? AppColors.success.withOpacity(0.3)
-                                  : const Color(0xFFE04A3A).withOpacity(0.3),
+                                  ? AppColors.success.withValues(alpha: 0.3)
+                                  : const Color(0xFFE04A3A).withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(
@@ -1285,7 +1538,7 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                         value: oem.config.keepAliveEnabledByUser,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => oem.toggleKeepAliveService(val),
                       ),
                       if (oem.quickSettingsTileStatus.supported) ...[
@@ -1738,7 +1991,7 @@ class SettingsScreen extends StatelessWidget {
                       width: 52,
                       height: 52,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         width: 52,
                         height: 52,
                         color: AppColors.primary,

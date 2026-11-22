@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_mental_aid_short_label">Butuh Jeda?</string>
+    <string name="shortcut_mental_aid_long_label">Butuh Jeda? • Dukungan Segera</string>
+    <string name="shortcut_mental_aid_disabled_message">Dukungan Kesehatan Mental sedang tidak tersedia.</string>
+    <string name="shortcut_quick_capture_short_label">Catat Cepat</string>
+    <string name="shortcut_quick_capture_long_label">Catat catatan, tugas, atau jurnal</string>
+    <string name="shortcut_quick_capture_disabled_message">Catat Cepat tidak tersedia.</string>
+    <string name="shortcut_new_alarm_short_label">Alarm Baru</string>
+    <string name="shortcut_new_alarm_long_label">Buat alarm baru</string>
+    <string name="shortcut_new_alarm_disabled_message">Alarm tidak tersedia.</string>
+    <string name="shortcut_water_short_label">Catat Air +250ml</string>
+    <string name="shortcut_water_long_label">Catat segelas air 250ml</string>
+    <string name="shortcut_water_disabled_message">Hidrasi tidak tersedia.</string>
+    <string name="shortcut_rain_short_label">Putar Hujan 30m</string>
+    <string name="shortcut_rain_long_label">Putar suara hujan dengan timer 30 menit</string>
+    <string name="shortcut_rain_disabled_message">Suara relaksasi tidak tersedia.</string>
+</resources>

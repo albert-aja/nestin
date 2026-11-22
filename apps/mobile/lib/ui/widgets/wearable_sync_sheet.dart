@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/wearable_source.dart';
@@ -319,7 +319,7 @@ class WearableSyncSheet extends StatelessWidget {
                             'Compare actual sleep with 90m cycle targets',
                             style: TextStyle(fontSize: 11, color: AppColors.textSecondary(context))),
                         value: config.syncSleep,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncSleep: val),
                         ),
@@ -333,7 +333,7 @@ class WearableSyncSheet extends StatelessWidget {
                             'Bidirectional water sync with health app',
                             style: TextStyle(fontSize: 11, color: AppColors.textSecondary(context))),
                         value: config.syncHydration,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncHydration: val),
                         ),
@@ -344,7 +344,7 @@ class WearableSyncSheet extends StatelessWidget {
                         title: const Text('Daily Steps & Activity',
                             style: TextStyle(fontSize: 13)),
                         value: config.syncSteps,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncSteps: val),
                         ),
@@ -355,7 +355,7 @@ class WearableSyncSheet extends StatelessWidget {
                         title: const Text('Resting Heart Rate',
                             style: TextStyle(fontSize: 13)),
                         value: config.syncHeartRate,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncHeartRate: val),
                         ),
@@ -366,7 +366,7 @@ class WearableSyncSheet extends StatelessWidget {
                         title: const Text('Auto-Sync on Launch',
                             style: TextStyle(fontSize: 13)),
                         value: config.autoSyncOnLaunch,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(autoSyncOnLaunch: val),
                         ),

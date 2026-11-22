@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import 'seasonal_loading_theme.dart';
@@ -369,6 +369,7 @@ class _SplashScreenState extends State<SplashScreen>
     final textMuted =
         isDark ? AppColors.darkTextSecondary : AppColors.lightTextMuted;
     final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final hasWallpaper = spec.wallpaperAsset != null;
 
     return Stack(
       key: ValueKey('splash_phase_seasonal_${spec.theme.name}'),
@@ -387,17 +388,45 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
 
-        // Subtle sanctuary banner texture underneath
-        Positioned.fill(
-          child: Opacity(
-            opacity: isDark ? 0.14 : 0.10,
+        // Illustrated seasonal wallpaper (or subtle sanctuary banner texture)
+        if (hasWallpaper) ...[
+          Positioned.fill(
             child: Image.asset(
-              'assets/banner.jpg',
+              spec.wallpaperAsset!,
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
           ),
-        ),
+          // Subtle top & bottom vignettes so text/loader stay legible while
+          // keeping the middle scene & mascot flock crisp and unobstructed.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.62),
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.58),
+                  ],
+                  stops: const [0.0, 0.30, 0.72, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ] else
+          Positioned.fill(
+            child: Opacity(
+              opacity: isDark ? 0.14 : 0.10,
+              child: Image.asset(
+                'assets/banner.jpg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
 
         // Seasonal atmospheric artwork painter
         Positioned.fill(
@@ -409,7 +438,7 @@ class _SplashScreenState extends State<SplashScreen>
                   theme: spec.theme,
                   progress:
                       disableAnimations ? 0.25 : _wallpaperController.value,
-                  isDark: isDark,
+                  isDark: hasWallpaper ? true : isDark,
                   accentColor: spec.accentColor,
                   secondaryAccentColor: spec.secondaryAccentColor,
                 ),
@@ -418,11 +447,12 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
 
-        // Centerpiece seasonal card / mascot medallion
+        // Header / Centerpiece content
         SafeArea(
-          child: Center(
+          child: Align(
+            alignment: hasWallpaper ? Alignment.topCenter : Alignment.center,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
+              padding: EdgeInsets.fromLTRB(28, hasWallpaper ? 28 : 0, 28, 0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -432,12 +462,17 @@ class _SplashScreenState extends State<SplashScreen>
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: spec.accentColor.withValues(
-                        alpha: isDark ? 0.22 : 0.14,
-                      ),
+                      color: hasWallpaper
+                          ? Colors.black.withValues(alpha: 0.36)
+                          : spec.accentColor.withValues(
+                              alpha: isDark ? 0.22 : 0.14,
+                            ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: spec.accentColor.withValues(alpha: 0.45),
+                        color: (hasWallpaper
+                                ? spec.secondaryAccentColor
+                                : spec.accentColor)
+                            .withValues(alpha: 0.55),
                       ),
                     ),
                     child: Text(
@@ -446,56 +481,68 @@ class _SplashScreenState extends State<SplashScreen>
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.4,
-                        color: isDark
+                        color: hasWallpaper || isDark
                             ? spec.secondaryAccentColor
                             : spec.accentColor,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  SizedBox(height: hasWallpaper ? 14 : 22),
 
-                  // Seasonal Mascot Medallion
-                  Container(
-                    width: 152,
-                    height: 152,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: (isDark ? Colors.white : spec.accentColor)
-                          .withValues(alpha: isDark ? 0.08 : 0.09),
-                      border: Border.all(
-                        color: spec.secondaryAccentColor.withValues(alpha: 0.45),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: spec.accentColor.withValues(alpha: 0.24),
-                          blurRadius: 34,
-                          spreadRadius: 2,
+                  if (!hasWallpaper) ...[
+                    // Seasonal Mascot Medallion (procedural fallback seasons)
+                    Container(
+                      width: 152,
+                      height: 152,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (isDark ? Colors.white : spec.accentColor)
+                            .withValues(alpha: isDark ? 0.08 : 0.09),
+                        border: Border.all(
+                          color:
+                              spec.secondaryAccentColor.withValues(alpha: 0.45),
+                          width: 1.5,
                         ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        spec.mascotAsset,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => Image.asset(
-                          'assets/logo.jpg',
-                          fit: BoxFit.cover,
+                        boxShadow: [
+                          BoxShadow(
+                            color: spec.accentColor.withValues(alpha: 0.24),
+                            blurRadius: 34,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          spec.mascotAsset,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => Image.asset(
+                            'assets/logo.jpg',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
 
                   Text(
                     l10n.tr(spec.titleKey),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: hasWallpaper ? 26 : 24,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.4,
-                      color: textPrimary,
+                      color: hasWallpaper ? Colors.white : textPrimary,
+                      shadows: hasWallpaper
+                          ? const [
+                              Shadow(
+                                color: Colors.black54,
+                                blurRadius: 12,
+                                offset: Offset(0, 2),
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -506,7 +553,18 @@ class _SplashScreenState extends State<SplashScreen>
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
                       height: 1.4,
-                      color: textMuted,
+                      color: hasWallpaper
+                          ? Colors.white.withValues(alpha: 0.90)
+                          : textMuted,
+                      shadows: hasWallpaper
+                          ? const [
+                              Shadow(
+                                color: Colors.black54,
+                                blurRadius: 10,
+                                offset: Offset(0, 1),
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
                 ],
@@ -519,7 +577,7 @@ class _SplashScreenState extends State<SplashScreen>
         Positioned(
           left: 36,
           right: 36,
-          bottom: 36,
+          bottom: 32,
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -529,10 +587,12 @@ class _SplashScreenState extends State<SplashScreen>
                   child: SizedBox(
                     height: 5,
                     child: LinearProgressIndicator(
-                      backgroundColor: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.12),
+                      backgroundColor: (hasWallpaper || isDark
+                              ? Colors.white
+                              : Colors.black)
+                          .withValues(alpha: hasWallpaper ? 0.24 : 0.12),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        spec.accentColor,
+                        hasWallpaper ? spec.secondaryAccentColor : spec.accentColor,
                       ),
                     ),
                   ),
@@ -544,7 +604,18 @@ class _SplashScreenState extends State<SplashScreen>
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
-                    color: textMuted.withValues(alpha: 0.85),
+                    color: hasWallpaper
+                        ? Colors.white.withValues(alpha: 0.92)
+                        : textMuted.withValues(alpha: 0.85),
+                    shadows: hasWallpaper
+                        ? const [
+                            Shadow(
+                              color: Colors.black54,
+                              blurRadius: 8,
+                              offset: Offset(0, 1),
+                            ),
+                          ]
+                        : null,
                   ),
                 ),
               ],

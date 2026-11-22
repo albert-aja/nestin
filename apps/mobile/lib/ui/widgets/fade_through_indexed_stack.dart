@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A drop-in replacement for [IndexedStack] that applies a subtle Material-style
 /// fade-through transition (cross-fade + gentle 98.5% -> 100% scale-in) when

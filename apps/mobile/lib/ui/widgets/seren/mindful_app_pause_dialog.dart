@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -89,9 +89,9 @@ class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
     super.dispose();
   }
 
-  BreakTheCycleProvider? _tryBtc(BuildContext context) {
+  BreakTheCycleProvider? _tryBtc(BuildContext context, {bool listen = false}) {
     try {
-      return Provider.of<BreakTheCycleProvider>(context, listen: false);
+      return Provider.of<BreakTheCycleProvider>(context, listen: listen);
     } catch (_) {
       return null;
     }
@@ -100,7 +100,9 @@ class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final btc = _tryBtc(context);
+    final btc = _tryBtc(context, listen: true);
+    final strictBlockMode =
+        btc?.mindfulAppPauseConfig.strictBlockMode ?? false;
     final activeWhys = btc?.activeCommitments
             .map((c) => c.myWhy.trim())
             .where((w) => w.isNotEmpty)
@@ -129,7 +131,9 @@ class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
                 ),
                 padding: const EdgeInsets.all(8),
                 child: Image.asset(
-                  'assets/mascots/sprites/seren/mindful_doorway_lantern.png',
+                  strictBlockMode
+                      ? 'assets/mascots/sprites/seren/strict_sanctuary_gate.png'
+                      : 'assets/mascots/sprites/seren/mindful_doorway_hourglass.png',
                   fit: BoxFit.contain,
                   errorBuilder: (_, _, _) => const Icon(
                     Icons.nights_stay_rounded,
@@ -195,31 +199,51 @@ class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
               ),
             ),
             const SizedBox(height: 14),
-            OutlinedButton(
-              key: const Key('btc_mindful_pause_continue_btn'),
-              onPressed: _secondsLeft > 0
-                  ? null
-                  : () {
-                      btc?.grantMindfulPauseClearPurposeContinue(
-                        widget.packageName,
-                      );
-                      Navigator.of(context).pop('continue');
-                    },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+            if (strictBlockMode) ...[
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _serenPurple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.tr('btc_mindful_pause_strict_blocked_note'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary(context),
+                  ),
                 ),
               ),
-              child: Text(
-                _secondsLeft > 0
-                    ? '${l10n.tr('btc_mindful_pause_continue_btn')} ($_secondsLeft)'
-                    : l10n.tr('btc_mindful_pause_continue_btn'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              const SizedBox(height: 10),
+            ] else ...[
+              OutlinedButton(
+                key: const Key('btc_mindful_pause_continue_btn'),
+                onPressed: _secondsLeft > 0
+                    ? null
+                    : () {
+                        btc?.grantMindfulPauseClearPurposeContinue(
+                          widget.packageName,
+                        );
+                        Navigator.of(context).pop('continue');
+                      },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: Text(
+                  _secondsLeft > 0
+                      ? '${l10n.tr('btc_mindful_pause_continue_btn')} ($_secondsLeft)'
+                      : l10n.tr('btc_mindful_pause_continue_btn'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
             FilledButton.icon(
               key: const Key('btc_mindful_pause_step_back_btn'),
               onPressed: () async {
@@ -244,21 +268,34 @@ class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
               ),
             ),
             const SizedBox(height: 6),
-            TextButton(
-              key: const Key('btc_mindful_pause_snooze_btn'),
-              onPressed: () async {
-                await btc?.snoozeMindfulAppPause(const Duration(hours: 1));
-                if (!context.mounted) return;
-                Navigator.of(context).pop('snooze_1h');
-              },
-              child: Text(
-                l10n.tr('btc_mindful_pause_snooze_btn'),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary(context),
+            if (strictBlockMode)
+              TextButton(
+                key: const Key('btc_mindful_pause_close_btn'),
+                onPressed: () => Navigator.of(context).pop('close'),
+                child: Text(
+                  l10n.tr('btc_mindful_pause_close_btn'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary(context),
+                  ),
+                ),
+              )
+            else
+              TextButton(
+                key: const Key('btc_mindful_pause_snooze_btn'),
+                onPressed: () async {
+                  await btc?.snoozeMindfulAppPause(const Duration(hours: 1));
+                  if (!context.mounted) return;
+                  Navigator.of(context).pop('snooze_1h');
+                },
+                child: Text(
+                  l10n.tr('btc_mindful_pause_snooze_btn'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary(context),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 4),
             Text(
               l10n.tr('btc_mindful_pause_zero_inspection_note'),

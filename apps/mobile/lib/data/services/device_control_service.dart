@@ -53,6 +53,8 @@ abstract class DeviceControlServiceInterface {
     List<Map<String, dynamic>> policies, {
     DateTime? focusExpiresAt,
   });
+  Future<bool> syncMindfulAppPauseConfig(Map<String, dynamic> config);
+  Future<Map<String, dynamic>> consumeMindfulPauseNativeEvents();
   Future<String?> getCurrentForegroundApp();
   Future<bool> requestFamilyControlsAuthorization();
   Future<PhoneModeActionOutcome> setDndEnabled(bool enable);
@@ -423,6 +425,31 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
   }
 
   @override
+  Future<bool> syncMindfulAppPauseConfig(Map<String, dynamic> config) async {
+    try {
+      final ok = await _channel.invokeMethod<bool>(
+        'syncMindfulAppPauseConfig',
+        config,
+      );
+      return ok ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> consumeMindfulPauseNativeEvents() async {
+    try {
+      final raw = await _channel.invokeMapMethod<String, dynamic>(
+        'consumeMindfulPauseNativeEvents',
+      );
+      return raw ?? const {};
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  @override
   Future<String?> getCurrentForegroundApp() async {
     try {
       return await _channel.invokeMethod<String>('getCurrentForegroundApp');
@@ -704,6 +731,23 @@ class NativeDeviceControlService implements DeviceControlServiceInterface {
           lastCheckedAt: now,
         ),
         PermissionEntry(
+          kind: NestinPermissionKind.accessibilityService,
+          title: 'Nestin App Shield (Accessibility Service)',
+          tier: PermissionRequirementTier.recommended,
+          status: hasAccessibility
+              ? PermissionStatus.granted
+              : PermissionStatus.denied,
+          rationale:
+              'Detects when a paused or restricted app opens and immediately displays Seren\'s Mindful App Pause or Roo\'s App Shield without reading screen text.',
+          enableInstructions:
+              'Open Accessibility Settings -> Installed Apps -> Nestin -> turn on Nestin App Shield.',
+          affectsFeatures: const [
+            'Seren Break the Cycle (Mindful App Pause)',
+            'Roo App Fast & Focus Lock Shield',
+          ],
+          lastCheckedAt: now,
+        ),
+        PermissionEntry(
           kind: NestinPermissionKind.batteryOptimizationExempt,
           title: 'Unrestricted Battery Optimization',
           tier: PermissionRequirementTier.recommended,
@@ -808,6 +852,8 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
   String? mockForegroundPackage;
   List<Map<String, dynamic>> lastSyncedPolicies = [];
   DateTime? lastSyncedFocusExpiresAt;
+  Map<String, dynamic> lastSyncedMindfulPauseConfig = {};
+  Map<String, dynamic> mockPendingMindfulPauseNativeEvents = {};
   final List<String> actionLog = [];
   List<AppUsageRecord>? mockRecords;
   List<String> mockBypassedPackages;
@@ -1010,6 +1056,30 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
           enableInstructions: 'Allow Modify System Settings.',
           lastCheckedAt: now,
         ),
+        if (isAndroid) ...[
+          PermissionEntry(
+            kind: NestinPermissionKind.systemAlertWindow,
+            title: 'Display Over Other Apps',
+            tier: PermissionRequirementTier.optional,
+            status: systemState.hasOverlayPermission
+                ? PermissionStatus.granted
+                : PermissionStatus.denied,
+            rationale: 'Allows full-screen mindful pause shields.',
+            enableInstructions: 'Allow Display Over Other Apps.',
+            lastCheckedAt: now,
+          ),
+          PermissionEntry(
+            kind: NestinPermissionKind.accessibilityService,
+            title: 'Nestin App Shield (Accessibility Service)',
+            tier: PermissionRequirementTier.recommended,
+            status: systemState.hasAccessibilityService
+                ? PermissionStatus.granted
+                : PermissionStatus.denied,
+            rationale: 'Instant app launch interception for Mindful App Pause and App Fast.',
+            enableInstructions: 'Enable Nestin in Accessibility Settings.',
+            lastCheckedAt: now,
+          ),
+        ],
       ],
       inspectedAt: now,
     );
@@ -1366,6 +1436,20 @@ class MockDeviceControlService implements DeviceControlServiceInterface {
     lastSyncedFocusExpiresAt = focusExpiresAt;
     actionLog.add('syncRestrictionPolicy:${policies.length}');
     return true;
+  }
+
+  @override
+  Future<bool> syncMindfulAppPauseConfig(Map<String, dynamic> config) async {
+    lastSyncedMindfulPauseConfig = Map<String, dynamic>.from(config);
+    actionLog.add('syncMindfulAppPauseConfig:${config['isEnabled']}');
+    return true;
+  }
+
+  @override
+  Future<Map<String, dynamic>> consumeMindfulPauseNativeEvents() async {
+    final copy = Map<String, dynamic>.from(mockPendingMindfulPauseNativeEvents);
+    mockPendingMindfulPauseNativeEvents = {};
+    return copy;
   }
 
   @override

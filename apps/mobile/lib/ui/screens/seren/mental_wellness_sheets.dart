@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -1034,7 +1034,7 @@ class _EphemeralWritingSheetState extends State<EphemeralWritingSheet> {
                 children: [
                   _serenSprite(
                     assetPath:
-                        'assets/mascots/sprites/duos/duo_seren_echo_evening_sanctuary.png',
+                        'assets/mascots/sprites/duos/duo_seren_echo_unsent_letter.png',
                     fallbackIcon: Icons.edit_note_rounded,
                     size: 52,
                   ),

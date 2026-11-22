@@ -1,43 +1,59 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'inspiration/inspiration_screen.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/medication_snooze.dart';
-import '../../data/services/widget_sync_service.dart';
 import '../../data/services/notification_service.dart';
+import '../../data/services/widget_sync_service.dart';
 import '../../providers/alarm_provider.dart';
-import '../../providers/hydration_provider.dart';
-import '../../providers/medication_provider.dart';
 import '../../providers/before_you_go_provider.dart';
-import '../../providers/reading_provider.dart';
-import '../../providers/inspiration_provider.dart';
-import '../../providers/settings_provider.dart';
 import '../../providers/break_the_cycle_provider.dart';
-import 'seren/mental_wellness_screen.dart';
-import '../widgets/seren/mindful_app_pause_dialog.dart';
-import 'home/home_dashboard_screen.dart';
-import 'time/time_hub_screen.dart';
-import 'organize/organize_hub_screen.dart';
-import 'journal/journal_hub_screen.dart';
-import 'explore/bucket_list_screen.dart';
-import 'explore/explore_hub_screen.dart';
-import 'alarms/active_alarm_screen.dart';
-import 'alarms/alarm_edit_screen.dart';
-import '../widgets/quick_capture_sheet.dart';
-import '../widgets/sleep_cycle_sheet.dart';
+import '../../providers/device_control_provider.dart';
+import '../../providers/hydration_provider.dart';
+import '../../providers/inspiration_provider.dart';
+import '../../providers/medication_provider.dart';
+import '../../providers/reading_provider.dart';
+import '../../providers/seren_relaxation_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../widgets/before_you_go_sheet.dart';
+import '../widgets/fade_through_indexed_stack.dart';
 import '../widgets/health_wellness_sheet.dart';
 import '../widgets/hydration_settings_sheet.dart';
-import '../widgets/medication_tracker_sheet.dart';
-import '../widgets/reading_tracker_sheet.dart';
 import '../widgets/location_reminders_sheet.dart';
-import '../widgets/before_you_go_sheet.dart';
-import 'discipline/digital_discipline_screen.dart';
-import 'scout/phone_modes_screen.dart';
-import 'settings/permission_center_screen.dart';
+import '../widgets/medication_tracker_sheet.dart';
+import '../widgets/quick_capture_sheet.dart';
+import '../widgets/reading_tracker_sheet.dart';
+import '../widgets/seren/mindful_app_pause_dialog.dart';
+import '../widgets/sleep_cycle_sheet.dart';
+import 'alarms/active_alarm_screen.dart';
+import 'alarms/alarm_edit_screen.dart';
+import 'alarms/alarms_list_screen.dart';
 import 'automation/automation_hub_screen.dart';
-import '../widgets/fade_through_indexed_stack.dart';
+import 'discipline/digital_discipline_screen.dart';
+import 'explore/bucket_list_screen.dart';
+import 'home/home_dashboard_screen.dart';
+import 'inspiration/inspiration_screen.dart';
+import 'nest/bird_house_shared.dart';
+import 'nest/echo_house_screen.dart';
+import 'nest/nest_treehouse_screen.dart';
+import 'nest/pippin_house_screen.dart';
+import 'nest/roo_house_screen.dart';
+import 'nest/scout_house_screen.dart';
+import 'nest/seren_house_screen.dart';
+import 'nest/twill_house_screen.dart';
+import 'reminders/reminders_list_screen.dart';
+import 'scout/phone_modes_screen.dart';
+import 'search/universal_search_screen.dart';
+import 'seren/mental_wellness_screen.dart';
+import 'seren/seren_relaxation_screen.dart';
+import 'settings/permission_center_screen.dart';
+import 'time/calendar_screen.dart';
+import 'time/routines_screen.dart';
+import 'time/tasks_screen.dart';
+import 'timers/timers_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -48,10 +64,8 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen>
     with WidgetsBindingObserver {
+  /// 0 = Dashboard (`HomeDashboardScreen`), 1 = Nest (`NestTreehouseScreen`).
   int _currentIndex = 0;
-  int _timeHubSubTab = 0;
-  int _organizeHubSubTab = 0;
-  int _journalHubSubTab = 0;
   StreamSubscription<Uri>? _deepLinkSubscription;
   StreamSubscription<String>? _notifSubscription;
 
@@ -69,38 +83,44 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         _notifSubscription = notifService.payloadStream.listen((payload) {
           if (!mounted) return;
           if (payload == 'wind_down_ambient' || payload == 'wind_down') {
-            _onTabSelected(4);
+            _selectDockTab(1);
             SleepCycleSheet.show(context);
           } else if (payload == 'seren_health_move') {
-            _onTabSelected(4);
+            _selectDockTab(1);
             HealthWellnessSheet.show(context);
           } else if (payload == 'location_reminders') {
-            _onTabSelected(4);
+            _selectDockTab(1);
             LocationRemindersSheet.show(context);
           } else if (payload == BeforeYouGoProvider.payloadPrefix ||
               payload.startsWith('${BeforeYouGoProvider.payloadPrefix}|')) {
             final parsed = BeforeYouGoProvider.parsePayload(payload);
-            _onTabSelected(4);
+            _selectDockTab(1);
             BeforeYouGoSheet.show(
               context,
               initialPresetId: parsed?.presetId,
               initialEventId: parsed?.eventId,
             );
           } else if (payload.startsWith(MedicationSnooze.payloadPrefix)) {
-            _onTabSelected(4);
+            _selectDockTab(1);
             MedicationTrackerSheet.show(context);
           } else if (payload == ReadingProvider.reminderPayload ||
               payload == 'nestin://reading') {
-            _onTabSelected(4);
+            _selectDockTab(1);
             ReadingTrackerSheet.show(context);
           } else if (payload == 'mental_aid' ||
               payload == 'nestin://mental_aid' ||
               payload == 'mental_wellness') {
-            _onTabSelected(4);
+            _selectDockTab(1);
+            final layer = (payload == 'mental_aid' ||
+                    payload == 'nestin://mental_aid')
+                ? 1
+                : 0;
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MentalWellnessScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => MentalWellnessScreen(initialLayer: layer),
+              ),
             );
-          } else if (payload.startsWith('nestin://inspiration')) {
+          } else if (payload.startsWith('nestin://')) {
             final uri = Uri.tryParse(payload);
             if (uri != null) {
               _handleDeepLink(uri);
@@ -128,6 +148,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             .reloadFromStorage();
       } catch (_) {}
       try {
+        Provider.of<DeviceControlProvider>(context, listen: false)
+            .refreshCapabilities();
+      } catch (_) {}
+      try {
         final btc = Provider.of<BreakTheCycleProvider>(context, listen: false);
         btc.reloadFromStorage();
         btc.checkForegroundAppForMindfulPause().then((pkg) {
@@ -138,8 +162,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
               onStepBackToUrgeSupport: () {
                 if (!mounted) return;
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MentalWellnessScreen(initialLayer: 3),
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MentalWellnessScreen(
+                      initialLayer: 3,
+                      openUrgeSupportOnInit: true,
+                    ),
                   ),
                 );
               },
@@ -148,12 +175,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         });
       } catch (_) {}
       try {
-        final settings = Provider.of<SettingsProvider>(context, listen: false);
-        if (_currentIndex == 3) {
-          settings.notifyDiaryEntered();
-        } else {
-          settings.evaluateAutoLock();
-        }
+        Provider.of<SettingsProvider>(context, listen: false)
+            .evaluateAutoLock();
       } catch (_) {}
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden ||
@@ -173,91 +196,215 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     super.dispose();
   }
 
+  void _selectDockTab(int index) {
+    final target = index.clamp(0, 1);
+    if (_currentIndex == target) return;
+    setState(() {
+      _currentIndex = target;
+    });
+  }
+
+  /// Compatibility router bridging legacy 5-tab callbacks (from Dashboard
+  /// links) to the 3-slot dock and 6 Bird House destinations.
+  void _handleLegacyTabRoute(int tab, [int? subTab]) {
+    if (!mounted) return;
+    final l10n = context.l10n;
+    switch (tab) {
+      case 0:
+        _selectDockTab(0);
+        return;
+      case 1:
+        _selectDockTab(1);
+        final target = switch (subTab) {
+          0 => const AlarmsListScreen(),
+          1 => const RemindersListScreen(),
+          2 => BirdToolPageScaffold(
+              title: l10n.tr('tab_calendar'),
+              child: const CalendarScreen(),
+            ),
+          3 => BirdTwoTabPageScaffold(
+              title: l10n.tr('house_roo_tasks_routines'),
+              accentColor: RooHouseScreen.rooColor,
+              firstLabel: l10n.tr('tab_tasks'),
+              firstIcon: Icons.checklist_rounded,
+              firstChild: const TasksScreen(),
+              secondLabel: l10n.tr('tab_routines'),
+              secondIcon: Icons.repeat_rounded,
+              secondChild: const RoutinesScreen(),
+              initialIndex: 0,
+            ),
+          4 => BirdTwoTabPageScaffold(
+              title: l10n.tr('house_roo_tasks_routines'),
+              accentColor: RooHouseScreen.rooColor,
+              firstLabel: l10n.tr('tab_tasks'),
+              firstIcon: Icons.checklist_rounded,
+              firstChild: const TasksScreen(),
+              secondLabel: l10n.tr('tab_routines'),
+              secondIcon: Icons.repeat_rounded,
+              secondChild: const RoutinesScreen(),
+              initialIndex: 1,
+            ),
+          5 => const TimersScreen(),
+          6 => const DigitalDisciplineScreen(),
+          _ => const RooHouseScreen(),
+        };
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => target),
+        );
+        return;
+      case 2:
+        _selectDockTab(1);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => TwillHouseScreen(initialTabIndex: subTab ?? 0),
+          ),
+        );
+        return;
+      case 3:
+        _selectDockTab(1);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const EchoHouseScreen()),
+        );
+        return;
+      case 4:
+      default:
+        _selectDockTab(1);
+        return;
+    }
+  }
+
   void _handleDeepLink(Uri uri) {
     if (!mounted) return;
+    final l10n = context.l10n;
 
     if (uri.host == 'alarms') {
-      _onTabSelected(1, 0); // TimeHub -> Alarms
+      _selectDockTab(1);
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const AlarmsListScreen()),
+      );
     } else if (uri.host == 'habits') {
-      _onTabSelected(1, 4); // TimeHub -> Routines
+      _selectDockTab(1);
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => BirdTwoTabPageScaffold(
+            title: l10n.tr('house_roo_tasks_routines'),
+            accentColor: RooHouseScreen.rooColor,
+            firstLabel: l10n.tr('tab_tasks'),
+            firstIcon: Icons.checklist_rounded,
+            firstChild: const TasksScreen(),
+            secondLabel: l10n.tr('tab_routines'),
+            secondIcon: Icons.repeat_rounded,
+            secondChild: const RoutinesScreen(),
+            initialIndex: 1,
+          ),
+        ),
+      );
     } else if (uri.host == 'new_alarm') {
-      _onTabSelected(1, 0);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AlarmEditScreen()),
+      _selectDockTab(1);
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const AlarmEditScreen()),
       );
     } else if (uri.host == 'wind_down' || uri.host == 'ambient_wind_down') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       SleepCycleSheet.show(context);
     } else if (uri.host == 'health') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       HealthWellnessSheet.show(context);
     } else if (uri.host == 'hydration') {
-      _onTabSelected(4);
-      HydrationSettingsSheet.show(context);
+      _selectDockTab(1);
+      if (uri.queryParameters['action'] == 'add_glass') {
+        _logQuickGlass();
+      } else {
+        HydrationSettingsSheet.show(context);
+      }
+    } else if (uri.host == 'play_sound') {
+      _playQuickSound(
+        uri.queryParameters['id'] ?? 'rain',
+        int.tryParse(uri.queryParameters['minutes'] ?? '') ?? 30,
+      );
+    } else if (uri.host == 'seren') {
+      _selectDockTab(1);
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const SerenRelaxationScreen()),
+      );
     } else if (uri.host == 'medication') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       MedicationTrackerSheet.show(context);
     } else if (uri.host == 'mental_aid' || uri.host == 'mental_wellness') {
-      _onTabSelected(4);
+      _selectDockTab(1);
+      final layer = int.tryParse(uri.queryParameters['layer'] ?? '') ??
+          (uri.host == 'mental_aid' ? 1 : 0);
+      final openUrgeSupport = uri.queryParameters['urge_support'] == '1';
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const MentalWellnessScreen()),
+        MaterialPageRoute<void>(
+          builder: (_) => MentalWellnessScreen(
+            initialLayer: layer,
+            openUrgeSupportOnInit: openUrgeSupport,
+          ),
+        ),
       );
     } else if (uri.host == 'reading') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       ReadingTrackerSheet.show(context);
     } else if (uri.host == 'bucket_list') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const BucketListScreen()),
+        MaterialPageRoute<void>(builder: (_) => const BucketListScreen()),
       );
     } else if (uri.host == 'location_reminders') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       LocationRemindersSheet.show(context);
     } else if (uri.host == 'before_you_go') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       BeforeYouGoSheet.show(
         context,
         initialPresetId: uri.queryParameters['presetId'],
         initialEventId: uri.queryParameters['eventId'],
       );
     } else if (uri.host == 'money') {
-      _onTabSelected(2, 3);
+      _selectDockTab(1);
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const TwillHouseScreen(initialTabIndex: 3),
+        ),
+      );
     } else if (uri.host == 'quick_capture') {
       final type = uri.queryParameters['type'];
-      CaptureType captureType = CaptureType.note;
-      if (type == 'task') {
+      CaptureType? captureType;
+      if (type == 'note') {
+        captureType = CaptureType.note;
+      } else if (type == 'task') {
         captureType = CaptureType.task;
-      } else if (type == 'journal') {
+      } else if (type == 'reminder') {
+        captureType = CaptureType.reminder;
+      } else if (type == 'journal' || type == 'diary') {
         captureType = CaptureType.journal;
+      } else if (type == 'wishlist') {
+        captureType = CaptureType.wishlist;
       }
       QuickCaptureSheet.show(context, initialType: captureType);
     } else if (uri.host == 'wellbeing' || uri.host == 'discipline') {
       final rawTab = int.tryParse(uri.queryParameters['tab'] ?? '');
-      if (rawTab != null) {
-        _onTabSelected(1, 6);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => DigitalDisciplineScreen(initialTab: rawTab),
-          ),
-        );
-      } else {
-        _onTabSelected(1, 6);
-      }
-    } else if (uri.host == 'phone_modes') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const PhoneModesScreen()),
+        MaterialPageRoute<void>(
+          builder: (_) => DigitalDisciplineScreen(initialTab: rawTab ?? 0),
+        ),
+      );
+    } else if (uri.host == 'phone_modes') {
+      _selectDockTab(1);
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const PhoneModesScreen()),
       );
     } else if (uri.host == 'permissions') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const PermissionCenterScreen()),
+        MaterialPageRoute<void>(builder: (_) => const PermissionCenterScreen()),
       );
     } else if (uri.host == 'automation') {
-      _onTabSelected(4);
+      _selectDockTab(1);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const AutomationHubScreen()),
+        MaterialPageRoute<void>(builder: (_) => const AutomationHubScreen()),
       );
     } else if (uri.host == 'inspiration') {
       final quoteId = uri.queryParameters['quoteId'];
@@ -272,37 +419,60 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           : (tabParam == 'favorites'
               ? InspirationSectionTab.favorites
               : InspirationSectionTab.browse);
-      _onTabSelected(4);
+      _selectDockTab(1);
       Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => InspirationScreen(initialTab: initialTab),
         ),
       );
+    } else if (uri.host == 'house') {
+      _selectDockTab(1);
+      final bird = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+      final Widget? screen = switch (bird) {
+        'roo' => const RooHouseScreen(),
+        'scout' => const ScoutHouseScreen(),
+        'seren' => const SerenHouseScreen(),
+        'pippin' => const PippinHouseScreen(),
+        'twill' => const TwillHouseScreen(),
+        'echo' => const EchoHouseScreen(),
+        _ => null,
+      };
+      if (screen != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => screen),
+        );
+      }
     }
   }
 
-  void _onTabSelected(int index, [int? subTabIndex]) {
-    final wasInJournal = _currentIndex == 3;
-    final willBeInJournal = index == 3;
-
-    setState(() {
-      _currentIndex = index;
-      if (index == 1 && subTabIndex != null) {
-        _timeHubSubTab = subTabIndex;
-      } else if (index == 2 && subTabIndex != null) {
-        _organizeHubSubTab = subTabIndex;
-      } else if (index == 3 && subTabIndex != null) {
-        _journalHubSubTab = subTabIndex;
-      }
-    });
-
+  /// Launcher shortcut `nestin://hydration?action=add_glass`: logs +250ml.
+  Future<void> _logQuickGlass() async {
     try {
-      final settings = Provider.of<SettingsProvider>(context, listen: false);
-      if (wasInJournal && !willBeInJournal) {
-        settings.notifyDiaryLeft();
-      } else if (!wasInJournal && willBeInJournal) {
-        settings.notifyDiaryEntered();
-      }
+      final hydration = Provider.of<HydrationProvider>(context, listen: false);
+      await hydration.addGlass();
+      if (!mounted) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.tr('shortcut_water_logged')),
+        ),
+      );
+    } catch (_) {}
+  }
+
+  /// Launcher shortcut `nestin://play_sound?id=rain&minutes=30`: instantly
+  /// plays one Seren sound with a sleep timer.
+  Future<void> _playQuickSound(String soundId, int minutes) async {
+    try {
+      final seren =
+          Provider.of<SerenRelaxationProvider>(context, listen: false);
+      await seren.playSingleSound(soundId);
+      await seren.startPlaybackTimer(minutes);
+      if (!mounted) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.tr('shortcut_sound_playing')),
+        ),
+      );
     } catch (_) {}
   }
 
@@ -316,24 +486,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       return ActiveAlarmScreen(alarm: ringingAlarm);
     }
 
-    final l10n = context.l10n;
     final pages = [
       HomeDashboardScreen(
-        onNavigateTab: (tab, [subTab]) => _onTabSelected(tab, subTab),
+        onNavigateTab: _handleLegacyTabRoute,
       ),
-      TimeHubScreen(
-        key: ValueKey('time_$_timeHubSubTab'),
-        initialTabIndex: _timeHubSubTab,
+      NestTreehouseScreen(
+        isActive: _currentIndex == 1,
       ),
-      OrganizeHubScreen(
-        key: ValueKey('organize_$_organizeHubSubTab'),
-        initialTabIndex: _organizeHubSubTab,
-      ),
-      JournalHubScreen(
-        key: ValueKey('journal_$_journalHubSubTab'),
-        initialTabIndex: _journalHubSubTab,
-      ),
-      const ExploreHubScreen(),
     ];
 
     return Scaffold(
@@ -341,62 +500,213 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         index: _currentIndex,
         children: pages,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => QuickCaptureSheet.show(context),
-        backgroundColor: AppColors.primary,
-        tooltip: l10n.tr('quick_capture'),
-        elevation: 4,
-        child: const Icon(
-          Icons.add_rounded,
-          color: Colors.white,
-          size: 28,
-        ),
+      bottomNavigationBar: _ThreeSlotBottomDock(
+        currentIndex: _currentIndex,
+        onSelectTab: _selectDockTab,
+        onQuickCaptureTap: () => QuickCaptureSheet.show(context),
+        onQuickCaptureLongPress: () {
+          HapticFeedback.mediumImpact();
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const UniversalSearchScreen(),
+            ),
+          );
+        },
       ),
-      bottomNavigationBar: Container(
+    );
+  }
+}
+
+class _ThreeSlotBottomDock extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onSelectTab;
+  final VoidCallback onQuickCaptureTap;
+  final VoidCallback onQuickCaptureLongPress;
+
+  const _ThreeSlotBottomDock({
+    required this.currentIndex,
+    required this.onSelectTab,
+    required this.onQuickCaptureTap,
+    required this.onQuickCaptureLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final isDark = AppColors.isDark(context);
+    final selectedColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    final unselectedColor = AppColors.textSecondary(context);
+    final surfaceColor = AppColors.recessedSurface(context);
+
+    return Material(
+      color: surfaceColor,
+      child: Container(
         decoration: BoxDecoration(
-          color: AppColors.recessedSurface(context),
+          color: surfaceColor,
           border: Border(
             top: BorderSide(color: AppColors.border(context), width: 1),
           ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => _onTabSelected(index),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.recessedSurface(context),
-          selectedItemColor: AppColors.isDark(context)
-              ? AppColors.primaryLight
-              : AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary(context),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
-          items: [
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.today_outlined),
-              activeIcon: const Icon(Icons.today_rounded),
-              label: l10n.tr('nav_today'),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 64,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Row(
+                  children: [
+                    // Left Slot: Dashboard
+                    Expanded(
+                      child: _DockTabItem(
+                        itemKey: const Key('nav_slot_dashboard'),
+                        icon: Icons.space_dashboard_outlined,
+                        activeIcon: Icons.space_dashboard_rounded,
+                        label: l10n.tr('nav_dashboard'),
+                        isSelected: currentIndex == 0,
+                        selectedColor: selectedColor,
+                        unselectedColor: unselectedColor,
+                        onTap: () => onSelectTab(0),
+                      ),
+                    ),
+                    // Spacer reserving clean breathing room for center raised button
+                    const SizedBox(width: 84),
+                    // Right Slot: Nest
+                    Expanded(
+                      child: _DockTabItem(
+                        itemKey: const Key('nav_slot_nest'),
+                        icon: Icons.cottage_outlined,
+                        activeIcon: Icons.cottage_rounded,
+                        label: l10n.tr('nav_nest'),
+                        isSelected: currentIndex == 1,
+                        selectedColor: selectedColor,
+                        unselectedColor: unselectedColor,
+                        onTap: () => onSelectTab(1),
+                      ),
+                    ),
+                  ],
+                ),
+                // Center Slot: Raised Nestin Crimson (+) Quick Capture Button
+                Positioned(
+                  top: -16,
+                  child: Tooltip(
+                    message: l10n.tr('nav_quick_capture_hint'),
+                    child: Semantics(
+                      button: true,
+                      label: l10n.tr('quick_capture'),
+                      child: GestureDetector(
+                        key: const Key('nav_slot_quick_capture'),
+                        onTap: onQuickCaptureTap,
+                        onLongPress: onQuickCaptureLongPress,
+                        child: Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary,
+                            border: Border.all(
+                              color: surfaceColor,
+                              width: 4,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary
+                                    .withValues(alpha: isDark ? 0.42 : 0.34),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.access_time_outlined),
-              activeIcon: const Icon(Icons.access_time_filled_rounded),
-              label: l10n.tr('nav_time'),
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.folder_outlined),
-              activeIcon: const Icon(Icons.folder_rounded),
-              label: l10n.tr('nav_organize'),
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.auto_stories_outlined),
-              activeIcon: const Icon(Icons.auto_stories_rounded),
-              label: l10n.tr('nav_journal'),
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.explore_outlined),
-              activeIcon: const Icon(Icons.explore_rounded),
-              label: l10n.tr('nav_explore'),
-            ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DockTabItem extends StatelessWidget {
+  final Key itemKey;
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isSelected;
+  final Color selectedColor;
+  final Color unselectedColor;
+  final VoidCallback onTap;
+
+  const _DockTabItem({
+    required this.itemKey,
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isSelected,
+    required this.selectedColor,
+    required this.unselectedColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected ? selectedColor : unselectedColor;
+    final disableAnimations =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    return InkWell(
+      key: itemKey,
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: disableAnimations
+                    ? Duration.zero
+                    : const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? selectedColor.withValues(alpha: 0.14)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  isSelected ? activeIcon : icon,
+                  size: 22,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

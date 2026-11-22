@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
@@ -147,7 +147,7 @@ class _RemindersListScreenState extends State<RemindersListScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final item = filtered[index];
                       return _buildReminderCard(
@@ -336,7 +336,7 @@ class _RemindersListScreenState extends State<RemindersListScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.18),
+                              color: AppColors.error.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -611,7 +611,7 @@ class _ReminderEditorSheetState extends State<_ReminderEditorSheet> {
 
             // Recurrence
             DropdownButtonFormField<ReminderRecurrence>(
-              value: _recurrence,
+              initialValue: _recurrence,
               decoration: const InputDecoration(
                 labelText: 'Repeat Frequency',
                 prefixIcon: Icon(Icons.repeat_rounded),

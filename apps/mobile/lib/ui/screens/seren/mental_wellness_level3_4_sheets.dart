@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -101,7 +101,23 @@ class _CrisisSupportBridgeSheetState extends State<CrisisSupportBridgeSheet> {
             padding: const EdgeInsets.fromLTRB(20, 14, 12, 8),
             child: Row(
               children: [
-                const Icon(Icons.health_and_safety_rounded, color: _kCrisisRose),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _kCrisisRose.withValues(alpha: 0.12),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Image.asset(
+                    'assets/mascots/sprites/duos/seren_scout_crisis_lighthouse.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.health_and_safety_rounded,
+                      color: _kCrisisRose,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -409,7 +425,23 @@ class EducationalLibrarySheet extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 14, 12, 8),
                   child: Row(
                     children: [
-                      const Icon(Icons.menu_book_rounded, color: _kSerenPurple),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _kSerenPurple.withValues(alpha: 0.14),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Image.asset(
+                          'assets/mascots/sprites/duos/seren_echo_library_lantern.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.menu_book_rounded,
+                            color: _kSerenPurple,
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -573,7 +605,23 @@ class _GuideReaderSheetState extends State<GuideReaderSheet> {
           children: [
             Row(
               children: [
-                Icon(guide.icon, color: _kSerenPurple),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _kSerenPurple.withValues(alpha: 0.14),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Image.asset(
+                    'assets/mascots/sprites/duos/seren_echo_library_lantern.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => Icon(
+                      guide.icon,
+                      color: _kSerenPurple,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -827,8 +875,23 @@ class _PersonalInsightsAndHistorySheetState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.lightbulb_outline_rounded,
-                          color: _kSerenPurple),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _kSerenPurple.withValues(alpha: 0.14),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Image.asset(
+                          'assets/mascots/sprites/duos/seren_echo_library_lantern.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.lightbulb_outline_rounded,
+                            color: _kSerenPurple,
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -1073,8 +1136,23 @@ class _SensitiveDataPrivacySheetState extends State<SensitiveDataPrivacySheet> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.enhanced_encryption_outlined,
-                          color: _kSerenPurple),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _kSerenPurple.withValues(alpha: 0.14),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Image.asset(
+                          'assets/mascots/sprites/duos/echo_seren_encrypted_vault_key.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.enhanced_encryption_outlined,
+                            color: _kSerenPurple,
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(

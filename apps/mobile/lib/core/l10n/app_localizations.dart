@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/models/alarm_category.dart';
 import '../../providers/settings_provider.dart';
-import 'app_language.dart';
+import 'app_language.dart'; 
 import 'app_translations.dart';
 
 /// Offline-first bilingual localization helper supporting English (`en`) and

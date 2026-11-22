@@ -1,8 +1,12 @@
 import 'package:uuid/uuid.dart';
 import 'book_matcher_catalog.dart';
+import 'daily_creative_prompt_catalog.dart';
+import 'interest_explorer_catalog.dart';
 import 'strengths_lab_catalog.dart';
 import 'weekend_generator_catalog.dart';
 export 'book_matcher_catalog.dart';
+export 'daily_creative_prompt_catalog.dart';
+export 'interest_explorer_catalog.dart';
 export 'strengths_lab_catalog.dart';
 export 'weekend_generator_catalog.dart';
 
@@ -536,6 +540,18 @@ class ExperienceCatalog {
       StrengthsLabCatalog.strengthsLifeSkillsId;
   static const ExperienceDefinition strengthsLabV1 =
       StrengthsLabCatalog.definition;
+  static const String dailyCreativePromptId =
+      DailyCreativePromptCatalog.experienceId;
+  static const ExperienceDefinition dailyCreativePromptV1 =
+      DailyCreativePromptCatalog.definition;
+  static const String interestExplorerId =
+      InterestExplorerCatalog.interestExplorerId;
+  static const ExperienceDefinition interestExplorerV1 =
+      InterestExplorerCatalog.definition;
+  static List<InterestSparkProfile> get interestSparkProfiles =>
+      InterestExplorerCatalog.profiles;
+  static InterestSparkProfile findInterestSparkById(String id) =>
+      InterestExplorerCatalog.findById(id);
   static List<StrengthProfile> get strengthProfiles =>
       StrengthsLabCatalog.profiles;
   static StrengthProfile findStrengthProfileById(String id) =>
@@ -1072,24 +1088,25 @@ class ExperienceCatalog {
       ],
     ),
     ExperienceCandidateAudit(
-      id: 'interest_explorer',
+      id: 'interest_explorer_v1',
       titleKey: 'exp_cand_interest_explorer_title',
       descriptionKey: 'exp_cand_interest_explorer_desc',
       iconEmoji: '✨',
       primaryBird: 'Pippin',
-      supportingBirds: ['Echo', 'Roo'],
+      supportingBirds: ['Twill'],
       grouping: DiscoverGrouping.discoverYourself,
-      status: ExperienceCandidateStatus.priorityCandidate,
+      status: ExperienceCandidateStatus.referenceImplemented,
       reusedNestinModules: [
-        'HobbyProvider',
-        'ReadingProvider',
         'BucketListProvider',
-        'JournalProvider',
+        'ReadingProvider',
+        'HobbyProvider',
+        'CollectionProvider',
       ],
       followUpActionsCreated: [
         'BucketListItem',
         'ReadingItem',
-        'JournalEntry',
+        'HobbyItem',
+        'CollectionItem (Starter Kit)',
       ],
     ),
     ExperienceCandidateAudit(
@@ -1138,18 +1155,17 @@ class ExperienceCatalog {
       ],
     ),
     ExperienceCandidateAudit(
-      id: 'daily_creative_prompt',
+      id: 'daily_creative_prompt_v1',
       titleKey: 'exp_cand_creative_prompt_title',
       descriptionKey: 'exp_cand_creative_prompt_desc',
       iconEmoji: '🖌️',
       primaryBird: 'Pippin',
-      supportingBirds: ['Echo', 'Roo'],
+      supportingBirds: ['Echo'],
       grouping: DiscoverGrouping.makeSomething,
-      status: ExperienceCandidateStatus.priorityCandidate,
+      status: ExperienceCandidateStatus.referenceImplemented,
       reusedNestinModules: [
         'HobbyProvider',
         'JournalProvider',
-        'NoteProvider',
       ],
       followUpActionsCreated: [
         'HobbyPracticeSession',

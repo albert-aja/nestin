@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class JournalPrompt {
   final String id;
@@ -66,5 +66,107 @@ class JournalPrompt {
       color: Color(0xFFEC4899),
     ),
   ];
+}
+
+/// Selectable 3-question guided evening reflection template for Echo's Diary.
+class GuidedReflectionTemplate {
+  final String id;
+  final String titleKey;
+  final String subtitleKey;
+  final List<String> questionKeys;
+  final String tag;
+  final IconData icon;
+  final Color color;
+
+  const GuidedReflectionTemplate({
+    required this.id,
+    required this.titleKey,
+    required this.subtitleKey,
+    required this.questionKeys,
+    required this.tag,
+    required this.icon,
+    required this.color,
+  });
+
+  static const List<GuidedReflectionTemplate> eveningTemplates = [
+    GuidedReflectionTemplate(
+      id: 'rose_thorn_bud',
+      titleKey: 'diary_tpl_rose_title',
+      subtitleKey: 'diary_tpl_rose_sub',
+      questionKeys: [
+        'diary_tpl_rose_q1',
+        'diary_tpl_rose_q2',
+        'diary_tpl_rose_q3',
+      ],
+      tag: 'RoseThornBud',
+      icon: Icons.local_florist_rounded,
+      color: Color(0xFFEC4899),
+    ),
+    GuidedReflectionTemplate(
+      id: 'three_good_things',
+      titleKey: 'diary_tpl_good_title',
+      subtitleKey: 'diary_tpl_good_sub',
+      questionKeys: [
+        'diary_tpl_good_q1',
+        'diary_tpl_good_q2',
+        'diary_tpl_good_q3',
+      ],
+      tag: '3GoodThings',
+      icon: Icons.auto_awesome_rounded,
+      color: Color(0xFF10B981),
+    ),
+    GuidedReflectionTemplate(
+      id: 'anxiety_unload',
+      titleKey: 'diary_tpl_anxiety_title',
+      subtitleKey: 'diary_tpl_anxiety_sub',
+      questionKeys: [
+        'diary_tpl_anxiety_q1',
+        'diary_tpl_anxiety_q2',
+        'diary_tpl_anxiety_q3',
+      ],
+      tag: 'AnxietyUnload',
+      icon: Icons.air_rounded,
+      color: Color(0xFF8B5CF6),
+    ),
+    GuidedReflectionTemplate(
+      id: 'weekly_wins',
+      titleKey: 'diary_tpl_wins_title',
+      subtitleKey: 'diary_tpl_wins_sub',
+      questionKeys: [
+        'diary_tpl_wins_q1',
+        'diary_tpl_wins_q2',
+        'diary_tpl_wins_q3',
+      ],
+      tag: 'WeeklyWins',
+      icon: Icons.emoji_events_outlined,
+      color: Color(0xFFF59E0B),
+    ),
+  ];
+
+  bool hasAnyAnswer(List<String> answers) =>
+      answers.any((a) => a.trim().isNotEmpty);
+
+  /// Formats answered 3-question prompts plus optional [extraNotes] into clean
+  /// structured text for `JournalEntry.content`.
+  String formatGuidedContent({
+    required String Function(String key) tr,
+    required List<String> answers,
+    String extraNotes = '',
+  }) {
+    final buffer = StringBuffer();
+    for (var i = 0; i < questionKeys.length; i++) {
+      final answer = i < answers.length ? answers[i].trim() : '';
+      if (answer.isEmpty) continue;
+      if (buffer.isNotEmpty) buffer.writeln();
+      buffer.writeln('• ${tr(questionKeys[i])}');
+      buffer.writeln('  $answer');
+    }
+    final extra = extraNotes.trim();
+    if (extra.isNotEmpty) {
+      if (buffer.isNotEmpty) buffer.writeln();
+      buffer.write(extra);
+    }
+    return buffer.toString().trim();
+  }
 }
 

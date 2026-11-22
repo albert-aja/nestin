@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -154,7 +154,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.accent.withOpacity(0.45 * _pulseController.value),
+                            color: AppColors.accent.withValues(alpha: 0.45 * _pulseController.value),
                             blurRadius: 36,
                             spreadRadius: 8,
                           ),
@@ -333,7 +333,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 8,
-                      shadowColor: AppColors.primary.withOpacity(0.5),
+                      shadowColor: AppColors.primary.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -362,7 +362,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 8,
-                      shadowColor: AppColors.primary.withOpacity(0.5),
+                      shadowColor: AppColors.primary.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

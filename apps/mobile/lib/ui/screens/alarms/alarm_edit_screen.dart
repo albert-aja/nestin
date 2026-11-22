@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -223,7 +223,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: AppColors.accent.withOpacity(0.3),
+                    color: AppColors.accent.withValues(alpha: 0.3),
                     width: 1.2,
                   ),
                 ),
@@ -324,7 +324,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 child: Column(
                 children: [
                   DropdownButtonFormField<ScheduleType>(
-                    value: _scheduleType,
+                    initialValue: _scheduleType,
                     decoration: const InputDecoration(
                       labelText: 'Recurrence',
                       prefixIcon: Icon(Icons.repeat_rounded),
@@ -422,7 +422,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: (isCustom ? AppColors.accent : AppColors.primary).withOpacity(0.16),
+                                  color: (isCustom ? AppColors.accent : AppColors.primary).withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
@@ -454,7 +454,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
                                             color: isCustom
-                                                ? AppColors.accent.withOpacity(0.18)
+                                                ? AppColors.accent.withValues(alpha: 0.18)
                                                 : Colors.white10,
                                             borderRadius: BorderRadius.circular(6),
                                           ),
@@ -562,7 +562,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _snoozeMinutes,
+                          initialValue: _snoozeMinutes,
                           decoration: const InputDecoration(
                             labelText: 'Snooze Length',
                           ),
@@ -580,7 +580,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _maxSnoozeCount,
+                          initialValue: _maxSnoozeCount,
                           decoration: const InputDecoration(
                             labelText: 'Max Snoozes',
                           ),
@@ -713,7 +713,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     if (_challengeEnabled) ...[
                       const SizedBox(height: 10),
                       DropdownButtonFormField<ChallengeType>(
-                        value: _challengeType,
+                        initialValue: _challengeType,
                         decoration: const InputDecoration(labelText: 'Challenge Type'),
                         items: const [
                           DropdownMenuItem(
@@ -735,7 +735,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<ChallengeDifficulty>(
-                        value: _challengeDifficulty,
+                        initialValue: _challengeDifficulty,
                         decoration: const InputDecoration(labelText: 'Difficulty'),
                         items: const [
                           DropdownMenuItem(
@@ -759,7 +759,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<int>(
-                        value: _questionsCount,
+                        initialValue: _questionsCount,
                         decoration: const InputDecoration(labelText: 'Questions / Rounds'),
                         items: [1, 2, 3, 5].map((cnt) {
                           return DropdownMenuItem(

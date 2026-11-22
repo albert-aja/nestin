@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
@@ -23,383 +23,30 @@ class DiaryEntriesScreen extends StatelessWidget {
     JournalPrompt? initialPrompt,
   }) {
     final parentContext = context;
-    final titleController = TextEditingController(
-      text: existing?.title ?? (initialPrompt?.prompt ?? ''),
-    );
-    final contentController = TextEditingController(
-      text: existing?.content ?? '',
-    );
-    final gratitudeController = TextEditingController(
-      text: existing?.gratitudeNote ?? '',
-    );
-    final customClueController = TextEditingController(
-      text: existing?.customLockHint ?? '',
-    );
-    JournalMood mood = existing?.mood ?? JournalMood.good;
-    bool isPrivate = existing?.isPrivate ?? false;
-    bool useCustomLock = existing?.hasCustomLock ?? false;
-    DiaryLockType? customLockType = existing?.customLockType;
-    String? customLockHash = existing?.customLockHash;
-    String? customLockSalt = existing?.customLockSalt;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            Future<void> configureCustomLock() async {
-              final result = await SecurityPinGateSheet.setupCustomEntryLock(
-                context,
-                initialType: customLockType ?? DiaryLockType.pin,
-                initialHint: customClueController.text,
-              );
-              if (result != null) {
-                setSheetState(() {
-                  customLockType = result.type;
-                  customLockHash = result.hash;
-                  customLockSalt = result.salt;
-                  customClueController.text = result.hint ?? '';
-                });
+      builder: (_) => _DiaryEntryEditorSheet(
+        existing: existing,
+        initialPrompt: initialPrompt,
+        buildEntryLockConfigSection: _buildEntryLockConfigSection,
+        onLowOrToughMoodSaved: (mood, provider) {
+          if (!parentContext.mounted) return;
+          GratitudeJarSheet.show(
+            parentContext,
+            triggeredByMood: mood,
+            autoShake: true,
+            onCreateReflection: () => _showAddEntryDialog(parentContext),
+            onOpenEntry: (pebble) {
+              final linked = provider.findEntryById(pebble.entryId);
+              if (linked != null && parentContext.mounted) {
+                _showAddEntryDialog(parentContext, existing: linked);
               }
-            }
-
-            return Container(
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.sheetSurface(ctx),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          existing == null
-                              ? (initialPrompt != null
-                                  ? 'Answer Reflection Prompt'
-                                  : 'New Diary Entry')
-                              : 'Edit Entry',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () => Navigator.of(ctx).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'How are you feeling today?',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary(ctx),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Mood selector
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: JournalMood.values.map((m) {
-                        final isSelected = mood == m;
-                        final accentInk = AppColors.adaptive(
-                          ctx,
-                          dark: AppColors.accent,
-                          light: const Color(0xFFB45309),
-                        );
-                        return InkWell(
-                          onTap: () => setSheetState(() => mood = m),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.accent.withValues(alpha: 0.2)
-                                  : AppColors.cardSurface(ctx),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.accent
-                                    : AppColors.border(ctx),
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  m.emoji,
-                                  style: const TextStyle(fontSize: 22),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  m.label,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: isSelected
-                                        ? accentInk
-                                        : AppColors.textSecondary(ctx),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-
-                    TextField(
-                      controller: titleController,
-                      autofocus: existing == null && initialPrompt == null,
-                      decoration: const InputDecoration(
-                        labelText: 'Title / Prompt Highlight',
-                        prefixIcon: Icon(Icons.edit_note_rounded),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: contentController,
-                      autofocus: initialPrompt != null,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        labelText:
-                            'Dear Diary... reflection, observations, memories',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: gratitudeController,
-                      decoration: const InputDecoration(
-                        labelText:
-                            'One thing I am grateful for today (Optional)',
-                        prefixIcon: Icon(
-                          Icons.favorite_outline_rounded,
-                          color: AppColors.primaryLight,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Private reflection lock toggle
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface(ctx),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isPrivate
-                              ? AppColors.accent.withValues(alpha: 0.4)
-                              : AppColors.border(ctx),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isPrivate
-                                ? Icons.lock_rounded
-                                : Icons.lock_open_rounded,
-                            size: 18,
-                            color: isPrivate
-                                ? AppColors.adaptive(
-                                    ctx,
-                                    dark: AppColors.accent,
-                                    light: const Color(0xFFB45309),
-                                  )
-                                : AppColors.textSecondary(ctx),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Private Reflection',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  'Protect with Global Lock or Entry-Only Secret',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.textSecondary(ctx),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch(
-                            value: isPrivate,
-                            activeColor: AppColors.accent,
-                            onChanged: (val) {
-                              setSheetState(() => isPrivate = val);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (isPrivate) ...[
-                      const SizedBox(height: 10),
-                      _buildEntryLockConfigSection(
-                        context: context,
-                        useCustomLock: useCustomLock,
-                        customLockType: customLockType,
-                        hasConfiguredCustomSecret:
-                            customLockHash != null && customLockSalt != null,
-                        customClueController: customClueController,
-                        onScopeChanged: (custom) {
-                          setSheetState(() => useCustomLock = custom);
-                        },
-                        onConfigureCustomLock: configureCustomLock,
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-
-                    ElevatedButton(
-                      onPressed: () {
-                        final t = titleController.text.trim();
-                        final c = contentController.text.trim();
-                        final g = gratitudeController.text.trim();
-                        if (t.isEmpty && c.isEmpty) return;
-
-                        if (isPrivate &&
-                            useCustomLock &&
-                            (customLockHash == null ||
-                                customLockSalt == null)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Set a custom PIN/password or switch to Global Lock.',
-                              ),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                          return;
-                        }
-
-                        final now = DateTime.now();
-                        final provider = Provider.of<JournalProvider>(
-                          context,
-                          listen: false,
-                        );
-                        final keepCustom = isPrivate && useCustomLock;
-                        final normalizedHint = DiaryLockHelper.normalizeHint(
-                          customClueController.text,
-                        );
-
-                        if (existing == null) {
-                          provider.addJournalEntry(
-                            JournalEntry(
-                              id: const Uuid().v4(),
-                              title: t,
-                              content: c,
-                              gratitudeNote: g.isNotEmpty ? g : null,
-                              date: now,
-                              mood: mood,
-                              isPrivate: isPrivate,
-                              customLockType:
-                                  keepCustom ? customLockType : null,
-                              customLockHash:
-                                  keepCustom ? customLockHash : null,
-                              customLockSalt:
-                                  keepCustom ? customLockSalt : null,
-                              customLockHint:
-                                  keepCustom ? normalizedHint : null,
-                              createdAt: now,
-                              updatedAt: now,
-                            ),
-                          );
-                        } else {
-                          provider.updateJournalEntry(
-                            existing.copyWith(
-                              title: t,
-                              content: c,
-                              gratitudeNote: g.isNotEmpty ? g : null,
-                              mood: mood,
-                              isPrivate: isPrivate,
-                              customLockType:
-                                  keepCustom ? customLockType : null,
-                              customLockHash:
-                                  keepCustom ? customLockHash : null,
-                              customLockSalt:
-                                  keepCustom ? customLockSalt : null,
-                              customLockHint:
-                                  keepCustom ? normalizedHint : null,
-                              clearCustomLock: !keepCustom,
-                              clearCustomLockHint:
-                                  keepCustom && normalizedHint == null,
-                              updatedAt: now,
-                            ),
-                          );
-                        }
-                        Navigator.of(ctx).pop();
-                        if (JournalProvider.isLowOrToughMood(mood) &&
-                            parentContext.mounted) {
-                          GratitudeJarSheet.show(
-                            parentContext,
-                            triggeredByMood: mood,
-                            autoShake: true,
-                            onCreateReflection: () =>
-                                _showAddEntryDialog(parentContext),
-                            onOpenEntry: (pebble) {
-                              final linked = provider.findEntryById(
-                                pebble.entryId,
-                              );
-                              if (linked != null && parentContext.mounted) {
-                                _showAddEntryDialog(
-                                  parentContext,
-                                  existing: linked,
-                                );
-                              }
-                            },
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save Entry',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -962,7 +609,7 @@ class DiaryEntriesScreen extends StatelessWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.12),
+                              color: AppColors.primary.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -999,12 +646,549 @@ class DiaryEntriesScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const Key('diary_new_entry_fab'),
         onPressed: () => _showAddEntryDialog(context),
         backgroundColor: AppColors.accent,
         icon: const Icon(Icons.edit_note_rounded, color: Colors.black),
         label: const Text(
           'New Entry',
           style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black),
+        ),
+      ),
+    );
+  }
+}
+
+class _DiaryEntryEditorSheet extends StatefulWidget {
+  final JournalEntry? existing;
+  final JournalPrompt? initialPrompt;
+  final Widget Function({
+    required BuildContext context,
+    required bool useCustomLock,
+    required DiaryLockType? customLockType,
+    required bool hasConfiguredCustomSecret,
+    required TextEditingController customClueController,
+    required ValueChanged<bool> onScopeChanged,
+    required VoidCallback onConfigureCustomLock,
+  }) buildEntryLockConfigSection;
+  final void Function(JournalMood mood, JournalProvider provider)
+      onLowOrToughMoodSaved;
+
+  const _DiaryEntryEditorSheet({
+    this.existing,
+    this.initialPrompt,
+    required this.buildEntryLockConfigSection,
+    required this.onLowOrToughMoodSaved,
+  });
+
+  @override
+  State<_DiaryEntryEditorSheet> createState() => _DiaryEntryEditorSheetState();
+}
+
+class _DiaryEntryEditorSheetState extends State<_DiaryEntryEditorSheet> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
+  late final TextEditingController _gratitudeController;
+  late final TextEditingController _customClueController;
+  late final List<TextEditingController> _templateAnswerControllers;
+
+  late JournalMood _mood;
+  late bool _isPrivate;
+  late bool _useCustomLock;
+  DiaryLockType? _customLockType;
+  String? _customLockHash;
+  String? _customLockSalt;
+  GuidedReflectionTemplate? _selectedTemplate;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    _titleController = TextEditingController(
+      text: e?.title ?? (widget.initialPrompt?.prompt ?? ''),
+    );
+    _contentController = TextEditingController(text: e?.content ?? '');
+    _gratitudeController =
+        TextEditingController(text: e?.gratitudeNote ?? '');
+    _customClueController =
+        TextEditingController(text: e?.customLockHint ?? '');
+    _templateAnswerControllers =
+        List.generate(3, (_) => TextEditingController());
+    _mood = e?.mood ?? JournalMood.good;
+    _isPrivate = e?.isPrivate ?? false;
+    _useCustomLock = e?.hasCustomLock ?? false;
+    _customLockType = e?.customLockType;
+    _customLockHash = e?.customLockHash;
+    _customLockSalt = e?.customLockSalt;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    _gratitudeController.dispose();
+    _customClueController.dispose();
+    for (final ctrl in _templateAnswerControllers) {
+      ctrl.dispose();
+    }
+    super.dispose();
+  }
+
+  void _selectTemplate(GuidedReflectionTemplate? next) {
+    final l10n = context.l10n;
+    final prev = _selectedTemplate;
+    setState(() {
+      if (next == null && prev != null) {
+        final answers =
+            _templateAnswerControllers.map((c) => c.text).toList();
+        if (prev.hasAnyAnswer(answers)) {
+          _contentController.text = prev.formatGuidedContent(
+            tr: l10n.tr,
+            answers: answers,
+            extraNotes: _contentController.text,
+          );
+          for (final ctrl in _templateAnswerControllers) {
+            ctrl.clear();
+          }
+        }
+      }
+      if (next != null) {
+        final currentTitle = _titleController.text.trim();
+        final matchesPreviousTemplate = GuidedReflectionTemplate.eveningTemplates
+            .any((t) => l10n.tr(t.titleKey) == currentTitle);
+        if (currentTitle.isEmpty || matchesPreviousTemplate) {
+          _titleController.text = l10n.tr(next.titleKey);
+        }
+      }
+      _selectedTemplate = next;
+    });
+  }
+
+  Future<void> _configureCustomLock() async {
+    final result = await SecurityPinGateSheet.setupCustomEntryLock(
+      context,
+      initialType: _customLockType ?? DiaryLockType.pin,
+      initialHint: _customClueController.text,
+    );
+    if (result != null && mounted) {
+      setState(() {
+        _customLockType = result.type;
+        _customLockHash = result.hash;
+        _customLockSalt = result.salt;
+        _customClueController.text = result.hint ?? '';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final e = widget.existing;
+    final activeTpl = _selectedTemplate;
+
+    return Container(
+      padding: EdgeInsets.only(
+        top: 20,
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.sheetSurface(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  e == null
+                      ? (widget.initialPrompt != null
+                          ? 'Answer Reflection Prompt'
+                          : 'New Diary Entry')
+                      : 'Edit Entry',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'How are you feeling today?',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Mood selector
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: JournalMood.values.map((m) {
+                final isSelected = _mood == m;
+                final accentInk = AppColors.adaptive(
+                  context,
+                  dark: AppColors.accent,
+                  light: const Color(0xFFB45309),
+                );
+                return InkWell(
+                  onTap: () => setState(() => _mood = m),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.accent.withValues(alpha: 0.2)
+                          : AppColors.cardSurface(context),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.accent
+                            : AppColors.border(context),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(m.emoji, style: const TextStyle(fontSize: 22)),
+                        const SizedBox(height: 2),
+                        Text(
+                          m.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected
+                                ? accentInk
+                                : AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 14),
+
+            // Guided Evening Reflection Templates selector
+            Text(
+              l10n.tr('diary_tpl_section_label'),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ChoiceChip(
+                  key: const Key('diary_tpl_chip_free'),
+                  selected: activeTpl == null,
+                  label: Text(
+                    l10n.tr('diary_tpl_free_write'),
+                    style: const TextStyle(fontSize: 11.5),
+                  ),
+                  onSelected: (_) => _selectTemplate(null),
+                ),
+                ...GuidedReflectionTemplate.eveningTemplates.map((tpl) {
+                  return ChoiceChip(
+                    key: Key('diary_tpl_chip_${tpl.id}'),
+                    avatar: Icon(tpl.icon, size: 15, color: tpl.color),
+                    selected: activeTpl?.id == tpl.id,
+                    label: Text(
+                      l10n.tr(tpl.titleKey),
+                      style: const TextStyle(fontSize: 11.5),
+                    ),
+                    onSelected: (_) => _selectTemplate(tpl),
+                  );
+                }),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            TextField(
+              key: const Key('diary_title_input'),
+              controller: _titleController,
+              autofocus: e == null && widget.initialPrompt == null,
+              decoration: const InputDecoration(
+                labelText: 'Title / Prompt Highlight',
+                prefixIcon: Icon(Icons.edit_note_rounded),
+              ),
+            ),
+            if (activeTpl != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                key: Key('diary_tpl_panel_${activeTpl.id}'),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: activeTpl.color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: activeTpl.color.withValues(alpha: 0.30),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.tr(activeTpl.subtitleKey),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    for (var i = 0; i < activeTpl.questionKeys.length; i++) ...[
+                      Text(
+                        l10n.tr(activeTpl.questionKeys[i]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary(context),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        key: Key('diary_tpl_q_$i'),
+                        controller: _templateAnswerControllers[i],
+                        maxLines: 2,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                        ),
+                      ),
+                      if (i < activeTpl.questionKeys.length - 1)
+                        const SizedBox(height: 10),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            TextField(
+              key: const Key('diary_content_input'),
+              controller: _contentController,
+              autofocus: widget.initialPrompt != null,
+              maxLines: activeTpl == null ? 5 : 2,
+              decoration: InputDecoration(
+                labelText: activeTpl == null
+                    ? 'Dear Diary... reflection, observations, memories'
+                    : l10n.tr('diary_tpl_extra_notes_label'),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _gratitudeController,
+              decoration: const InputDecoration(
+                labelText: 'One thing I am grateful for today (Optional)',
+                prefixIcon: Icon(
+                  Icons.favorite_outline_rounded,
+                  color: AppColors.primaryLight,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Private reflection lock toggle
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isPrivate
+                      ? AppColors.accent.withValues(alpha: 0.4)
+                      : AppColors.border(context),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _isPrivate ? Icons.lock_rounded : Icons.lock_open_rounded,
+                    size: 18,
+                    color: _isPrivate
+                        ? AppColors.adaptive(
+                            context,
+                            dark: AppColors.accent,
+                            light: const Color(0xFFB45309),
+                          )
+                        : AppColors.textSecondary(context),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Private Reflection',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          'Protect with Global Lock or Entry-Only Secret',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _isPrivate,
+                    activeThumbColor: AppColors.accent,
+                    onChanged: (val) => setState(() => _isPrivate = val),
+                  ),
+                ],
+              ),
+            ),
+            if (_isPrivate) ...[
+              const SizedBox(height: 10),
+              widget.buildEntryLockConfigSection(
+                context: context,
+                useCustomLock: _useCustomLock,
+                customLockType: _customLockType,
+                hasConfiguredCustomSecret:
+                    _customLockHash != null && _customLockSalt != null,
+                customClueController: _customClueController,
+                onScopeChanged: (custom) =>
+                    setState(() => _useCustomLock = custom),
+                onConfigureCustomLock: _configureCustomLock,
+              ),
+            ],
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              key: const Key('diary_save_entry_btn'),
+              onPressed: () {
+                final t = _titleController.text.trim();
+                final finalContent = activeTpl != null
+                    ? activeTpl.formatGuidedContent(
+                        tr: l10n.tr,
+                        answers: _templateAnswerControllers
+                            .map((c) => c.text)
+                            .toList(),
+                        extraNotes: _contentController.text,
+                      )
+                    : _contentController.text.trim();
+                final g = _gratitudeController.text.trim();
+                if (t.isEmpty && finalContent.isEmpty) return;
+
+                if (_isPrivate &&
+                    _useCustomLock &&
+                    (_customLockHash == null || _customLockSalt == null)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Set a custom PIN/password or switch to Global Lock.',
+                      ),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                  return;
+                }
+
+                final now = DateTime.now();
+                final provider = Provider.of<JournalProvider>(
+                  context,
+                  listen: false,
+                );
+                final keepCustom = _isPrivate && _useCustomLock;
+                final normalizedHint = DiaryLockHelper.normalizeHint(
+                  _customClueController.text,
+                );
+                final mergedTags = <String>[
+                  ...(e?.tags ?? const []),
+                  if (activeTpl != null) ...[
+                    if (!(e?.tags.contains('EveningReflection') ?? false))
+                      'EveningReflection',
+                    if (!(e?.tags.contains(activeTpl.tag) ?? false))
+                      activeTpl.tag,
+                  ],
+                ];
+
+                if (e == null) {
+                  provider.addJournalEntry(
+                    JournalEntry(
+                      id: const Uuid().v4(),
+                      title: t,
+                      content: finalContent,
+                      tags: mergedTags,
+                      gratitudeNote: g.isNotEmpty ? g : null,
+                      date: now,
+                      mood: _mood,
+                      isPrivate: _isPrivate,
+                      customLockType: keepCustom ? _customLockType : null,
+                      customLockHash: keepCustom ? _customLockHash : null,
+                      customLockSalt: keepCustom ? _customLockSalt : null,
+                      customLockHint: keepCustom ? normalizedHint : null,
+                      createdAt: now,
+                      updatedAt: now,
+                    ),
+                  );
+                } else {
+                  provider.updateJournalEntry(
+                    e.copyWith(
+                      title: t,
+                      content: finalContent,
+                      tags: mergedTags,
+                      gratitudeNote: g.isNotEmpty ? g : null,
+                      mood: _mood,
+                      isPrivate: _isPrivate,
+                      customLockType: keepCustom ? _customLockType : null,
+                      customLockHash: keepCustom ? _customLockHash : null,
+                      customLockSalt: keepCustom ? _customLockSalt : null,
+                      customLockHint: keepCustom ? normalizedHint : null,
+                      clearCustomLock: !keepCustom,
+                      clearCustomLockHint:
+                          keepCustom && normalizedHint == null,
+                      updatedAt: now,
+                    ),
+                  );
+                }
+                Navigator.of(context).pop();
+                if (JournalProvider.isLowOrToughMood(_mood)) {
+                  widget.onLowOrToughMoodSaved(_mood, provider);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Text(
+                'Save Entry',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

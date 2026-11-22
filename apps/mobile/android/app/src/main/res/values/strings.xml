@@ -19,5 +19,20 @@
     <string name="qs_keep_alive_tile_label">Nestin Guard</string>
     <string name="qs_keep_alive_state_active">Protected</string>
     <string name="qs_keep_alive_state_inactive">Off</string>
+    <string name="shortcut_mental_aid_short_label">Need a Moment?</string>
+    <string name="shortcut_mental_aid_long_label">Need a Moment? • Immediate Support</string>
+    <string name="shortcut_mental_aid_disabled_message">Mental Wellness Support is currently unavailable.</string>
+    <string name="shortcut_quick_capture_short_label">Quick Capture</string>
+    <string name="shortcut_quick_capture_long_label">Capture a note, task or journal entry</string>
+    <string name="shortcut_quick_capture_disabled_message">Quick Capture is unavailable.</string>
+    <string name="shortcut_new_alarm_short_label">New Alarm</string>
+    <string name="shortcut_new_alarm_long_label">Create a new alarm</string>
+    <string name="shortcut_new_alarm_disabled_message">Alarms are unavailable.</string>
+    <string name="shortcut_water_short_label">Log +250ml Water</string>
+    <string name="shortcut_water_long_label">Log a 250ml glass of water</string>
+    <string name="shortcut_water_disabled_message">Hydration is unavailable.</string>
+    <string name="shortcut_rain_short_label">Play 30m Rain</string>
+    <string name="shortcut_rain_long_label">Play rain sounds with a 30-minute timer</string>
+    <string name="shortcut_rain_disabled_message">Relaxation sounds are unavailable.</string>
 </resources>
 

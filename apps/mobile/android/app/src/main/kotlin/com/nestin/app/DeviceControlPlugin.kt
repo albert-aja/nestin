@@ -15,6 +15,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
@@ -41,12 +43,38 @@ class DeviceControlPlugin(
             val channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_NAME)
             val plugin = DeviceControlPlugin(activity, channel)
             channel.setMethodCallHandler(plugin)
+            plugin.syncBackgroundWatcher()
             return plugin
         }
     }
 
     private val context: Context
         get() = activity.applicationContext
+
+    private val watcherHandler = Handler(Looper.getMainLooper())
+    private var watcherRunning = false
+    private val watcherRunnable = object : Runnable {
+        override fun run() {
+            if (!watcherRunning) return
+            try {
+                val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                val isInteractive = pm?.isInteractive ?: true
+                if (isInteractive && hasUsageStatsAccess()) {
+                    val fgPkg = queryCurrentForegroundApp(excludeHostPackage = true)
+                    if (!fgPkg.isNullOrBlank()) {
+                        NestinAppShieldService.interceptPackageIfNeeded(
+                            context,
+                            fgPkg,
+                            fromAccessibility = false
+                        )
+                    }
+                }
+            } catch (_: Exception) {}
+            if (watcherRunning) {
+                watcherHandler.postDelayed(this, 1100L)
+            }
+        }
+    }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
@@ -69,8 +97,16 @@ class DeviceControlPlugin(
                 val focusExpiresAtMs = (call.argument<Number>("focusExpiresAtMs")?.toLong()) ?: 0L
                 result.success(syncRestrictionPolicy(policies, focusExpiresAtMs))
             }
+            "syncMindfulAppPauseConfig" -> {
+                @Suppress("UNCHECKED_CAST")
+                val configMap = call.arguments as? Map<String, Any?> ?: emptyMap()
+                result.success(syncMindfulAppPauseConfig(configMap))
+            }
+            "consumeMindfulPauseNativeEvents" -> {
+                result.success(consumeMindfulPauseNativeEvents())
+            }
             "getCurrentForegroundApp" -> {
-                result.success(queryCurrentForegroundApp())
+                result.success(queryCurrentForegroundApp(excludeHostPackage = true))
             }
             "requestFamilyControlsAuthorization" -> {
                 result.success(false)
@@ -622,13 +658,122 @@ class DeviceControlPlugin(
                 .putString(NestinAppShieldService.KEY_POLICIES_JSON, arr.toString())
                 .putLong(NestinAppShieldService.KEY_FOCUS_EXPIRES_AT_MS, focusExpiresAtMs)
                 .apply()
+            syncBackgroundWatcher()
             true
         } catch (_: Exception) {
             false
         }
     }
 
-    private fun queryCurrentForegroundApp(): String? {
+    private fun syncMindfulAppPauseConfig(configMap: Map<String, Any?>): Boolean {
+        return try {
+            val obj = JSONObject()
+            val isEnabled = configMap["isEnabled"] as? Boolean ?: false
+            obj.put("isEnabled", isEnabled)
+
+            val packages = (configMap["monitoredPackages"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
+            val pkgArray = JSONArray()
+            packages.forEach { pkgArray.put(it) }
+            obj.put("monitoredPackages", pkgArray)
+
+            val namesMap = configMap["monitoredAppNames"] as? Map<*, *> ?: emptyMap<Any?, Any?>()
+            val namesObj = JSONObject()
+            namesMap.forEach { (k, v) ->
+                if (k != null && v != null) {
+                    namesObj.put(k.toString(), v.toString())
+                }
+            }
+            obj.put("monitoredAppNames", namesObj)
+
+            obj.put("pauseDurationSeconds", (configMap["pauseDurationSeconds"] as? Number)?.toInt() ?: 4)
+            obj.put("cooldownGraceMinutes", (configMap["cooldownGraceMinutes"] as? Number)?.toInt() ?: 15)
+            obj.put("vulnerableHoursOnly", configMap["vulnerableHoursOnly"] as? Boolean ?: false)
+            obj.put("vulnerableStartHour", (configMap["vulnerableStartHour"] as? Number)?.toInt() ?: 22)
+            obj.put("vulnerableEndHour", (configMap["vulnerableEndHour"] as? Number)?.toInt() ?: 6)
+            val snoozedUntilMs = (configMap["snoozedUntilMs"] as? Number)?.toLong() ?: 0L
+            obj.put("snoozedUntilMs", snoozedUntilMs)
+            obj.put("strictBlockMode", configMap["strictBlockMode"] as? Boolean ?: false)
+            obj.put(
+                "myWhy",
+                (configMap["myWhy"] as? String)
+                    ?: "You chose to pause and check in with yourself before opening this app."
+            )
+
+            val prefs = context.getSharedPreferences(NestinAppShieldService.PREFS_NAME, Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+                .putString(NestinAppShieldService.KEY_BTC_MINDFUL_PAUSE_JSON, obj.toString())
+                .putLong(NestinAppShieldService.KEY_BTC_SNOOZED_UNTIL_MS, snoozedUntilMs)
+
+            val cooldownsMap = configMap["packageCooldownsMs"] as? Map<*, *>
+            cooldownsMap?.forEach { (k, v) ->
+                val pkg = k?.toString() ?: return@forEach
+                val untilMs = (v as? Number)?.toLong() ?: 0L
+                if (pkg.isNotBlank() && untilMs > 0L) {
+                    editor.putLong("${NestinAppShieldService.KEY_BTC_GRACE_PREFIX}$pkg", untilMs)
+                }
+            }
+            editor.apply()
+            syncBackgroundWatcher()
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun consumeMindfulPauseNativeEvents(): Map<String, Any> {
+        return try {
+            val prefs = context.getSharedPreferences(NestinAppShieldService.PREFS_NAME, Context.MODE_PRIVATE)
+            val stepBacks = prefs.getInt(NestinAppShieldService.KEY_BTC_STEP_BACK_COUNT, 0)
+            val snoozedUntilMs = prefs.getLong(NestinAppShieldService.KEY_BTC_SNOOZED_UNTIL_MS, 0L)
+            val gracePackagesMs = mutableMapOf<String, Long>()
+            val nowMs = System.currentTimeMillis()
+            prefs.all.forEach { (key, value) ->
+                if (key.startsWith(NestinAppShieldService.KEY_BTC_GRACE_PREFIX)) {
+                    val pkg = key.removePrefix(NestinAppShieldService.KEY_BTC_GRACE_PREFIX)
+                    val until = (value as? Number)?.toLong() ?: 0L
+                    if (pkg.isNotBlank() && until > nowMs) {
+                        gracePackagesMs[pkg] = until
+                    }
+                }
+            }
+            if (stepBacks > 0) {
+                prefs.edit().putInt(NestinAppShieldService.KEY_BTC_STEP_BACK_COUNT, 0).apply()
+            }
+            mapOf(
+                "stepBackCount" to stepBacks,
+                "snoozedUntilMs" to snoozedUntilMs,
+                "gracePackagesMs" to gracePackagesMs
+            )
+        } catch (_: Exception) {
+            emptyMap()
+        }
+    }
+
+    private fun syncBackgroundWatcher() {
+        try {
+            val prefs = context.getSharedPreferences(NestinAppShieldService.PREFS_NAME, Context.MODE_PRIVATE)
+            val policiesJson = prefs.getString(NestinAppShieldService.KEY_POLICIES_JSON, null)
+            val hasRooPolicies = !policiesJson.isNullOrBlank() && policiesJson != "[]"
+            val btcJson = prefs.getString(NestinAppShieldService.KEY_BTC_MINDFUL_PAUSE_JSON, null)
+            val hasBtc = if (!btcJson.isNullOrBlank()) {
+                val obj = JSONObject(btcJson)
+                obj.optBoolean("isEnabled", false) &&
+                    (obj.optJSONArray("monitoredPackages")?.length() ?: 0) > 0
+            } else {
+                false
+            }
+            val shouldRun = hasRooPolicies || hasBtc
+            if (shouldRun && !watcherRunning) {
+                watcherRunning = true
+                watcherHandler.postDelayed(watcherRunnable, 1000L)
+            } else if (!shouldRun && watcherRunning) {
+                watcherRunning = false
+                watcherHandler.removeCallbacks(watcherRunnable)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun queryCurrentForegroundApp(excludeHostPackage: Boolean = false): String? {
         if (!hasUsageStatsAccess()) return null
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager ?: return null
         val endMs = System.currentTimeMillis()
@@ -638,6 +783,8 @@ class DeviceControlPlugin(
             val event = UsageEvents.Event()
             var latestPkg: String? = null
             var latestTs = 0L
+            var latestExternalPkg: String? = null
+            var latestExternalTs = 0L
             val resumeEventType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 UsageEvents.Event.ACTIVITY_RESUMED
             } else {
@@ -646,12 +793,23 @@ class DeviceControlPlugin(
             }
             while (events.hasNextEvent()) {
                 events.getNextEvent(event)
-                if (event.eventType == resumeEventType && event.timeStamp >= latestTs) {
-                    latestTs = event.timeStamp
-                    latestPkg = event.packageName
+                if (event.eventType == resumeEventType) {
+                    val pkg = event.packageName
+                    if (event.timeStamp >= latestTs) {
+                        latestTs = event.timeStamp
+                        latestPkg = pkg
+                    }
+                    if (pkg != context.packageName && event.timeStamp >= latestExternalTs) {
+                        latestExternalTs = event.timeStamp
+                        latestExternalPkg = pkg
+                    }
                 }
             }
-            latestPkg
+            if (excludeHostPackage && latestPkg == context.packageName) {
+                latestExternalPkg
+            } else {
+                latestPkg
+            }
         } catch (_: Exception) {
             null
         }

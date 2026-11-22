@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/l10n/app_localizations.dart';
@@ -320,7 +320,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                       Expanded(
                         flex: 4,
                         child: DropdownButtonFormField<String>(
-                          value: _dosageUnit,
+                          initialValue: _dosageUnit,
                           dropdownColor: AppColors.sheetSurface(context),
                           style: TextStyle(
                             color: AppColors.textPrimary(context),
@@ -529,7 +529,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                             ),
                             Switch(
                               value: _enableInventory,
-                              activeColor: const Color(0xFF8B5CF6),
+                              activeThumbColor: const Color(0xFF8B5CF6),
                               onChanged: (v) => setState(() => _enableInventory = v),
                             ),
                           ],

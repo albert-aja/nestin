@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/models/alarm_category.dart';
 import '../data/models/before_you_go.dart';
+import '../data/models/bucket_list_item.dart';
 import '../data/models/calendar_event.dart';
 import '../data/models/collection_item.dart';
 import '../data/models/entity_link.dart';
 import '../data/models/focus_session_log.dart';
 import '../data/models/hobby_item.dart';
+import '../data/models/hobby_milestone.dart';
+import '../data/models/hobby_practice_session.dart';
 import '../data/models/interactive_experience_models.dart';
 import '../data/models/journal_entry.dart';
 import '../data/models/location_reminder.dart';
@@ -24,6 +27,7 @@ import '../data/services/weather_service.dart';
 import '../domain/experiences/interactive_experience_engine.dart';
 import '../domain/money/money_amount.dart';
 import 'before_you_go_provider.dart';
+import 'bucket_list_provider.dart';
 import 'calendar_provider.dart';
 import 'collection_provider.dart';
 import 'cross_module_link_provider.dart';
@@ -1921,5 +1925,280 @@ class InteractiveExperienceProvider extends ChangeNotifier {
     );
     await journalProvider.addJournalEntry(entry);
     return entry;
+  }
+
+  // ===========================================================================
+  // PIPPIN'S DAILY CREATIVE PROMPT (daily_creative_prompt_v1)
+  // ===========================================================================
+
+  /// Logs a 10-minute creative prompt session directly into [HobbyProvider] as
+  /// a [HobbyPracticeSession] and records the completion in [InteractiveExperienceProvider].
+  /// If [hobbyId] is null, picks a matching active hobby or creates a calm
+  /// default creative hobby for the prompt's medium so logging never dead-ends.
+  Future<({HobbyItem hobby, HobbyPracticeSession session, List<HobbyMilestone> unlocked})>
+      logCreativePromptToPippinHobby({
+    required DailyCreativePromptItem prompt,
+    required String localizedPromptTitle,
+    required String localizedPromptText,
+    required String localizedDefaultHobbyName,
+    required HobbyProvider hobbyProvider,
+    String? hobbyId,
+    int durationMinutes = 10,
+    String userNotes = '',
+    int rating = 5,
+  }) async {
+    HobbyItem? targetHobby;
+    if (hobbyId != null) {
+      targetHobby = hobbyProvider.activeHobbies
+          .where((h) => h.id == hobbyId)
+          .firstOrNull;
+    }
+
+    targetHobby ??= hobbyProvider.activeHobbies
+        .where(
+          (h) =>
+              h.name.toLowerCase() == localizedDefaultHobbyName.toLowerCase() ||
+              h.category.toLowerCase() ==
+                  prompt.medium.hobbyCategory.toLowerCase(),
+        )
+        .firstOrNull;
+
+    if (targetHobby == null) {
+      final now = DateTime.now();
+      targetHobby = HobbyItem(
+        id: 'hobby_dcp_${_uuid.v4().substring(0, 8)}',
+        name: localizedDefaultHobbyName,
+        category: prompt.medium.hobbyCategory,
+        iconEmoji: prompt.medium.emoji,
+        colorHex: prompt.medium.colorHex,
+        targetHours: 10,
+        totalMinutesPracticed: 0,
+        notes: localizedPromptText,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await hobbyProvider.addHobby(targetHobby);
+    }
+
+    final cleanNotes = userNotes.trim();
+    final sessionNotes = cleanNotes.isNotEmpty
+        ? '$localizedPromptTitle — $cleanNotes'
+        : '$localizedPromptTitle: $localizedPromptText';
+
+    final safeMinutes = durationMinutes <= 0 ? 10 : durationMinutes;
+    final unlocked = await hobbyProvider.logPracticeSession(
+      hobbyId: targetHobby.id,
+      durationMinutes: safeMinutes,
+      focusTag: 'Creative Play',
+      notes: sessionNotes,
+      rating: rating,
+    );
+
+    final session = hobbyProvider.sessions.first;
+    final record = ExperienceResultRecord(
+      id: _uuid.v4(),
+      experienceId: DailyCreativePromptCatalog.experienceId,
+      definitionVersion: DailyCreativePromptCatalog.definition.version,
+      completedAt: DateTime.now(),
+      answersSnapshot: {
+        'promptId': prompt.id,
+        'medium': prompt.medium.id,
+        'loggedAs': 'hobby_session',
+        'durationMinutes': safeMinutes,
+        'hobbyId': targetHobby.id,
+        'sessionId': session.id,
+      },
+      topMatches: const [],
+      addedToPippinHobbyId: targetHobby.id,
+    );
+    _results = [record, ..._results];
+    await _storage.saveExperienceResults(_results);
+    notifyListeners();
+
+    return (hobby: targetHobby, session: session, unlocked: unlocked);
+  }
+
+  /// Logs a 10-minute creative prompt directly into Echo's [JournalProvider]
+  /// as a [JournalEntry] tagged `#CreativePrompt` + medium tag.
+  Future<JournalEntry> logCreativePromptToEchoJournal({
+    required DailyCreativePromptItem prompt,
+    required String localizedPromptTitle,
+    required String localizedPromptText,
+    required JournalProvider journalProvider,
+    String userNotes = '',
+    JournalMood mood = JournalMood.good,
+  }) async {
+    final now = DateTime.now();
+    final cleanNotes = userNotes.trim();
+    final content = cleanNotes.isNotEmpty
+        ? '$cleanNotes\n\n— $localizedPromptText'
+        : localizedPromptText;
+
+    final entry = JournalEntry(
+      id: _uuid.v4(),
+      title: localizedPromptTitle,
+      content: content,
+      date: now,
+      mood: mood,
+      tags: ['CreativePrompt', prompt.medium.journalTag],
+      createdAt: now,
+      updatedAt: now,
+    );
+    await journalProvider.addJournalEntry(entry);
+
+    final record = ExperienceResultRecord(
+      id: _uuid.v4(),
+      experienceId: DailyCreativePromptCatalog.experienceId,
+      definitionVersion: DailyCreativePromptCatalog.definition.version,
+      completedAt: now,
+      answersSnapshot: {
+        'promptId': prompt.id,
+        'medium': prompt.medium.id,
+        'loggedAs': 'journal_entry',
+        'journalEntryId': entry.id,
+      },
+      topMatches: const [],
+    );
+    _results = [record, ..._results];
+    await _storage.saveExperienceResults(_results);
+    notifyListeners();
+
+    return entry;
+  }
+
+  // ===========================================================================
+  // PIPPIN'S INTEREST EXPLORER ("THIS OR THAT", interest_explorer_v1)
+  // ===========================================================================
+
+  /// Evaluates Pippin's 5 "This or That" situational scenarios, persists the
+  /// version-pinned result, and clears the active draft.
+  Future<ExperienceResultRecord> completeInterestExplorer(
+    Map<String, dynamic> answers,
+  ) async {
+    final topMatches = engine.evaluateInterestExplorer(answers);
+    final record = ExperienceResultRecord(
+      id: _uuid.v4(),
+      experienceId: ExperienceCatalog.interestExplorerId,
+      definitionVersion: InterestExplorerCatalog.definition.version,
+      completedAt: DateTime.now(),
+      answersSnapshot: Map<String, dynamic>.from(answers),
+      topMatches: topMatches,
+    );
+
+    _results = [record, ..._results];
+    _drafts.remove(ExperienceCatalog.interestExplorerId);
+    await _storage.saveExperienceResults(_results);
+    await _storage.saveExperienceDrafts(_drafts);
+    notifyListeners();
+    return record;
+  }
+
+  /// 1. Pippin Handoff (`interest_explorer_v1`): Adds the uncovered spark
+  /// straight to [BucketListProvider].
+  Future<BucketListItem> addInterestSparkToBucketList({
+    required InterestSparkProfile profile,
+    required String localizedBucketTitle,
+    required String localizedBucketNote,
+    required BucketListProvider bucketListProvider,
+  }) async {
+    return bucketListProvider.addItem(
+      title: localizedBucketTitle,
+      inspirationNote: localizedBucketNote,
+      category: profile.bucketCategory,
+      targetSeason: profile.bucketSeason,
+      isStarred: true,
+    );
+  }
+
+  /// 2. Pippin Handoff (`interest_explorer_v1`): Adds the recommended book
+  /// straight to [ReadingProvider]'s Want-to-Read queue.
+  Future<ReadingItem> addInterestSparkToReadingQueue({
+    required String resultId,
+    required InterestSparkProfile profile,
+    required String localizedBookTitle,
+    required String localizedBookNote,
+    required ReadingProvider readingProvider,
+  }) async {
+    final now = DateTime.now();
+    final item = ReadingItem(
+      id: 'book_ie_${_uuid.v4().substring(0, 8)}',
+      title: localizedBookTitle,
+      author: profile.bookAuthor,
+      category: profile.bookCategory,
+      format: ReadingFormat.book,
+      currentPage: 0,
+      totalPages: profile.bookPages,
+      status: ReadingStatus.wantToRead,
+      notes: localizedBookNote,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await readingProvider.addBook(item);
+    await _updateResultRecord(
+      resultId,
+      (r) => r.copyWith(addedToPippinBookId: item.id),
+    );
+    return item;
+  }
+
+  /// 3. Pippin + Twill Handoff (`interest_explorer_v1`): Creates a 1-tap
+  /// [HobbyItem] in [HobbyProvider] + a "Start Something New" starter checklist
+  /// ([CollectionItem]) in Twill's [CollectionProvider].
+  Future<({HobbyItem hobby, CollectionItem checklist})>
+      createInterestHobbyAndTwillStarterKit({
+    required String resultId,
+    required InterestSparkProfile profile,
+    required String localizedHobbyTitle,
+    required String localizedDescription,
+    required String localizedStarterKitTitle,
+    required List<String> localizedChecklistItems,
+    required HobbyProvider hobbyProvider,
+    required CollectionProvider collectionProvider,
+  }) async {
+    final now = DateTime.now();
+    final hobby = HobbyItem(
+      id: 'hobby_ie_${_uuid.v4().substring(0, 8)}',
+      name: localizedHobbyTitle,
+      category: profile.hobbyCategory,
+      iconEmoji: profile.iconEmoji,
+      colorHex: profile.colorHex,
+      targetHours: profile.recommendedTargetHours,
+      totalMinutesPracticed: 0,
+      notes: localizedDescription,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await hobbyProvider.addHobby(hobby);
+
+    final entries = localizedChecklistItems
+        .map(
+          (itemText) => CollectionEntry(
+            id: _uuid.v4(),
+            text: itemText,
+            category: 'Start Something New',
+          ),
+        )
+        .toList();
+
+    final checklist = CollectionItem(
+      id: _uuid.v4(),
+      title: localizedStarterKitTitle,
+      description: localizedDescription,
+      iconCodePoint: Icons.checklist_rounded.codePoint,
+      colorValue: 0xFF10B981,
+      entries: entries,
+      isReusableTemplate: false,
+      createdAt: now,
+    );
+    await collectionProvider.addCollection(checklist);
+
+    await _updateResultRecord(
+      resultId,
+      (r) => r.copyWith(
+        addedToPippinHobbyId: hobby.id,
+        createdTwillChecklistId: checklist.id,
+      ),
+    );
+    return (hobby: hobby, checklist: checklist);
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../domain/security/diary_lock_helper.dart';
 
 /// Non-clinical felt-state doors (`EFA-01`) welcoming users without requiring
@@ -532,6 +532,7 @@ class MindfulAppPauseConfig {
   final int vulnerableStartHour;
   final int vulnerableEndHour;
   final DateTime? snoozedUntil;
+  final bool strictBlockMode;
 
   const MindfulAppPauseConfig({
     this.isEnabled = false,
@@ -543,6 +544,7 @@ class MindfulAppPauseConfig {
     this.vulnerableStartHour = 22,
     this.vulnerableEndHour = 6,
     this.snoozedUntil,
+    this.strictBlockMode = false,
   });
 
   /// Returns `true` when [now] falls inside the configured vulnerable window.
@@ -573,6 +575,7 @@ class MindfulAppPauseConfig {
     int? vulnerableEndHour,
     DateTime? snoozedUntil,
     bool clearSnoozedUntil = false,
+    bool? strictBlockMode,
   }) {
     return MindfulAppPauseConfig(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -589,6 +592,7 @@ class MindfulAppPauseConfig {
           (vulnerableEndHour ?? this.vulnerableEndHour).clamp(0, 23),
       snoozedUntil:
           clearSnoozedUntil ? null : (snoozedUntil ?? this.snoozedUntil),
+      strictBlockMode: strictBlockMode ?? this.strictBlockMode,
     );
   }
 
@@ -602,6 +606,7 @@ class MindfulAppPauseConfig {
         'vulnerableStartHour': vulnerableStartHour,
         'vulnerableEndHour': vulnerableEndHour,
         'snoozedUntil': snoozedUntil?.toIso8601String(),
+        'strictBlockMode': strictBlockMode,
       };
 
   factory MindfulAppPauseConfig.fromJson(Map<String, dynamic> json) {
@@ -631,6 +636,7 @@ class MindfulAppPauseConfig {
       snoozedUntil: json['snoozedUntil'] is String
           ? DateTime.tryParse(json['snoozedUntil'] as String)
           : null,
+      strictBlockMode: json['strictBlockMode'] as bool? ?? false,
     );
   }
 }

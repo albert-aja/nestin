@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../core/l10n/app_language.dart';
 import '../../core/l10n/app_localizations.dart';
+import '../../ui/screens/nest/treehouse_painters.dart';
 import '../../ui/screens/splash/seasonal_loading_theme.dart';
 import 'challenge_profile.dart';
 
@@ -112,6 +113,28 @@ extension SplashSpeedExt on SplashSpeed {
   }
 }
 
+/// View presentation mode for the Nest tab (`NestTreehouseScreen`).
+enum NestViewMode {
+  roomsGrid,
+  treehouseScene,
+}
+
+extension NestViewModeExt on NestViewMode {
+  bool get isScene => this == NestViewMode.treehouseScene;
+
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+        NestViewMode.roomsGrid => l10n.tr('nest_view_rooms_grid'),
+        NestViewMode.treehouseScene => l10n.tr('nest_view_treehouse_scene'),
+      };
+
+  static NestViewMode fromName(String? name) {
+    return NestViewMode.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => NestViewMode.roomsGrid,
+    );
+  }
+}
+
 class UserPreferences {
   final ThemeMode themeMode;
   final AppLanguage language;
@@ -136,6 +159,8 @@ class UserPreferences {
   final bool showWidgetMascots;
   final SplashSpeed splashSpeed;
   final SeasonalSplashTheme? seasonalSplashOverride;
+  final NestViewMode nestViewMode;
+  final TreehouseDayPhase? treehousePhaseOverride;
 
   const UserPreferences({
     this.themeMode = ThemeMode.dark,
@@ -161,6 +186,8 @@ class UserPreferences {
     this.showWidgetMascots = true,
     this.splashSpeed = SplashSpeed.normal,
     this.seasonalSplashOverride,
+    this.nestViewMode = NestViewMode.roomsGrid,
+    this.treehousePhaseOverride,
   });
 
   factory UserPreferences.defaults() {
@@ -196,6 +223,9 @@ class UserPreferences {
     SplashSpeed? splashSpeed,
     SeasonalSplashTheme? seasonalSplashOverride,
     bool clearSeasonalSplashOverride = false,
+    NestViewMode? nestViewMode,
+    TreehouseDayPhase? treehousePhaseOverride,
+    bool clearTreehousePhaseOverride = false,
   }) {
     return UserPreferences(
       themeMode: themeMode ?? this.themeMode,
@@ -228,6 +258,10 @@ class UserPreferences {
       seasonalSplashOverride: clearSeasonalSplashOverride
           ? null
           : (seasonalSplashOverride ?? this.seasonalSplashOverride),
+      nestViewMode: nestViewMode ?? this.nestViewMode,
+      treehousePhaseOverride: clearTreehousePhaseOverride
+          ? null
+          : (treehousePhaseOverride ?? this.treehousePhaseOverride),
     );
   }
 
@@ -256,6 +290,8 @@ class UserPreferences {
       'showWidgetMascots': showWidgetMascots,
       'splashSpeed': splashSpeed.name,
       'seasonalSplashOverride': seasonalSplashOverride?.name,
+      'nestViewMode': nestViewMode.name,
+      'treehousePhaseOverride': treehousePhaseOverride?.name,
     };
   }
 
@@ -302,6 +338,10 @@ class UserPreferences {
       splashSpeed: SplashSpeedExt.fromName(json['splashSpeed'] as String?),
       seasonalSplashOverride: SeasonalSplashThemeExt.fromNameOrNull(
         json['seasonalSplashOverride'] as String?,
+      ),
+      nestViewMode: NestViewModeExt.fromName(json['nestViewMode'] as String?),
+      treehousePhaseOverride: TreehouseDayPhaseX.fromNameOrNull(
+        json['treehousePhaseOverride'] as String?,
       ),
     );
   }

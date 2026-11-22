@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="launcher_quick_capture"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_quick_capture"
+        android:shortcutShortLabel="@string/shortcut_quick_capture_short_label"
+        android:shortcutLongLabel="@string/shortcut_quick_capture_long_label"
+        android:shortcutDisabledMessage="@string/shortcut_quick_capture_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="nestin://quick_capture?type=note"
+            android:targetPackage="com.nestin.app"
+            android:targetClass="com.nestin.app.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="launcher_new_alarm"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_new_alarm"
+        android:shortcutShortLabel="@string/shortcut_new_alarm_short_label"
+        android:shortcutLongLabel="@string/shortcut_new_alarm_long_label"
+        android:shortcutDisabledMessage="@string/shortcut_new_alarm_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="nestin://new_alarm"
+            android:targetPackage="com.nestin.app"
+            android:targetClass="com.nestin.app.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="launcher_water"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_water"
+        android:shortcutShortLabel="@string/shortcut_water_short_label"
+        android:shortcutLongLabel="@string/shortcut_water_long_label"
+        android:shortcutDisabledMessage="@string/shortcut_water_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="nestin://hydration?action=add_glass"
+            android:targetPackage="com.nestin.app"
+            android:targetClass="com.nestin.app.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="launcher_rain"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_rain"
+        android:shortcutShortLabel="@string/shortcut_rain_short_label"
+        android:shortcutLongLabel="@string/shortcut_rain_long_label"
+        android:shortcutDisabledMessage="@string/shortcut_rain_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="nestin://play_sound?id=rain&amp;minutes=30"
+            android:targetPackage="com.nestin.app"
+            android:targetClass="com.nestin.app.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="mental_aid_immediate_support"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_mental_aid"
+        android:shortcutShortLabel="@string/shortcut_mental_aid_short_label"
+        android:shortcutLongLabel="@string/shortcut_mental_aid_long_label"
+        android:shortcutDisabledMessage="@string/shortcut_mental_aid_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="nestin://mental_aid"
+            android:targetPackage="com.nestin.app"
+            android:targetClass="com.nestin.app.MainActivity" />
+    </shortcut>
+</shortcuts>

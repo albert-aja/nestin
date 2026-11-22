@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
@@ -529,7 +529,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     itemCount: dayEvents.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final event = dayEvents[index];
                       return Card(
@@ -541,7 +541,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: event.category.color.withOpacity(0.16),
+                                  color: event.category.color.withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(event.category.icon, color: event.category.color, size: 22),

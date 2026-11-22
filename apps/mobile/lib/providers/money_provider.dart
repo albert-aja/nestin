@@ -255,6 +255,18 @@ class MoneyProvider extends ChangeNotifier {
     setSelectedPeriodMonth(nextMonth);
   }
 
+  void previousPeriodYear() {
+    setSelectedPeriodMonth(
+      DateTime(_selectedPeriodMonth.year - 1, _selectedPeriodMonth.month),
+    );
+  }
+
+  void nextPeriodYear() {
+    setSelectedPeriodMonth(
+      DateTime(_selectedPeriodMonth.year + 1, _selectedPeriodMonth.month),
+    );
+  }
+
   // --- Authorized Direct Lookups ---
 
   MoneyAccount requireAccount(String accountId) {
@@ -1372,6 +1384,103 @@ class MoneyProvider extends ChangeNotifier {
       );
     }
     return points;
+  }
+
+  /// Computes a full 12-month (Jan–Dec) offline personal ledger summary for [year].
+  AnnualLedgerSummary annualLedgerSummaryForYear(int year) {
+    if (!_isAuthenticated) {
+      return AnnualLedgerSummary(
+        year: year,
+        totalIncomeMinor: 0,
+        totalExpenseMinor: 0,
+        netCashFlowMinor: 0,
+        internalTransferMinor: 0,
+        transactionCount: 0,
+        activeMonthsCount: 0,
+        monthlyPoints: [
+          for (var m = 1; m <= 12; m++)
+            MonthlyCashFlowPoint(
+              year: year,
+              month: m,
+              incomeMinor: 0,
+              expenseMinor: 0,
+            ),
+        ],
+      );
+    }
+
+    var totalIncomeMinor = 0;
+    var totalExpenseMinor = 0;
+    var totalTransferMinor = 0;
+    var totalTxCount = 0;
+    var activeMonths = 0;
+    final monthlyPoints = <MonthlyCashFlowPoint>[];
+
+    for (var m = 1; m <= 12; m++) {
+      final s = summaryForMonth(year, m);
+      totalIncomeMinor += s.totalIncomeMinor;
+      totalExpenseMinor += s.totalExpenseMinor;
+      totalTransferMinor += s.internalTransferMinor;
+      totalTxCount += s.transactionCount;
+      if (!s.isEmpty) activeMonths++;
+      monthlyPoints.add(
+        MonthlyCashFlowPoint(
+          year: year,
+          month: m,
+          incomeMinor: s.totalIncomeMinor,
+          expenseMinor: s.totalExpenseMinor,
+        ),
+      );
+    }
+
+    return AnnualLedgerSummary(
+      year: year,
+      totalIncomeMinor: totalIncomeMinor,
+      totalExpenseMinor: totalExpenseMinor,
+      netCashFlowMinor: totalIncomeMinor - totalExpenseMinor,
+      internalTransferMinor: totalTransferMinor,
+      transactionCount: totalTxCount,
+      activeMonthsCount: activeMonths,
+      monthlyPoints: monthlyPoints,
+    );
+  }
+
+  /// Aggregates all non-archived expense transactions across Jan–Dec of [year].
+  List<CategorySpendingBreakdown> expenseBreakdownForYear(int year) {
+    if (!_isAuthenticated) return const [];
+
+    final byCat = <String, int>{};
+    var totalExpenseMinor = 0;
+
+    for (var m = 1; m <= 12; m++) {
+      final monthKey =
+          '${year.toString().padLeft(4, '0')}-${m.toString().padLeft(2, '0')}';
+      final expenseTxs = (_txByMonth[monthKey] ?? const []).where(
+          (t) => !t.isArchived && t.type == MoneyTransactionType.expense);
+      for (final tx in expenseTxs) {
+        if (tx.categoryId == null) continue;
+        byCat[tx.categoryId!] = (byCat[tx.categoryId!] ?? 0) + tx.amountMinor;
+        totalExpenseMinor += tx.amountMinor;
+      }
+    }
+
+    final rows = <CategorySpendingBreakdown>[];
+    byCat.forEach((catId, spentMinor) {
+      final cat = findCategoryById(catId);
+      if (cat != null) {
+        rows.add(
+          CategorySpendingBreakdown(
+            category: cat,
+            spentMinor: spentMinor,
+            percentOfExpenses:
+                MoneyAmount.percentOf(spentMinor, totalExpenseMinor),
+          ),
+        );
+      }
+    });
+
+    rows.sort((a, b) => b.spentMinor.compareTo(a.spentMinor));
+    return rows;
   }
 
   // --- Internal Validation, Reconciliation & Index Builders ---

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'journal_entry.dart';
 
 /// Represents a single gratitude pebble stored in Echo's Gratitude Jar,

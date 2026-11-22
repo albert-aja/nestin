@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -233,6 +233,37 @@ void main() {
       // Step back increments strategiesTriedCount
       await btc.recordMindfulPauseStepBack('com.android.chrome');
       expect(btc.qualitativeProgress.strategiesTriedCount, equals(1));
+
+      // Verify native Mindful App Pause config sync & native event consumption
+      expect(
+        mockDevice.lastSyncedMindfulPauseConfig['isEnabled'],
+        isTrue,
+      );
+      expect(
+        mockDevice.lastSyncedMindfulPauseConfig['monitoredPackages'],
+        contains('com.android.chrome'),
+      );
+
+      // Toggle Strict Block mode and verify native payload updates
+      await btc.updateMindfulAppPauseConfig(
+        btc.mindfulAppPauseConfig.copyWith(strictBlockMode: true),
+      );
+      expect(
+        mockDevice.lastSyncedMindfulPauseConfig['strictBlockMode'],
+        isTrue,
+      );
+
+      // Simulate native NestinShieldActivity recording a Step Back and 20m cooldown grace
+      final futureGraceMs =
+          DateTime.now().add(const Duration(minutes: 20)).millisecondsSinceEpoch;
+      mockDevice.mockPendingMindfulPauseNativeEvents = {
+        'stepBackCount': 2,
+        'snoozedUntilMs': 0,
+        'gracePackagesMs': {'com.android.chrome': futureGraceMs},
+      };
+      await btc.consumeNativeMindfulPauseEvents();
+      expect(btc.qualitativeProgress.strategiesTriedCount, equals(3));
+      expect(btc.cooldownUntilForPackage('com.android.chrome'), isNotNull);
     });
 
     test('Let It Out & Unsent Letters support Save to Echo (Locked) vs Let It Go (Zero Trace)', () async {
@@ -478,6 +509,20 @@ void main() {
         find.byKey(const Key('btc_mindful_pause_continue_btn')),
       );
       expect(continueBtn.onPressed, isNotNull);
+
+      // When strictBlockMode is enabled, Continue & Snooze bypass buttons are hidden
+      await btc.updateMindfulAppPauseConfig(
+        btc.mindfulAppPauseConfig.copyWith(strictBlockMode: true),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('btc_mindful_pause_continue_btn')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('btc_mindful_pause_close_btn')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Bahasa Indonesia & Light Theme render cleanly + entry points exist',

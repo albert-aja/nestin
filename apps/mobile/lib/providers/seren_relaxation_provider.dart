@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 import '../core/l10n/app_localizations.dart';
 import '../data/models/alarm.dart';
@@ -74,11 +74,10 @@ class SerenRelaxationProvider extends ChangeNotifier
 
   SerenRelaxationProvider(
     this._storageService, {
-    NotificationService? notificationService,
+    this._notificationService,
     AmbientSoundService? ambientSoundService,
     SerenTtsService? ttsService,
-  })  : _notificationService = notificationService,
-        _ambientSoundService = ambientSoundService ?? AmbientSoundService(),
+  })  : _ambientSoundService = ambientSoundService ?? AmbientSoundService(),
         _ttsService = ttsService ?? SerenTtsService() {
     _load();
     _ttsService.onStateChanged = _onTtsStateChanged;

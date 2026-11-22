@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:math' as math;
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nestin/core/l10n/app_language.dart';
+import 'package:nestin/core/l10n/app_localizations.dart';
 import 'package:nestin/data/models/dashboard_config.dart';
 import 'package:nestin/data/models/money_account.dart';
 import 'package:nestin/data/models/money_budget.dart';
@@ -790,6 +794,228 @@ void main() {
 
       expect(find.text('Rp150,000'), findsWidgets);
       expect(find.text('Welcome to Twill Money'), findsNothing);
+    });
+
+    test('annualLedgerSummaryForYear and expenseBreakdownForYear aggregate 12 months offline',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await StorageService.init();
+      final provider = MoneyProvider(
+        storage,
+        initialPeriod: DateTime(2026, 11),
+      );
+
+      final cash = await provider.createAccount(
+        name: 'Cash',
+        type: MoneyAccountType.cash,
+        initialBalanceMinor: 100000000,
+      );
+      final bank = await provider.createAccount(
+        name: 'Bank',
+        type: MoneyAccountType.bankAccount,
+        initialBalanceMinor: 200000000,
+      );
+      final salaryCat = provider
+          .categoriesByType(MoneyCategoryType.income)
+          .firstWhere((c) => c.name == 'Salary');
+      final foodCat = provider
+          .categoriesByType(MoneyCategoryType.expense)
+          .firstWhere((c) => c.name == 'Food & Drinks');
+      final transportCat = provider
+          .categoriesByType(MoneyCategoryType.expense)
+          .firstWhere((c) => c.name == 'Transportation');
+
+      await provider.addTransaction(
+        type: MoneyTransactionType.income,
+        amountMinor: 500000000,
+        categoryId: salaryCat.id,
+        accountId: bank.id,
+        transactionDate: DateTime(2026, 1, 10),
+        description: 'Jan Salary',
+      );
+      await provider.addTransaction(
+        type: MoneyTransactionType.expense,
+        amountMinor: 120000000,
+        categoryId: foodCat.id,
+        accountId: cash.id,
+        transactionDate: DateTime(2026, 3, 15),
+        description: 'March Groceries',
+      );
+      await provider.addTransaction(
+        type: MoneyTransactionType.expense,
+        amountMinor: 60000000,
+        categoryId: transportCat.id,
+        accountId: cash.id,
+        transactionDate: DateTime(2026, 11, 5),
+        description: 'November Commute',
+      );
+      await provider.executeTransfer(
+        fromAccountId: bank.id,
+        toAccountId: cash.id,
+        amountMinor: 30000000,
+        transactionDate: DateTime(2026, 6, 1),
+      );
+
+      final annual = provider.annualLedgerSummaryForYear(2026);
+      expect(annual.year, equals(2026));
+      expect(annual.monthlyPoints.length, equals(12));
+      expect(annual.totalIncomeMinor, equals(500000000));
+      expect(annual.totalExpenseMinor, equals(180000000));
+      expect(annual.netCashFlowMinor, equals(320000000));
+      expect(annual.internalTransferMinor, equals(30000000));
+      expect(annual.transactionCount, equals(4));
+      expect(annual.activeMonthsCount, equals(4));
+      expect(annual.netSavingsRatePercent, equals(64));
+
+      final breakdown = provider.expenseBreakdownForYear(2026);
+      expect(breakdown.length, equals(2));
+      expect(breakdown.first.category.id, equals(foodCat.id));
+      expect(breakdown.first.spentMinor, equals(120000000));
+      expect(breakdown.last.category.id, equals(transportCat.id));
+      expect(breakdown.last.spentMinor, equals(60000000));
+
+      provider.previousPeriodYear();
+      expect(provider.selectedPeriodMonth, equals(DateTime(2025, 11)));
+      expect(provider.annualLedgerSummaryForYear(2025).isEmpty, isTrue);
+      provider.nextPeriodYear();
+      expect(provider.selectedPeriodMonth, equals(DateTime(2026, 11)));
+    });
+
+    testWidgets(
+        'MoneyReportsView pie slice drill-down filters MoneyTransactionsView and 12M annual toggle works',
+        (tester) async {
+      tester.view.physicalSize = const Size(780, 1800);
+      tester.view.devicePixelRatio = 2.0; // 390dp logical width
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      SharedPreferences.setMockInitialValues({});
+      await AppLocalizations.ensureDateFormatting();
+      final storage = await StorageService.init();
+      final moneyProvider = MoneyProvider(
+        storage,
+        initialPeriod: DateTime(2026, 11),
+      );
+      final settingsProvider = SettingsProvider(storage);
+
+      final cash = await moneyProvider.createAccount(
+        name: 'Cash Wallet',
+        type: MoneyAccountType.cash,
+        initialBalanceMinor: 200000000,
+      );
+      final salaryCat = moneyProvider
+          .categoriesByType(MoneyCategoryType.income)
+          .firstWhere((c) => c.name == 'Salary');
+      final foodCat = moneyProvider
+          .categoriesByType(MoneyCategoryType.expense)
+          .firstWhere((c) => c.name == 'Food & Drinks');
+      final transportCat = moneyProvider
+          .categoriesByType(MoneyCategoryType.expense)
+          .firstWhere((c) => c.name == 'Transportation');
+
+      await moneyProvider.addTransaction(
+        type: MoneyTransactionType.income,
+        amountMinor: 300000000,
+        categoryId: salaryCat.id,
+        accountId: cash.id,
+        transactionDate: DateTime(2026, 11, 1),
+        description: 'Nov Payday',
+      );
+      await moneyProvider.addTransaction(
+        type: MoneyTransactionType.expense,
+        amountMinor: 75000000, // 75% of Nov expenses
+        categoryId: foodCat.id,
+        accountId: cash.id,
+        transactionDate: DateTime(2026, 11, 12),
+        description: 'Nov Ramen',
+      );
+      await moneyProvider.addTransaction(
+        type: MoneyTransactionType.expense,
+        amountMinor: 25000000, // 25% of Nov expenses
+        categoryId: transportCat.id,
+        accountId: cash.id,
+        transactionDate: DateTime(2026, 11, 14),
+        description: 'Nov Train',
+      );
+      await moneyProvider.addTransaction(
+        type: MoneyTransactionType.expense,
+        amountMinor: 40000000,
+        categoryId: foodCat.id,
+        accountId: cash.id,
+        transactionDate: DateTime(2026, 10, 8),
+        description: 'Oct Coffee',
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<MoneyProvider>.value(value: moneyProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(
+                value: settingsProvider),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: MoneyHubScreen(initialSection: MoneySection.reports),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Interactive pie chart renders
+      final pieFinder = find.byKey(const ValueKey('money_category_pie_chart'));
+      expect(pieFinder, findsOneWidget);
+
+      // Toggle 12-month Annual Cash-Flow Overview
+      await tester.tap(find.byKey(const ValueKey('money_report_toggle_annual')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Yearly Ledger Summary (2026)'), findsOneWidget);
+      expect(find.text('12-Month Annual Cash-Flow Overview'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('Month-by-Month Ledger'),
+        300,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text('Month-by-Month Ledger'), findsOneWidget);
+
+      // Switch back to Monthly mode
+      final monthlyToggle =
+          find.byKey(const ValueKey('money_report_toggle_monthly'));
+      await tester.scrollUntilVisible(
+        monthlyToggle,
+        -300,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(monthlyToggle);
+      await tester.pumpAndSettle();
+
+      // Tap directly inside the first slice (Food & Drinks = 75%, starts at -pi/2)
+      // Midpoint of first 75% slice is angle = -pi/2 + 0.75 * pi = +pi/4 (bottom-right quadrant)
+      await tester.ensureVisible(pieFinder);
+      await tester.pumpAndSettle();
+      final pieRect = tester.getRect(pieFinder);
+      final ringRadius = (pieRect.width / 2 - 4) * 0.76;
+      final tapOffset = pieRect.center +
+          Offset(
+            ringRadius * math.cos(math.pi / 4),
+            ringRadius * math.sin(math.pi / 4),
+          );
+      await tester.tapAt(tapOffset);
+      await tester.pumpAndSettle();
+
+      // Should now be on MoneyTransactionsView filtered to Food & Drinks + November 2026
+      expect(find.text('Nov Ramen'), findsOneWidget);
+      expect(find.text('Nov Train'), findsNothing);
+      expect(find.text('Oct Coffee'), findsNothing);
+      expect(find.text('Nov Payday'), findsNothing);
+      expect(find.text('Nov 1 - Nov 30'), findsOneWidget);
+
+      // Verify Bahasa Indonesia labels work cleanly too
+      await settingsProvider.setLanguage(AppLanguage.id);
+      await tester.pumpAndSettle();
+      expect(find.text('Hapus Filter'), findsOneWidget);
     });
   });
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Preset stimulant categories with approximate caffeine content (mg).
 enum StimulantType {

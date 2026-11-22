@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/device_capability.dart';
 import '../../../data/models/mental_wellness_models.dart';
 import '../../../data/models/seren_relaxation_models.dart';
 import '../../../data/services/storage_service.dart';
@@ -49,9 +50,14 @@ class MentalWellnessScreen extends StatefulWidget {
   /// Optional initial layer filter (`0 = all`, `1`, `2`, `3`).
   final int initialLayer;
 
+  /// When `true` (e.g. launched via native `NestinShieldActivity` Step Back),
+  /// automatically opens the 5-step Guided Urge Surfing sheet after mount.
+  final bool openUrgeSupportOnInit;
+
   const MentalWellnessScreen({
     super.key,
     this.initialLayer = 0,
+    this.openUrgeSupportOnInit = false,
   });
 
   @override
@@ -74,6 +80,15 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
   void initState() {
     super.initState();
     _selectedLayer = widget.initialLayer.clamp(0, 3);
+    if (widget.openUrgeSupportOnInit) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final btc = _resolveBtc(context);
+        if (btc != null) {
+          _openImmediateUrgeSupport(btc);
+        }
+      });
+    }
   }
 
   @override
@@ -748,6 +763,24 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _serenPurple.withValues(alpha: 0.14),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/mascots/sprites/seren/comfort_kit_treasure_box.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.inventory_2_outlined,
+                        color: _serenPurple,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,7 +952,7 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                     ),
                     padding: const EdgeInsets.all(4),
                     child: Image.asset(
-                      'assets/mascots/sprites/duos/duo_seren_echo_evening_sanctuary.png',
+                      'assets/mascots/sprites/duos/duo_seren_echo_unsent_letter.png',
                       fit: BoxFit.contain,
                       errorBuilder: (_, _, _) => const Icon(
                         Icons.edit_note_rounded,
@@ -1017,6 +1050,24 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _serenPurple.withValues(alpha: 0.14),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/mascots/sprites/duos/scout_seren_trusted_messenger.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.send_rounded,
+                        color: _serenPurple,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1190,20 +1241,49 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.tr('mw_l2_rituals_title'),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-              Text(
-                l10n.tr('mw_l2_rituals_sub'),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textSecondary(context),
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _serenPurple.withValues(alpha: 0.14),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/mascots/sprites/duos/roo_seren_calm_ritual_tea.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.emoji_food_beverage_rounded,
+                        color: _serenPurple,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.tr('mw_l2_rituals_title'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary(context),
+                          ),
+                        ),
+                        Text(
+                          l10n.tr('mw_l2_rituals_sub'),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -1451,20 +1531,49 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.tr('mw_l3_edu_section_title'),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-              Text(
-                l10n.tr('mw_l3_edu_section_sub'),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textSecondary(context),
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _serenPurple.withValues(alpha: 0.14),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/mascots/sprites/duos/seren_echo_library_lantern.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.menu_book_rounded,
+                        color: _serenPurple,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.tr('mw_l3_edu_section_title'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary(context),
+                          ),
+                        ),
+                        Text(
+                          l10n.tr('mw_l3_edu_section_sub'),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -1566,12 +1675,62 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                   Switch(
                     key: const Key('mw_btc_mindful_pause_switch'),
                     value: cfg.isEnabled,
-                    onChanged: (v) => btc.updateMindfulAppPauseConfig(
-                      cfg.copyWith(isEnabled: v),
-                    ),
+                    onChanged: (v) async {
+                      await btc.updateMindfulAppPauseConfig(
+                        cfg.copyWith(isEnabled: v),
+                      );
+                      if (v && devices != null) {
+                        await devices.refreshCapabilities();
+                      }
+                    },
                   ),
                 ],
               ),
+              if (cfg.monitoredPackages.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: cfg.monitoredPackages.map((pkg) {
+                    final label = cfg.monitoredAppNames[pkg] ??
+                        devices?.displayNameForPackage(pkg) ??
+                        pkg;
+                    return Chip(
+                      visualDensity: VisualDensity.compact,
+                      avatar: const Icon(
+                        Icons.pause_circle_outline_rounded,
+                        size: 15,
+                        color: _serenPurple,
+                      ),
+                      label: Text(label, style: const TextStyle(fontSize: 11)),
+                      onDeleted: () {
+                        final nextPkgs = cfg.monitoredPackages
+                            .where((p) => p != pkg)
+                            .toList();
+                        final nextNames =
+                            Map<String, String>.from(cfg.monitoredAppNames)
+                              ..remove(pkg);
+                        btc.updateMindfulAppPauseConfig(
+                          cfg.copyWith(
+                            monitoredPackages: nextPkgs,
+                            monitoredAppNames: nextNames,
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              ] else if (cfg.isEnabled) ...[
+                const SizedBox(height: 6),
+                Text(
+                  l10n.tr('btc_mindful_pause_no_apps_warning'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.warning,
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -1588,25 +1747,26 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
-                  OutlinedButton.icon(
-                    key: const Key('mw_btc_snooze_1h_btn'),
-                    onPressed: () async {
-                      if (snoozedNow) {
-                        await btc.clearMindfulAppPauseSnooze();
-                      } else {
-                        await btc.snoozeMindfulAppPause(
-                          const Duration(hours: 1),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.snooze_rounded, size: 16),
-                    label: Text(
-                      snoozedNow
-                          ? l10n.tr('btc_mindful_pause_clear_snooze')
-                          : l10n.tr('btc_mindful_pause_snooze_1h'),
-                      style: const TextStyle(fontSize: 12),
+                  if (!cfg.strictBlockMode)
+                    OutlinedButton.icon(
+                      key: const Key('mw_btc_snooze_1h_btn'),
+                      onPressed: () async {
+                        if (snoozedNow) {
+                          await btc.clearMindfulAppPauseSnooze();
+                        } else {
+                          await btc.snoozeMindfulAppPause(
+                            const Duration(hours: 1),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.snooze_rounded, size: 16),
+                      label: Text(
+                        snoozedNow
+                            ? l10n.tr('btc_mindful_pause_clear_snooze')
+                            : l10n.tr('btc_mindful_pause_snooze_1h'),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
-                  ),
                   FilledButton.tonalIcon(
                     key: const Key('mw_btc_preview_mindful_pause_btn'),
                     onPressed: () {
@@ -1631,6 +1791,26 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
               if (cfg.isEnabled) ...[
                 const SizedBox(height: 8),
                 SwitchListTile(
+                  key: const Key('mw_btc_strict_block_switch'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  value: cfg.strictBlockMode,
+                  title: Text(
+                    l10n.tr('btc_mindful_pause_strict_toggle'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  subtitle: Text(
+                    l10n.tr('btc_mindful_pause_strict_sub'),
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  onChanged: (v) => btc.updateMindfulAppPauseConfig(
+                    cfg.copyWith(strictBlockMode: v),
+                  ),
+                ),
+                SwitchListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   value: cfg.vulnerableHoursOnly,
@@ -1649,6 +1829,14 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                     cfg.copyWith(vulnerableHoursOnly: v),
                   ),
                 ),
+                if (devices != null &&
+                    devices.registry.platform == 'android') ...[
+                  const SizedBox(height: 8),
+                  _buildMindfulPauseAndroidPermissionBanner(
+                    context,
+                    devices,
+                  ),
+                ],
               ],
             ],
             ),
@@ -1733,7 +1921,7 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                     ),
                     padding: const EdgeInsets.all(4),
                     child: Image.asset(
-                      'assets/mascots/sprites/duos/duo_pippin_seren_book_tea.png',
+                      'assets/mascots/sprites/duos/duo_seren_pippin_healthy_spark.png',
                       fit: BoxFit.contain,
                       errorBuilder: (_, _, _) => const Icon(
                         Icons.explore_rounded,
@@ -1866,20 +2054,49 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  l10n.tr('mw_hl_bridges_title'),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary(context),
-                  ),
-                ),
-                Text(
-                  l10n.tr('mw_hl_bridges_sub'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary(context),
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _serenPurple.withValues(alpha: 0.14),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        'assets/mascots/sprites/ensembles/flock_healthy_living_compass.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.explore_outlined,
+                          color: _serenPurple,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.tr('mw_hl_bridges_title'),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary(context),
+                            ),
+                          ),
+                          Text(
+                            l10n.tr('mw_hl_bridges_sub'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -2413,6 +2630,181 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
           label: Text(l10n.tr('mw_l3_privacy_btn')),
         ),
       ],
+    );
+  }
+
+  Widget _buildMindfulPauseAndroidPermissionBanner(
+    BuildContext context,
+    DeviceControlProvider devices,
+  ) {
+    final l10n = context.l10n;
+    final reg = devices.registry;
+    final hasAccessibility = reg.supportFor(
+          DeviceCapabilityRegistry.actionAppBlockingShield,
+        ) ==
+        ActionExecutionSupport.directlySupported;
+    final hasUsage = reg.isGranted(NestinPermissionKind.usageStats);
+    final hasOverlay = reg.supportFor(
+          DeviceCapabilityRegistry.actionAppOverlayBanner,
+        ) ==
+        ActionExecutionSupport.directlySupported;
+
+    final isReady = hasAccessibility || (hasUsage && hasOverlay);
+    if (isReady) {
+      return Container(
+        key: const Key('mw_btc_shield_ready_banner'),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.success.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.success.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.success.withValues(alpha: 0.14),
+              ),
+              padding: const EdgeInsets.all(3),
+              child: Image.asset(
+                'assets/mascots/sprites/duos/duo_seren_scout_shield_ready.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.verified_user_rounded,
+                  size: 18,
+                  color: AppColors.success,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.tr('btc_mindful_pause_shield_ready_title'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary(context),
+                    ),
+                  ),
+                  Text(
+                    l10n.tr('btc_mindful_pause_shield_ready_sub'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      key: const Key('mw_btc_permission_needed_banner'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.warning.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.privacy_tip_outlined,
+                size: 18,
+                color: AppColors.warning,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.tr('btc_mindful_pause_perm_needed_title'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.tr('btc_mindful_pause_perm_needed_sub'),
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.35,
+              color: AppColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              if (!hasAccessibility)
+                FilledButton.tonalIcon(
+                  key: const Key('mw_btc_enable_accessibility_btn'),
+                  onPressed: () async {
+                    await devices.openPermissionSettings(
+                      NestinPermissionKind.accessibilityService,
+                    );
+                    await devices.refreshCapabilities();
+                  },
+                  icon: const Icon(Icons.shield_outlined, size: 15),
+                  label: Text(
+                    l10n.tr('btc_mindful_pause_enable_accessibility_btn'),
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ),
+              if (!hasUsage)
+                OutlinedButton.icon(
+                  key: const Key('mw_btc_enable_usage_btn'),
+                  onPressed: () async {
+                    await devices.openPermissionSettings(
+                      NestinPermissionKind.usageStats,
+                    );
+                    await devices.refreshCapabilities();
+                  },
+                  icon: const Icon(Icons.query_stats_rounded, size: 15),
+                  label: Text(
+                    l10n.tr('btc_mindful_pause_enable_usage_btn'),
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ),
+              if (!hasOverlay)
+                OutlinedButton.icon(
+                  key: const Key('mw_btc_enable_overlay_btn'),
+                  onPressed: () async {
+                    await devices.openPermissionSettings(
+                      NestinPermissionKind.systemAlertWindow,
+                    );
+                    await devices.refreshCapabilities();
+                  },
+                  icon: const Icon(Icons.layers_outlined, size: 15),
+                  label: Text(
+                    l10n.tr('btc_mindful_pause_enable_overlay_btn'),
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

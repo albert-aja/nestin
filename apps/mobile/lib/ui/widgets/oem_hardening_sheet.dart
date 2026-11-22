@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/oem_hardening_data.dart';
@@ -388,7 +388,7 @@ class OemHardeningSheet extends StatelessWidget {
                           ),
                           Switch(
                             value: isKeepAliveEnabled,
-                            activeColor: AppColors.accent,
+                            activeThumbColor: AppColors.accent,
                             onChanged: (val) =>
                                 provider.toggleKeepAliveService(val),
                           ),

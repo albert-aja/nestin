@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/challenge_profile.dart';
 import '../../../domain/challenge/challenge_engine.dart';
@@ -150,16 +150,16 @@ class _MemoryChallengeWidgetState extends State<MemoryChallengeWidget> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
-                    color: isLit ? color : color.withOpacity(0.25),
+                    color: isLit ? color : color.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isLit ? Colors.white : color.withOpacity(0.6),
+                      color: isLit ? Colors.white : color.withValues(alpha: 0.6),
                       width: isLit ? 3 : 1.5,
                     ),
                     boxShadow: isLit
                         ? [
                             BoxShadow(
-                              color: color.withOpacity(0.8),
+                              color: color.withValues(alpha: 0.8),
                               blurRadius: 20,
                               spreadRadius: 4,
                             ),
@@ -170,7 +170,7 @@ class _MemoryChallengeWidgetState extends State<MemoryChallengeWidget> {
                     child: Icon(
                       Icons.touch_app_rounded,
                       size: 32,
-                      color: isLit ? Colors.white : color.withOpacity(0.5),
+                      color: isLit ? Colors.white : color.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

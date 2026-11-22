@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
@@ -122,7 +122,7 @@ class RoutinesScreen extends StatelessWidget {
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: routines.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        separatorBuilder: (_, _) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
           final r = routines[index];
           final isMorning = r.type == RoutineType.morning;
@@ -138,7 +138,7 @@ class RoutinesScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: (isMorning ? AppColors.accent : const Color(0xFF8338EC)).withOpacity(0.18),
+                          color: (isMorning ? AppColors.accent : const Color(0xFF8338EC)).withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
