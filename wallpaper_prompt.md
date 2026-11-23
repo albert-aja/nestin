@@ -21,13 +21,13 @@ this are the list of images i think that needs fixing:
 1. everyday_botanical_greenhouse.jpg -> echo's eye are unusual, twill have 2 tails
 2. everyday_cozy_library_rain.jpg -> echo's eyes are unusual, seren got third wing
 ~~3. everyday_flock_huddle_sky.jpg -> remove seventh bird (the smaller pippin)~~ (FIXED)
-4. everyday_hilltop_stargazing.jpg -> add brownish feather on twill's face
-5. everyday_morning_bakery_veranda.jpg -> add brownish feather on twill's face, echo's eye only have eyeball, pippin looks like floating
+~~4. everyday_hilltop_stargazing.jpg -> add brownish feather on twill's face~~ (FIXED)
+~~5. everyday_morning_bakery_veranda.jpg -> add brownish feather on twill's face, echo's eye only have eyeball, pippin looks like floating~~ (FIXED)
 ~~6. everyday_mountain_camp.jpg -> the gold kettle on the right is pouring itself~~ (FIXED)
-7. everyday_pippin_hobby_studio.jpg -> both seren and twill have third wing
-8. everyday_rainy_fireplace.jpg -> seren have 2 right wings, pippin have 2 left wings
-9. everyday_roo_morning_wakeup.jpg -> add brownish feather on twill's face
-10. everyday_seren_calm_circle.jpg -> add brownish feather on twill's face, both scout and twill have third wing
+~~7. everyday_pippin_hobby_studio.jpg -> both seren and twill have third wing~~ (FIXED)
+8. everyday_rainy_fireplace.jpg -> seren only have one wing
+~~9. everyday_roo_morning_wakeup.jpg -> add brownish feather on twill's face~~ (FIXED)
+10. everyday_seren_calm_circle.jpg -> both scout and twill have third wing (Twill face FIXED)
 11. everyday_sunny_picnic.jpg -> twill looks like wearing a brown masker
 12. everyday_treehouse_welcome.jpg -> pippin is floating
 ~~13. everyday_twill_packing_ledger.jpg -> echo's eye only have eyeball, remove seventh bird~~ (FIXED)
@@ -35,7 +35,7 @@ this are the list of images i think that needs fixing:
 - wallpapers/seasonal folder
 
 ~~1. seasonal/cherry_blossom_picnic.jpg -> Fix Twill's eye-bandit-mask look~~ (FIXED)
-2. friendship_cozy_letters.jpg -> twill have third wing
+2. friendship_cozy_letters.jpg -> remove twill's third wing
 3. gratitude_harvest_table.jpg -> scout have third leg
 4. mid_autumn_moon_festival.jpg -> echo's eye don't look like usual here
 5. midsummer_kite_camp.jpg -> both twill & pippin have third wing

@@ -473,6 +473,25 @@ class BackendGatewayService {
     );
   }
 
+  /// Fetches `/api/v1/media?assetType=wallpaper` for optional downloadable
+  /// seasonal wallpaper packs from the media backend catalog.
+  Future<BackendResult<Map<String, dynamic>>> fetchMediaWallpapers({
+    String? locale,
+    String? mascotDomain,
+    Duration timeout = const Duration(seconds: 4),
+  }) async {
+    return _getPublicJson(
+      '/media',
+      query: {
+        'assetType': 'wallpaper',
+        if (locale != null && locale.isNotEmpty) 'locale': locale,
+        if (mascotDomain != null && mascotDomain.isNotEmpty)
+          'mascotDomain': mascotDomain,
+      },
+      timeout: timeout,
+    );
+  }
+
   Future<BackendResult<Map<String, dynamic>>> _getPublicJson(
     String v1Path, {
     Map<String, String>? query,

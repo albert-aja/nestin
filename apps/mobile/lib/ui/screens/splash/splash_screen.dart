@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -22,6 +23,9 @@ class SplashScreen extends StatefulWidget {
   final Duration? animationDuration;
   final DateTime? currentDate;
   final SeasonalSplashTheme? seasonalThemeOverride;
+  final String? customPhotoPath;
+  final String? remotePackSlug;
+  final Map<String, String>? installedRemotePackPaths;
 
   const SplashScreen({
     super.key,
@@ -30,6 +34,9 @@ class SplashScreen extends StatefulWidget {
     this.animationDuration,
     this.currentDate,
     this.seasonalThemeOverride,
+    this.customPhotoPath,
+    this.remotePackSlug,
+    this.installedRemotePackPaths,
   });
 
   @override
@@ -43,33 +50,35 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _subtleSlideAnimation;
-  late final SeasonalLoadingSpec _seasonalSpec;
+  late SeasonalLoadingSpec _seasonalSpec;
 
   _SplashPhase _phase = _SplashPhase.logoBanner;
   Timer? _phaseTimer;
   Timer? _finishTimer;
+  bool _precachedWallpaper = false;
+
+  int _computePhase1Ms(Duration minDuration) {
+    final totalMs = minDuration.inMilliseconds;
+    if (totalMs <= 0) return 0;
+    return (totalMs * 0.48).round().clamp(180, totalMs - 180);
+  }
+
+  Duration _computeIntroAnimDuration(Duration minDuration) {
+    final phase1Ms = _computePhase1Ms(minDuration);
+    if (phase1Ms <= 0) return Duration.zero;
+    final maxIntroMs = (phase1Ms * 0.55).round().clamp(160, 480);
+    final requestedMs = widget.animationDuration?.inMilliseconds ?? maxIntroMs;
+    return Duration(milliseconds: requestedMs.clamp(160, maxIntroMs));
+  }
 
   @override
   void initState() {
     super.initState();
-    _seasonalSpec = SeasonalSplashResolver.resolve(
-      now: widget.currentDate,
-      override: widget.seasonalThemeOverride,
-    );
-
-    final effectiveAnimDuration = widget.animationDuration ??
-        (widget.minDuration <= Duration.zero
-            ? Duration.zero
-            : (widget.minDuration.inMilliseconds < 1100
-                ? Duration(
-                    milliseconds:
-                        (widget.minDuration.inMilliseconds * 0.55).round(),
-                  )
-                : const Duration(milliseconds: 650)));
+    _resolveSeasonalSpec();
 
     _introController = AnimationController(
       vsync: this,
-      duration: effectiveAnimDuration,
+      duration: _computeIntroAnimDuration(widget.minDuration),
     );
 
     _wallpaperController = AnimationController(
@@ -82,21 +91,51 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.0, 0.70, curve: Curves.easeOut),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.88, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.92, end: 1.0).animate(
       CurvedAnimation(
         parent: _introController,
-        curve: const Interval(0.0, 0.80, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.85, curve: Curves.easeOutCubic),
       ),
     );
 
-    _subtleSlideAnimation = Tween<double>(begin: 18.0, end: 0.0).animate(
+    _subtleSlideAnimation = Tween<double>(begin: 12.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _introController,
-        curve: const Interval(0.15, 0.85, curve: Curves.easeOutCubic),
+        curve: const Interval(0.10, 0.85, curve: Curves.easeOutCubic),
       ),
     );
+
+    _schedulePhaseTimers();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_precachedWallpaper && _seasonalSpec.wallpaperAsset != null) {
+      _precachedWallpaper = true;
+      unawaited(
+        precacheImage(AssetImage(_seasonalSpec.wallpaperAsset!), context)
+            .catchError((_) {}),
+      );
+    }
+  }
+
+  void _resolveSeasonalSpec() {
+    _seasonalSpec = SeasonalSplashResolver.resolve(
+      now: widget.currentDate,
+      override: widget.seasonalThemeOverride,
+      customPhotoPath: widget.customPhotoPath,
+      remotePackSlug: widget.remotePackSlug,
+      installedRemotePackPaths: widget.installedRemotePackPaths,
+    );
+  }
+
+  void _schedulePhaseTimers() {
+    _phaseTimer?.cancel();
+    _finishTimer?.cancel();
 
     if (widget.minDuration <= Duration.zero) {
+      _introController.duration = Duration.zero;
       _introController.value = 1.0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -104,23 +143,42 @@ class _SplashScreenState extends State<SplashScreen>
         }
       });
     } else {
-      _introController.forward();
-      final totalMs = widget.minDuration.inMilliseconds;
-      final phase1Ms = (totalMs * 0.42).round().clamp(180, totalMs - 180);
+      _phase = _SplashPhase.logoBanner;
+      _introController.duration = _computeIntroAnimDuration(widget.minDuration);
+      final phase1Ms = _computePhase1Ms(widget.minDuration);
 
-      _phaseTimer = Timer(Duration(milliseconds: phase1Ms), () {
+      // Wait until the first frame paints so cold-start decoding does not
+      // consume the user's configured splash dwell duration (e.g. 2.2s).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        setState(() {
-          _phase = _SplashPhase.seasonalWallpaper;
-        });
-        _wallpaperController.repeat();
-      });
+        _introController.forward(from: 0.0);
 
-      _finishTimer = Timer(widget.minDuration, () {
-        if (mounted) {
-          widget.onFinish();
-        }
+        _phaseTimer = Timer(Duration(milliseconds: phase1Ms), () {
+          if (!mounted) return;
+          setState(() {
+            _phase = _SplashPhase.seasonalWallpaper;
+          });
+          _wallpaperController.repeat();
+        });
+
+        _finishTimer = Timer(widget.minDuration, () {
+          if (mounted) {
+            widget.onFinish();
+          }
+        });
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant SplashScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentDate != widget.currentDate ||
+        oldWidget.seasonalThemeOverride != widget.seasonalThemeOverride ||
+        oldWidget.customPhotoPath != widget.customPhotoPath ||
+        oldWidget.remotePackSlug != widget.remotePackSlug ||
+        oldWidget.installedRemotePackPaths != widget.installedRemotePackPaths) {
+      setState(_resolveSeasonalSpec);
     }
   }
 
@@ -136,227 +194,128 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryBg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final scaffoldBg = _phase == _SplashPhase.logoBanner
+        ? Colors.white
+        : (isDark ? AppColors.darkBg : AppColors.lightBg);
 
     return Scaffold(
-      backgroundColor: primaryBg,
+      backgroundColor: scaffoldBg,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 360),
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
         child: _phase == _SplashPhase.logoBanner
-            ? _buildLogoBannerPhase(context, isDark, primaryBg)
+            ? _buildLogoBannerPhase(context)
             : _buildSeasonalWallpaperPhase(context, isDark),
       ),
     );
   }
 
-  Widget _buildLogoBannerPhase(
-    BuildContext context,
-    bool isDark,
-    Color primaryBg,
-  ) {
+  Widget _buildLogoBannerPhase(BuildContext context) {
     final l10n = context.l10n;
-    final textPrimary =
-        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textMuted =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextMuted;
 
-    return Stack(
+    return ColoredBox(
       key: const ValueKey('splash_phase_logo_banner'),
-      fit: StackFit.expand,
-      children: [
-        // Background banner image with atmospheric gradient scrims
-        Positioned.fill(
-          child: Opacity(
-            opacity: isDark ? 0.40 : 0.32,
-            child: Image.asset(
-              'assets/banner.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
-            ),
-          ),
-        ),
-
-        // Adaptive gradient overlay to softly blend banner into theme background
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  primaryBg.withValues(alpha: isDark ? 0.65 : 0.60),
-                  primaryBg.withValues(alpha: isDark ? 0.86 : 0.82),
-                  primaryBg,
-                ],
-                stops: const [0.0, 0.55, 1.0],
-              ),
-            ),
-          ),
-        ),
-
-        // Centered branded content
-        SafeArea(
-          child: Center(
-            child: AnimatedBuilder(
-              animation: _introController,
-              builder: (context, child) {
-                return FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Transform.translate(
-                    offset: Offset(0, _subtleSlideAnimation.value),
-                    child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: child,
-                    ),
-                  ),
-                );
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 104,
-                    height: 104,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.primary, AppColors.accent],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.38),
-                          blurRadius: 28,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 10),
-                        ),
-                        BoxShadow(
-                          color: AppColors.accent.withValues(alpha: 0.25),
-                          blurRadius: 40,
-                          spreadRadius: 4,
-                          offset: const Offset(0, 16),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(50),
-                      child: Image.asset(
-                        'assets/logo.jpg',
-                        width: 96,
-                        height: 96,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          color: AppColors.primary,
-                          child: const Icon(
-                            Icons.alarm_on_rounded,
-                            size: 48,
-                            color: Colors.white,
-                          ),
-                        ),
+      color: Colors.white,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Clean centered Nestin logo banner on pure white background
+          SafeArea(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _introController,
+                builder: (context, child) {
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Transform.translate(
+                      offset: Offset(0, _subtleSlideAnimation.value),
+                      child: Transform.scale(
+                        scale: _scaleAnimation.value,
+                        child: child,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        'Nestin',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.6,
-                          color: textPrimary,
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: 260,
+                          maxHeight: 220,
+                        ),
+                        child: Image.asset(
+                          'assets/banner.jpg',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => Image.asset(
+                            'assets/logo.jpg',
+                            width: 112,
+                            height: 112,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
-                          ),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'PRO',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                            color: Colors.white,
-                          ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.brandTagline,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.1,
+                          color: AppColors.lightTextSecondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      l10n.brandTagline,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.1,
-                        color: textMuted,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Bottom subtle sanctuary imprint
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 36,
-          child: SafeArea(
-            child: Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.4,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primary.withValues(alpha: 0.85),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.tr('splash_personal_space'),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.5,
-                        color: textMuted.withValues(alpha: 0.75),
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
           ),
-        ),
-      ],
+
+          // Subtle bottom sanctuary imprint on clean white
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 36,
+            child: SafeArea(
+              child: Center(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.tr('splash_personal_space'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                          color: AppColors.lightTextMuted.withValues(alpha: 0.80),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -369,10 +328,19 @@ class _SplashScreenState extends State<SplashScreen>
     final textMuted =
         isDark ? AppColors.darkTextSecondary : AppColors.lightTextMuted;
     final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final hasWallpaper = spec.wallpaperAsset != null;
+    final customFilePath = spec.customWallpaperFilePath;
+    final hasCustomFile = customFilePath != null &&
+        customFilePath.trim().isNotEmpty &&
+        File(customFilePath).existsSync();
+    final hasWallpaper = hasCustomFile || spec.wallpaperAsset != null;
+    final phaseKeySuffix = (widget.customPhotoPath != null &&
+            widget.customPhotoPath!.trim().isNotEmpty &&
+            hasCustomFile)
+        ? 'custom_photo'
+        : (spec.hasRemotePack ? 'pack_${spec.remotePackSlug}' : spec.theme.name);
 
     return Stack(
-      key: ValueKey('splash_phase_seasonal_${spec.theme.name}'),
+      key: ValueKey('splash_phase_seasonal_$phaseKeySuffix'),
       fit: StackFit.expand,
       children: [
         // Full-bleed seasonal wallpaper gradient
@@ -388,14 +356,39 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
 
-        // Illustrated seasonal wallpaper (or subtle sanctuary banner texture)
+        // Illustrated seasonal wallpaper, downloaded pack, or personal photo
         if (hasWallpaper) ...[
           Positioned.fill(
-            child: Image.asset(
-              spec.wallpaperAsset!,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
-            ),
+            child: hasCustomFile
+                ? (Platform.environment.containsKey('FLUTTER_TEST')
+                    ? DecoratedBox(
+                        key: const ValueKey('splash_custom_file_image'),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: gradientColors,
+                          ),
+                        ),
+                      )
+                    : Image.file(
+                        File(customFilePath),
+                        key: const ValueKey('splash_custom_file_image'),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => spec.wallpaperAsset != null
+                            ? Image.asset(
+                                spec.wallpaperAsset!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) =>
+                                    const SizedBox.shrink(),
+                              )
+                            : const SizedBox.shrink(),
+                      ))
+                : Image.asset(
+                    spec.wallpaperAsset!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
           ),
           // Subtle top & bottom vignettes so text/loader stay legible while
           // keeping the middle scene & mascot flock crisp and unobstructed.

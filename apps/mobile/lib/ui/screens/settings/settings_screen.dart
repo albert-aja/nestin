@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/l10n/app_language.dart';
@@ -5,6 +6,8 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_preferences.dart';
 import '../../../data/models/challenge_profile.dart';
+import '../../../data/services/backend_gateway_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../data/services/widget_sync_service.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/before_you_go_provider.dart';
@@ -45,6 +48,353 @@ import '../onboarding/mascot_onboarding_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  Widget _buildSplashPersonalPhotoAndPacksSection(
+    BuildContext context,
+    SettingsProvider provider,
+    AppLocalizations l10n,
+  ) {
+    final customPath = provider.customSplashPhotoPath;
+    final hasCustom = provider.hasCustomSplashPhoto;
+    final packs = provider.remoteSplashPacks;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Personal Local Photo Picker Card
+        Container(
+          key: const Key('settings_splash_personal_photo_card'),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.elevatedSurface(context),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: hasCustom
+                  ? AppColors.accent.withValues(alpha: 0.55)
+                  : AppColors.border(context),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (hasCustom &&
+                      customPath != null &&
+                      File(customPath).existsSync())
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(customPath),
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.photo_library_rounded,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.add_photo_alternate_rounded,
+                        color: AppColors.accent,
+                        size: 20,
+                      ),
+                    ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.tr('splash_custom_photo_card_title'),
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary(context),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          hasCustom
+                              ? l10n.tr('splash_custom_photo_active_desc')
+                              : l10n.tr('splash_custom_photo_card_desc'),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  OutlinedButton.icon(
+                    key: const Key('settings_splash_pick_photo_btn'),
+                    onPressed: () async {
+                      await provider.pickAndSetCustomSplashPhoto();
+                    },
+                    icon: const Icon(Icons.photo_library_outlined, size: 16),
+                    label: Text(
+                      l10n.tr('splash_custom_photo_pick_btn'),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  if (hasCustom)
+                    TextButton.icon(
+                      key: const Key('settings_splash_clear_photo_btn'),
+                      onPressed: () async {
+                        await provider.clearCustomSplashPhoto();
+                      },
+                      icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                      label: Text(
+                        l10n.tr('splash_custom_photo_clear_btn'),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 2. Curated Holiday & Seasonal Wallpaper Packs (Media Backend Catalog)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.tr('splash_remote_packs_section_title'),
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary(context),
+                    ),
+                  ),
+                  Text(
+                    l10n.tr('splash_remote_packs_section_desc'),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              key: const Key('settings_splash_refresh_catalog_btn'),
+              tooltip: l10n.tr('splash_remote_packs_refresh_btn'),
+              onPressed: () async {
+                BackendGatewayService? gateway;
+                try {
+                  final storage = context.read<StorageService>();
+                  gateway = BackendGatewayService(storage.prefs);
+                } catch (_) {}
+                await provider.refreshRemoteSplashCatalog(gateway: gateway);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.tr('splash_remote_packs_synced_toast'),
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.cloud_sync_outlined, size: 19),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...packs.map((pack) {
+          final isInstalled = provider.isRemoteSplashPackInstalled(pack.slug);
+          final isDownloading =
+              provider.isRemoteSplashPackDownloading(pack.slug);
+          final isActive =
+              !hasCustom && provider.activeRemoteSplashPackSlug == pack.slug;
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Container(
+              key: Key('settings_splash_pack_card_${pack.slug}'),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.elevatedSurface(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isActive
+                      ? pack.accentColor.withValues(alpha: 0.75)
+                      : AppColors.border(context),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          pack.bundledPreviewAsset,
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            width: 44,
+                            height: 44,
+                            color: pack.accentColor.withValues(alpha: 0.2),
+                            child: Icon(
+                              Icons.wallpaper_rounded,
+                              color: pack.accentColor,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.tr(pack.titleKey),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary(context),
+                              ),
+                            ),
+                            Text(
+                              '${l10n.tr(pack.badgeKey)} • ${pack.formattedSizeKb}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isActive)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: pack.accentColor.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            l10n.tr('splash_remote_pack_active_badge'),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: pack.accentColor,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (isDownloading)
+                    LinearProgressIndicator(
+                      value: provider.remoteSplashPackDownloadProgress(
+                        pack.slug,
+                      ),
+                    )
+                  else
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        if (!isInstalled)
+                          OutlinedButton.icon(
+                            key: Key(
+                              'settings_splash_pack_download_${pack.slug}',
+                            ),
+                            onPressed: () async {
+                              await provider.installRemoteSplashPack(
+                                pack.slug,
+                                activateOnInstall: true,
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.download_for_offline_outlined,
+                              size: 16,
+                            ),
+                            label: Text(
+                              l10n.tr('splash_remote_pack_download_btn'),
+                              style: const TextStyle(fontSize: 11.5),
+                            ),
+                          )
+                        else ...[
+                          if (!isActive)
+                            FilledButton.tonalIcon(
+                              key: Key(
+                                'settings_splash_pack_use_${pack.slug}',
+                              ),
+                              onPressed: () async {
+                                if (hasCustom) {
+                                  await provider.clearCustomSplashPhoto();
+                                }
+                                await provider.setActiveRemoteSplashPackSlug(
+                                  pack.slug,
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.check_circle_outline_rounded,
+                                size: 15,
+                              ),
+                              label: Text(
+                                l10n.tr('splash_remote_pack_use_btn'),
+                                style: const TextStyle(fontSize: 11.5),
+                              ),
+                            ),
+                          TextButton.icon(
+                            key: Key(
+                              'settings_splash_pack_remove_${pack.slug}',
+                            ),
+                            onPressed: () async {
+                              await provider.removeRemoteSplashPack(pack.slug);
+                            },
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              size: 15,
+                            ),
+                            label: Text(
+                              l10n.tr('splash_remote_pack_remove_btn'),
+                              style: const TextStyle(fontSize: 11.5),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
 
   void _tryRescheduleNotificationsForLanguage(BuildContext context) {
     void tryRun<T>(void Function(T) action) {
@@ -601,11 +951,25 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  prefs.seasonalSplashOverride == null
-                                      ? l10n.tr('splash_season_setting_auto_desc')
-                                      : l10n.tr(
-                                          prefs.seasonalSplashOverride!.labelKey,
-                                        ),
+                                  prefs.activeRemoteSplashPackSlug != null &&
+                                          RemoteHolidayWallpaperCatalog.bySlug(
+                                                prefs.activeRemoteSplashPackSlug,
+                                              ) !=
+                                              null
+                                      ? l10n.tr(
+                                          RemoteHolidayWallpaperCatalog.bySlug(
+                                            prefs.activeRemoteSplashPackSlug,
+                                          )!.titleKey,
+                                        )
+                                      : (prefs.seasonalSplashOverride == null
+                                            ? l10n.tr(
+                                                'splash_season_setting_auto_desc',
+                                              )
+                                            : l10n.tr(
+                                                prefs
+                                                    .seasonalSplashOverride!
+                                                    .labelKey,
+                                              )),
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     color: AppColors.textSecondary(context),
@@ -633,7 +997,14 @@ class SettingsScreen extends StatelessWidget {
                               key: const Key(
                                 'settings_seasonal_splash_dropdown',
                               ),
-                              value: prefs.seasonalSplashOverride?.name ?? 'auto',
+                              value:
+                                  prefs.activeRemoteSplashPackSlug != null &&
+                                          provider.isRemoteSplashPackInstalled(
+                                            prefs.activeRemoteSplashPackSlug!,
+                                          )
+                                      ? 'pack:${prefs.activeRemoteSplashPackSlug}'
+                                      : (prefs.seasonalSplashOverride?.name ??
+                                            'auto'),
                               isExpanded: true,
                               dropdownColor: AppColors.cardSurface(context),
                               items: [
@@ -655,16 +1026,44 @@ class SettingsScreen extends StatelessWidget {
                                     ),
                                   );
                                 }),
+                                ...provider.remoteSplashPacks
+                                    .where(
+                                      (pack) => provider
+                                          .isRemoteSplashPackInstalled(
+                                            pack.slug,
+                                          ),
+                                    )
+                                    .map((pack) {
+                                      return DropdownMenuItem<String>(
+                                        value: 'pack:${pack.slug}',
+                                        child: Text(
+                                          '✦ ${l10n.tr(pack.titleKey)}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      );
+                                    }),
                               ],
                               onChanged: (val) {
                                 if (val == null) return;
-                                provider.setSeasonalSplashOverride(
-                                  SeasonalSplashThemeExt.fromNameOrNull(val),
-                                );
+                                if (val.startsWith('pack:')) {
+                                  final slug = val.substring('pack:'.length);
+                                  provider.setActiveRemoteSplashPackSlug(slug);
+                                } else {
+                                  provider.setSeasonalSplashOverride(
+                                    SeasonalSplashThemeExt.fromNameOrNull(val),
+                                  );
+                                }
                               },
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSplashPersonalPhotoAndPacksSection(
+                        context,
+                        provider,
+                        l10n,
                       ),
                     ],
                   ),

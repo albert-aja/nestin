@@ -66,6 +66,8 @@ class SeasonalLoadingSpec {
   final String subtitleKey;
   final String mascotAsset;
   final String? wallpaperAsset;
+  final String? customWallpaperFilePath;
+  final String? remotePackSlug;
   final List<Color> darkGradient;
   final List<Color> lightGradient;
   final Color accentColor;
@@ -78,11 +80,268 @@ class SeasonalLoadingSpec {
     required this.subtitleKey,
     required this.mascotAsset,
     this.wallpaperAsset,
+    this.customWallpaperFilePath,
+    this.remotePackSlug,
     required this.darkGradient,
     required this.lightGradient,
     required this.accentColor,
     required this.secondaryAccentColor,
   });
+
+  bool get hasCustomPhoto =>
+      !hasRemotePack &&
+      customWallpaperFilePath != null &&
+      customWallpaperFilePath!.trim().isNotEmpty;
+
+  bool get hasRemotePack =>
+      remotePackSlug != null && remotePackSlug!.trim().isNotEmpty;
+
+  SeasonalLoadingSpec copyWith({
+    SeasonalSplashTheme? theme,
+    String? badgeKey,
+    String? titleKey,
+    String? subtitleKey,
+    String? mascotAsset,
+    String? wallpaperAsset,
+    String? customWallpaperFilePath,
+    String? remotePackSlug,
+    List<Color>? darkGradient,
+    List<Color>? lightGradient,
+    Color? accentColor,
+    Color? secondaryAccentColor,
+  }) {
+    return SeasonalLoadingSpec(
+      theme: theme ?? this.theme,
+      badgeKey: badgeKey ?? this.badgeKey,
+      titleKey: titleKey ?? this.titleKey,
+      subtitleKey: subtitleKey ?? this.subtitleKey,
+      mascotAsset: mascotAsset ?? this.mascotAsset,
+      wallpaperAsset: wallpaperAsset ?? this.wallpaperAsset,
+      customWallpaperFilePath:
+          customWallpaperFilePath ?? this.customWallpaperFilePath,
+      remotePackSlug: remotePackSlug ?? this.remotePackSlug,
+      darkGradient: darkGradient ?? this.darkGradient,
+      lightGradient: lightGradient ?? this.lightGradient,
+      accentColor: accentColor ?? this.accentColor,
+      secondaryAccentColor: secondaryAccentColor ?? this.secondaryAccentColor,
+    );
+  }
+}
+
+/// Metadata for a curated seasonal/holiday wallpaper pack in the `/api/v1/media`
+/// backend catalog that users can download and activate for Phase 2 of [SplashScreen].
+class RemoteHolidayWallpaperPack {
+  final String id;
+  final String slug;
+  final String optionLabelKey;
+  final String badgeKey;
+  final String titleKey;
+  final String subtitleKey;
+  final String bundledPreviewAsset;
+  final String mascotAsset;
+  final String storageBucket;
+  final String storagePath;
+  final String? publicUrl;
+  final int byteSize;
+  final String mascotDomain;
+  final SeasonalSplashTheme pairedParticlesTheme;
+  final List<Color> darkGradient;
+  final List<Color> lightGradient;
+  final Color accentColor;
+  final Color secondaryAccentColor;
+
+  const RemoteHolidayWallpaperPack({
+    required this.id,
+    required this.slug,
+    required this.optionLabelKey,
+    required this.badgeKey,
+    required this.titleKey,
+    required this.subtitleKey,
+    required this.bundledPreviewAsset,
+    required this.mascotAsset,
+    this.storageBucket = 'public-media',
+    required this.storagePath,
+    this.publicUrl,
+    required this.byteSize,
+    required this.mascotDomain,
+    required this.pairedParticlesTheme,
+    required this.darkGradient,
+    required this.lightGradient,
+    required this.accentColor,
+    required this.secondaryAccentColor,
+  });
+
+  String get formattedSizeKb => '${(byteSize / 1024).round()} KB';
+
+  RemoteHolidayWallpaperPack mergeRemoteMetadata(Map<String, dynamic> json) {
+    return RemoteHolidayWallpaperPack(
+      id: (json['id'] as String?) ?? id,
+      slug: (json['slug'] as String?) ?? slug,
+      optionLabelKey: optionLabelKey,
+      badgeKey: badgeKey,
+      titleKey: titleKey,
+      subtitleKey: subtitleKey,
+      bundledPreviewAsset: bundledPreviewAsset,
+      mascotAsset: mascotAsset,
+      storageBucket: (json['storageBucket'] as String?) ?? storageBucket,
+      storagePath: (json['storagePath'] as String?) ?? storagePath,
+      publicUrl: (json['publicUrl'] as String?) ?? publicUrl,
+      byteSize: (json['byteSize'] is num)
+          ? (json['byteSize'] as num).toInt()
+          : byteSize,
+      mascotDomain: (json['mascotDomain'] as String?) ?? mascotDomain,
+      pairedParticlesTheme: pairedParticlesTheme,
+      darkGradient: darkGradient,
+      lightGradient: lightGradient,
+      accentColor: accentColor,
+      secondaryAccentColor: secondaryAccentColor,
+    );
+  }
+
+  SeasonalLoadingSpec toLoadingSpec({String? localCachedFilePath}) {
+    return SeasonalLoadingSpec(
+      theme: pairedParticlesTheme,
+      badgeKey: badgeKey,
+      titleKey: titleKey,
+      subtitleKey: subtitleKey,
+      mascotAsset: mascotAsset,
+      wallpaperAsset: bundledPreviewAsset,
+      customWallpaperFilePath: localCachedFilePath,
+      remotePackSlug: slug,
+      darkGradient: darkGradient,
+      lightGradient: lightGradient,
+      accentColor: accentColor,
+      secondaryAccentColor: secondaryAccentColor,
+    );
+  }
+}
+
+/// Curated catalog of remote seasonal/holiday wallpaper packs from the `media`
+/// backend module (`/api/v1/media?assetType=wallpaper`).
+class RemoteHolidayWallpaperCatalog {
+  const RemoteHolidayWallpaperCatalog._();
+
+  static const List<RemoteHolidayWallpaperPack> packs = [
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000003',
+      slug: 'cherry-blossom-picnic',
+      optionLabelKey: 'splash_pack_cherry_blossom_opt',
+      badgeKey: 'splash_pack_cherry_blossom_badge',
+      titleKey: 'splash_pack_cherry_blossom_title',
+      subtitleKey: 'splash_pack_cherry_blossom_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/seasonal/cherry_blossom_picnic.jpg',
+      mascotAsset:
+          'assets/mascots/sprites/ensembles/trio_inspiration_quote_atelier.png',
+      storagePath: 'wallpapers/seasonal/cherry_blossom_picnic.jpg',
+      byteSize: 262144,
+      mascotDomain: 'pippin',
+      pairedParticlesTheme: SeasonalSplashTheme.springBloom,
+      darkGradient: [
+        Color(0xFF1F1624),
+        Color(0xFF332030),
+        Color(0xFF1A2822),
+      ],
+      lightGradient: [
+        Color(0xFFFDF2F8),
+        Color(0xFFFCE7F3),
+        Color(0xFFECFDF5),
+      ],
+      accentColor: Color(0xFFEC4899),
+      secondaryAccentColor: Color(0xFFF9A8D4),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000004',
+      slug: 'winter-snow-cabin',
+      optionLabelKey: 'splash_pack_winter_cabin_opt',
+      badgeKey: 'splash_pack_winter_cabin_badge',
+      titleKey: 'splash_pack_winter_cabin_title',
+      subtitleKey: 'splash_pack_winter_cabin_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/seasonal/winter_snow_cabin.jpg',
+      mascotAsset:
+          'assets/mascots/sprites/ensembles/trio_evening_wind_down_crew.png',
+      storagePath: 'wallpapers/seasonal/winter_snow_cabin.jpg',
+      byteSize: 278528,
+      mascotDomain: 'echo',
+      pairedParticlesTheme: SeasonalSplashTheme.christmas,
+      darkGradient: [
+        Color(0xFF0E1B2A),
+        Color(0xFF1A2D42),
+        Color(0xFF281C18),
+      ],
+      lightGradient: [
+        Color(0xFFEFF6FF),
+        Color(0xFFE0F2FE),
+        Color(0xFFFEF3C7),
+      ],
+      accentColor: Color(0xFF38BDF8),
+      secondaryAccentColor: Color(0xFFFBBF24),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000005',
+      slug: 'sunset-seaside-lighthouse',
+      optionLabelKey: 'splash_pack_seaside_lighthouse_opt',
+      badgeKey: 'splash_pack_seaside_lighthouse_badge',
+      titleKey: 'splash_pack_seaside_lighthouse_title',
+      subtitleKey: 'splash_pack_seaside_lighthouse_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/seasonal/sunset_seaside_lighthouse.jpg',
+      mascotAsset:
+          'assets/mascots/sprites/ensembles/trio_travel_adventure_packers.png',
+      storagePath: 'wallpapers/seasonal/sunset_seaside_lighthouse.jpg',
+      byteSize: 253952,
+      mascotDomain: 'scout',
+      pairedParticlesTheme: SeasonalSplashTheme.summerSun,
+      darkGradient: [
+        Color(0xFF1D162B),
+        Color(0xFF382032),
+        Color(0xFF152938),
+      ],
+      lightGradient: [
+        Color(0xFFFFF7ED),
+        Color(0xFFFFEDD5),
+        Color(0xFFE0F2FE),
+      ],
+      accentColor: Color(0xFFF97316),
+      secondaryAccentColor: Color(0xFFFDE047),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000006',
+      slug: 'tropical-bamboo-mist',
+      optionLabelKey: 'splash_pack_bamboo_mist_opt',
+      badgeKey: 'splash_pack_bamboo_mist_badge',
+      titleKey: 'splash_pack_bamboo_mist_title',
+      subtitleKey: 'splash_pack_bamboo_mist_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/seasonal/tropical_bamboo_mist.jpg',
+      mascotAsset: 'assets/mascots/sprites/seren/bamboo_rain_lantern.png',
+      storagePath: 'wallpapers/seasonal/tropical_bamboo_mist.jpg',
+      byteSize: 249856,
+      mascotDomain: 'seren',
+      pairedParticlesTheme: SeasonalSplashTheme.earthDay,
+      darkGradient: [
+        Color(0xFF0C221C),
+        Color(0xFF15352C),
+        Color(0xFF1A2823),
+      ],
+      lightGradient: [
+        Color(0xFFECFDF5),
+        Color(0xFFD1FAE5),
+        Color(0xFFE0F2FE),
+      ],
+      accentColor: Color(0xFF10B981),
+      secondaryAccentColor: Color(0xFF6EE7B7),
+    ),
+  ];
+
+  static RemoteHolidayWallpaperPack? bySlug(String? slug) {
+    if (slug == null || slug.trim().isEmpty) return null;
+    for (final pack in packs) {
+      if (pack.slug == slug) return pack;
+    }
+    return null;
+  }
 }
 
 /// Resolves the active seasonal loading wallpaper from the current date or an
@@ -177,7 +436,28 @@ class SeasonalSplashResolver {
   static SeasonalLoadingSpec resolve({
     DateTime? now,
     SeasonalSplashTheme? override,
+    String? customPhotoPath,
+    String? remotePackSlug,
+    Map<String, String>? installedRemotePackPaths,
   }) {
+    final trimmedPhoto = customPhotoPath?.trim();
+    if (trimmedPhoto != null && trimmedPhoto.isNotEmpty) {
+      final baseTheme = resolveTheme(now: now, override: override);
+      final baseSpec = specFor(baseTheme);
+      return baseSpec.copyWith(
+        badgeKey: 'splash_custom_photo_badge',
+        titleKey: 'splash_custom_photo_title',
+        subtitleKey: 'splash_custom_photo_subtitle',
+        customWallpaperFilePath: trimmedPhoto,
+      );
+    }
+
+    final pack = RemoteHolidayWallpaperCatalog.bySlug(remotePackSlug);
+    if (pack != null) {
+      final cachedPath = installedRemotePackPaths?[pack.slug];
+      return pack.toLoadingSpec(localCachedFilePath: cachedPath);
+    }
+
     final theme = resolveTheme(now: now, override: override);
     return specFor(theme);
   }

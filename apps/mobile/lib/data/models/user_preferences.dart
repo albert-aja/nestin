@@ -159,6 +159,10 @@ class UserPreferences {
   final bool showWidgetMascots;
   final SplashSpeed splashSpeed;
   final SeasonalSplashTheme? seasonalSplashOverride;
+  final String? customSplashPhotoPath;
+  final String? activeRemoteSplashPackSlug;
+  final List<String> installedRemoteSplashPackSlugs;
+  final Map<String, String> installedRemoteSplashPackPaths;
   final NestViewMode nestViewMode;
   final TreehouseDayPhase? treehousePhaseOverride;
 
@@ -186,6 +190,10 @@ class UserPreferences {
     this.showWidgetMascots = true,
     this.splashSpeed = SplashSpeed.normal,
     this.seasonalSplashOverride,
+    this.customSplashPhotoPath,
+    this.activeRemoteSplashPackSlug,
+    this.installedRemoteSplashPackSlugs = const [],
+    this.installedRemoteSplashPackPaths = const {},
     this.nestViewMode = NestViewMode.roomsGrid,
     this.treehousePhaseOverride,
   });
@@ -223,6 +231,12 @@ class UserPreferences {
     SplashSpeed? splashSpeed,
     SeasonalSplashTheme? seasonalSplashOverride,
     bool clearSeasonalSplashOverride = false,
+    String? customSplashPhotoPath,
+    bool clearCustomSplashPhotoPath = false,
+    String? activeRemoteSplashPackSlug,
+    bool clearActiveRemoteSplashPackSlug = false,
+    List<String>? installedRemoteSplashPackSlugs,
+    Map<String, String>? installedRemoteSplashPackPaths,
     NestViewMode? nestViewMode,
     TreehouseDayPhase? treehousePhaseOverride,
     bool clearTreehousePhaseOverride = false,
@@ -258,6 +272,16 @@ class UserPreferences {
       seasonalSplashOverride: clearSeasonalSplashOverride
           ? null
           : (seasonalSplashOverride ?? this.seasonalSplashOverride),
+      customSplashPhotoPath: clearCustomSplashPhotoPath
+          ? null
+          : (customSplashPhotoPath ?? this.customSplashPhotoPath),
+      activeRemoteSplashPackSlug: clearActiveRemoteSplashPackSlug
+          ? null
+          : (activeRemoteSplashPackSlug ?? this.activeRemoteSplashPackSlug),
+      installedRemoteSplashPackSlugs: installedRemoteSplashPackSlugs ??
+          this.installedRemoteSplashPackSlugs,
+      installedRemoteSplashPackPaths: installedRemoteSplashPackPaths ??
+          this.installedRemoteSplashPackPaths,
       nestViewMode: nestViewMode ?? this.nestViewMode,
       treehousePhaseOverride: clearTreehousePhaseOverride
           ? null
@@ -290,6 +314,10 @@ class UserPreferences {
       'showWidgetMascots': showWidgetMascots,
       'splashSpeed': splashSpeed.name,
       'seasonalSplashOverride': seasonalSplashOverride?.name,
+      'customSplashPhotoPath': customSplashPhotoPath,
+      'activeRemoteSplashPackSlug': activeRemoteSplashPackSlug,
+      'installedRemoteSplashPackSlugs': installedRemoteSplashPackSlugs,
+      'installedRemoteSplashPackPaths': installedRemoteSplashPackPaths,
       'nestViewMode': nestViewMode.name,
       'treehousePhaseOverride': treehousePhaseOverride?.name,
     };
@@ -339,6 +367,20 @@ class UserPreferences {
       seasonalSplashOverride: SeasonalSplashThemeExt.fromNameOrNull(
         json['seasonalSplashOverride'] as String?,
       ),
+      customSplashPhotoPath: json['customSplashPhotoPath'] as String?,
+      activeRemoteSplashPackSlug: json['activeRemoteSplashPackSlug'] as String?,
+      installedRemoteSplashPackSlugs:
+          (json['installedRemoteSplashPackSlugs'] is List)
+              ? (json['installedRemoteSplashPackSlugs'] as List)
+                  .map((e) => e.toString())
+                  .toList(growable: false)
+              : const [],
+      installedRemoteSplashPackPaths:
+          (json['installedRemoteSplashPackPaths'] is Map)
+              ? (json['installedRemoteSplashPackPaths'] as Map).map(
+                  (k, v) => MapEntry(k.toString(), v.toString()),
+                )
+              : const {},
       nestViewMode: NestViewModeExt.fromName(json['nestViewMode'] as String?),
       treehousePhaseOverride: TreehouseDayPhaseX.fromNameOrNull(
         json['treehousePhaseOverride'] as String?,

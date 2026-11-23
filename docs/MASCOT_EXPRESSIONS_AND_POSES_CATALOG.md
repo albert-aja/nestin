@@ -644,6 +644,17 @@ To stay 100% compatible with `scripts/Slicer.cs` (`3 columns × 2 rows = 6 cells
 | `flock_nest_wreath_peek` | **Full Flock** | All six birds peeking cheerfully around the circular woven twig-and-leaf Nestin wreath emblem inside a soft rounded squircle frame. | `SplashScreen` Phase 1 logo banner & About Nestin brand card (`SettingsScreen`). | EN: *"Welcome home to your Nestin sanctuary!"* / ID: *"Selamat datang di rumah tenang Nestin Anda!"* |
 | `twill_scout_app_icon_polisher` | **Twill + Scout** | Twill weaving a neat rounded-corner leaf border around the Nestin nest emblem while Scout buffs the badge to a crisp shine. | Android Adaptive Launcher Icon & `SettingsScreen` brand header. | EN: *"Crisp rounded edges, ready on your home screen!"* / ID: *"Sudut membulat rapi, siap di layar utama Anda!"* |
 
+### 12.22 Custom Personal Photo & Remote Holiday Wallpaper Packs (`SplashScreen` Phase 2, `SeasonalSplashResolver`, `SplashWallpaperPackService`, `SettingsScreen`)
+
+| Pose Slug | Bird(s) | Pose & Prop Description | Feature / Screen Trigger | Suggested EN / ID Quip (`app_translations.dart`) |
+| :--- | :--- | :--- | :--- | :--- |
+| `echo_pippin_personal_photo_frame` | **Echo + Pippin** | Echo and Pippin holding a warm wooden picture frame with a golden star corner clasp around the user's chosen personal sanctuary photo. | `SettingsScreen` (`settings_splash_custom_photo_card`) & `SplashScreen` Phase 2 when `customSplashPhotoPath` is active (`splash_phase_seasonal_custom_photo`). | EN: *"Your favorite memory welcomes you home every time Nestin opens."* / ID: *"Kenangan favoritmu menyambutmu pulang setiap kali Nestin dibuka."* |
+| `pippin_sakura_picnic_pack` | **Pippin + Flock** | Pippin pouring warm tea on a woven picnic blanket while soft pink sakura petals drift across a sunlit spring meadow. | `RemoteHolidayWallpaperCatalog` *Sakura Blossom Picnic* pack (`cherry-blossom-picnic`, `cherry_blossom_picnic.jpg`). | EN: *"Soft cherry blossom petals drifting over a joyful flock picnic."* / ID: *"Kelopak sakura lembut berjatuhan di atas piknik kawanan yang hangat."* |
+| `echo_winter_snow_cabin_pack` | **Echo + Flock** | Echo perched by a frosted timber cabin window glowing with amber hearth light while gentle snow blankets the pine woods outside. | `RemoteHolidayWallpaperCatalog` *Snowy Pine Cabin* pack (`winter-snow-cabin`, `winter_snow_cabin.jpg`). | EN: *"Warm timber hearth and glowing lanterns while snow falls outside."* / ID: *"Perapian kayu hangat dan lentera berpijar saat salju turun di luar."* |
+| `scout_seaside_lighthouse_pack` | **Scout + Pippin** | Scout and Pippin standing on a breezy cliffside overlook watching a red-and-white lighthouse beam shimmer across a sunset ocean horizon. | `RemoteHolidayWallpaperCatalog` *Sunset Seaside Lighthouse* pack (`sunset-seaside-lighthouse`, `sunset_seaside_lighthouse.jpg`). | EN: *"Golden coastal horizon and calm ocean breeze by the lighthouse."* / ID: *"Cakrawala pesisir keemasan dan angin laut tenang di dekat mercusuar."* |
+| `seren_tropical_bamboo_mist_pack` | **Seren + Flock** | Seren resting peacefully on a mossy stone lantern path surrounded by tall emerald bamboo stalks and drifting morning mist. | `RemoteHolidayWallpaperCatalog` *Misty Bamboo Sanctuary* pack (`tropical-bamboo-mist`, `tropical_bamboo_mist.jpg`). | EN: *"Quiet morning mist weaving through a serene emerald bamboo grove."* / ID: *"Kabut pagi yang hening menyelimuti hutan bambu zamrud yang damai."* |
+
+
 
 
 

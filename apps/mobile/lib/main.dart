@@ -286,6 +286,9 @@ class _NestinAppState extends State<NestinApp> {
               minDuration: settings.splashSpeed.duration,
               animationDuration: settings.splashSpeed.animationDuration,
               seasonalThemeOverride: settings.seasonalSplashOverride,
+              customPhotoPath: settings.customSplashPhotoPath,
+              remotePackSlug: settings.activeRemoteSplashPackSlug,
+              installedRemotePackPaths: settings.installedRemoteSplashPackPaths,
               onFinish: _onSplashFinish,
             );
           } else if (settings.hasCompletedOnboarding) {
