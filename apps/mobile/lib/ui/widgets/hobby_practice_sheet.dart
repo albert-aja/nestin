@@ -183,7 +183,6 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
   }
 
   void _showLogSessionDialog(BuildContext context, HobbyItem hobby) {
-    final parentL10n = context.l10n;
     int durationMinutes = 45;
     String focusTag = 'Technique';
     int rating = 5;

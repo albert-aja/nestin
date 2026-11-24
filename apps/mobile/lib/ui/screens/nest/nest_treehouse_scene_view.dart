@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/app_localizations.dart';
@@ -19,9 +20,11 @@ export 'treehouse_painters.dart'
         TreehouseRoomEffectsPainter,
         TreehouseSceneAnchors;
 
-/// Data model for a single bird perch hotspot inside [NestTreehouseSceneView].
+/// Data model for a single cutaway room + bird perch hotspot inside
+/// [NestTreehouseSceneView].
 class TreehouseSceneBirdHotspot {
   final Key key;
+  final Key? roomKey;
   final String name;
   final String compactMetric;
   final Color accentColor;
@@ -36,8 +39,19 @@ class TreehouseSceneBirdHotspot {
   /// `1536×2752` treehouse artwork (bird feet bottom-center).
   final double fy;
 
+  /// Fractional (`0.0–1.0`) room interior bounds on the `1536×2752` artwork
+  /// making the entire cutaway room tappable and long-pressable.
+  final Rect? roomBounds;
+
   /// Optional per-bird stagger phase offset in radians for organic idle motion.
   final double phaseOffset;
+
+  /// Calm per-bird pose-switching interval (`7–11s` recommended).
+  final Duration poseSwitchInterval;
+
+  /// Optional safe fractional horizontal walking floor bounds `(minFx, maxFx)`
+  /// inside this bird's cutaway room on the `1536×2752` artwork.
+  final ({double minFx, double maxFx})? walkSpan;
 
   /// Optional future multi-frame blink/flutter drop-in assets.
   final List<String>? blinkFrames;
@@ -45,8 +59,12 @@ class TreehouseSceneBirdHotspot {
 
   final VoidCallback onTap;
 
+  /// Optional long-press micro-action (e.g., Seren `+1 Glass`, Roo toggle alarm).
+  final VoidCallback? onLongPress;
+
   const TreehouseSceneBirdHotspot({
     required this.key,
+    this.roomKey,
     required this.name,
     required this.compactMetric,
     required this.accentColor,
@@ -54,20 +72,25 @@ class TreehouseSceneBirdHotspot {
     required this.fallbackIcon,
     required this.fx,
     required this.fy,
+    this.roomBounds,
     required this.onTap,
+    this.onLongPress,
     this.phaseOffset = 0.0,
+    this.poseSwitchInterval = const Duration(milliseconds: 9000),
+    this.walkSpan,
     this.blinkFrames,
     this.flutterFrames,
   });
 }
 
 /// Full-bleed **Living Animated Treehouse** scene layered over the 4-phase
-/// illustrated backgrounds (`treehouse_dawn.jpg`, `treehouse_day.jpg`,
+/// illustrated cutaway backgrounds (`treehouse_dawn.jpg`, `treehouse_day.jpg`,
 /// `treehouse_sunset.jpg`, `treehouse_night.jpg`).
 ///
 /// Performance & Accessibility Guardrails:
-/// - All overlays align via fractional `(0.0–1.0)` coordinates mapped onto the
-///   exact rendered image rectangle inside `LayoutBuilder`.
+/// - All overlays and full cutaway room hit zones align via fractional
+///   (`0.0–1.0`) coordinates mapped onto the exact rendered image rectangle
+///   inside `LayoutBuilder`.
 /// - One single shared `AnimationController` (12s seamless harmonic loop) drives
 ///   all room effects, outdoor atmosphere, and 6 bird idle loops.
 /// - Wrapped in `RepaintBoundary` layers and `TickerMode(enabled: effectiveActive)`
@@ -92,6 +115,10 @@ class NestTreehouseSceneView extends StatefulWidget {
   /// When `false`, all ambient tickers pause cleanly via [TickerMode].
   final bool isActive;
 
+  /// Bottom overlay clearance reserving breathing room above the raised `+`
+  /// Quick Capture FAB (`16dp` overhang + `24dp` extra clearance = `40dp`).
+  final double bottomOverlayClearance;
+
   final String? nextAlarmTime;
   final WeatherInfo? weather;
   final bool isSerenPlaying;
@@ -109,6 +136,7 @@ class NestTreehouseSceneView extends StatefulWidget {
     this.onSelectPhaseOverride,
     this.clockOverride,
     this.isActive = true,
+    this.bottomOverlayClearance = 40.0,
     required this.nextAlarmTime,
     required this.weather,
     this.isSerenPlaying = false,
@@ -231,6 +259,7 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
     final isDark = AppColors.isDark(context);
     final disableAnimations =
         MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final topInset = MediaQuery.paddingOf(context).top;
     final currentTime = widget.clockOverride ?? _now;
     final effectiveOverride = widget.onSelectPhaseOverride != null
         ? widget.phase
@@ -240,6 +269,13 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
     final backdropAsset =
         widget.backdropAssetPath ?? activePhase.backdropAsset;
     final isRainy = widget.weather?.isRainy ?? false;
+    final isHeavyRain = widget.weather?.isHeavyRain ?? false;
+    final weatherCond = widget.weather?.condition.toLowerCase() ?? '';
+    final isCoolBreeze = !isRainy &&
+        ((widget.weather?.isCool ?? false) ||
+            weatherCond.contains('breeze') ||
+            weatherCond.contains('wind') ||
+            weatherCond.contains('angin'));
 
     final tickerEnabled = _effectiveActive && !disableAnimations;
 
@@ -260,7 +296,7 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
           final maxPillWidth =
               (imageRect.width * 0.42).clamp(104.0, 166.0);
           final spriteSize =
-              (imageRect.width * 0.155).clamp(44.0, 68.0);
+              (imageRect.width * 0.165).clamp(48.0, 72.0);
 
           return SizedBox(
             key: const Key('nest_treehouse_scene_view'),
@@ -280,7 +316,7 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                     ),
                   ),
 
-                  // 1. 4-Phase Illustrated Treehouse Artwork with smooth AnimatedSwitcher cross-fade
+                  // 1. 4-Phase Illustrated Cutaway Treehouse Artwork with smooth cross-fade
                   RepaintBoundary(
                     child: AnimatedSwitcher(
                       key: const Key('nest_scene_backdrop_switcher'),
@@ -309,8 +345,10 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                     ),
                   ),
 
-                  // 2. Room Prop Animations (Roo clock/pendulum/cogs, Seren steam/lamp,
-                  //    Echo skylight stars/warm glow, Scout balcony lantern/rain)
+                  // 2. Room Prop Animations for ALL 6 Rooms (Roo clock/pendulum/brass gears,
+                  //    Echo skylight stars/telescope/lantern, Scout balcony lantern/map/weather,
+                  //    Seren teacup steam/lavender/lamp, Pippin lamp beam/dust motes/compass,
+                  //    Twill hanging keys/tools sway & workshop lamp)
                   RepaintBoundary(
                     child: IgnorePointer(
                       child: CustomPaint(
@@ -325,19 +363,22 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                           hasLoggedTodayReflection:
                               widget.hasLoggedTodayReflection,
                           isRainy: isRainy,
+                          isHeavyRain: isHeavyRain,
+                          isCoolBreeze: isCoolBreeze,
                         ),
                       ),
                     ),
                   ),
 
-                  // 3. 6 Living Animated Bird Hotspots planted in their rooms
+                  // 3. 6 Interactive Full-Room Cutaway Regions + Living Bird Hotspots
                   for (var i = 0; i < widget.birds.length; i++)
-                    _buildPositionedBirdHotspot(
+                    _buildInteractiveRoomHotspot(
                       bird: widget.birds[i],
                       index: i,
                       imageRect: imageRect,
                       viewportWidth: width,
                       viewportHeight: height,
+                      topInset: topInset,
                       maxPillWidth: maxPillWidth,
                       spriteSize: spriteSize,
                     ),
@@ -359,30 +400,30 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                     ),
                   ),
 
-                  // 5. Subtle top/bottom vignette for top pill & bottom whisper legibility
+                  // 5. Subtle top/bottom vignette for floating header & bottom hint legibility
                   IgnorePointer(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          stops: const [0.0, 0.12, 0.88, 1.0],
+                          stops: const [0.0, 0.16, 0.84, 1.0],
                           colors: [
                             Colors.black
-                                .withValues(alpha: isDark ? 0.28 : 0.16),
+                                .withValues(alpha: isDark ? 0.32 : 0.20),
                             Colors.transparent,
                             Colors.transparent,
                             Colors.black
-                                .withValues(alpha: isDark ? 0.34 : 0.22),
+                                .withValues(alpha: isDark ? 0.42 : 0.28),
                           ],
                         ),
                       ),
                     ),
                   ),
 
-                  // 6. Top floating status pill (Next Alarm + Weather)
+                  // 6. Top floating status pill (Next Alarm + Weather) below transparent AppBar
                   Positioned(
-                    top: 6,
+                    top: topInset + 2,
                     left: 16,
                     right: 16,
                     child: Center(
@@ -396,8 +437,10 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                   ),
 
                   // 7. Live Time-of-Day Phase Preview Scrubber & bottom whisper hint
+                  //    Elevated by bottomOverlayClearance (40dp = 16dp FAB + 24dp extra breathing room)
                   Positioned(
-                    bottom: 8,
+                    key: const Key('nest_scene_bottom_overlay'),
+                    bottom: widget.bottomOverlayClearance,
                     left: 12,
                     right: 12,
                     child: Column(
@@ -408,16 +451,17 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                           activePhase: activePhase,
                           onSelectPhase: _selectPhaseOverride,
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 2),
                         IgnorePointer(
                           child: Container(
+                            key: const Key('nest_scene_tap_hint_pill'),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 11,
-                              vertical: 4,
+                              horizontal: 12,
+                              vertical: 4.5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xA610131A),
-                              borderRadius: BorderRadius.circular(20),
+                              color: const Color(0xB810131A),
+                              borderRadius: BorderRadius.circular(999),
                               border: Border.all(
                                 color: Colors.white.withValues(alpha: 0.14),
                               ),
@@ -446,18 +490,19 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
     );
   }
 
-  Widget _buildPositionedBirdHotspot({
+  Widget _buildInteractiveRoomHotspot({
     required TreehouseSceneBirdHotspot bird,
     required int index,
     required Rect imageRect,
     required double viewportWidth,
     required double viewportHeight,
+    required double topInset,
     required double maxPillWidth,
     required double spriteSize,
   }) {
     final anchor = TreehouseSceneAnchors.mapPoint(imageRect, bird.fx, bird.fy);
     final slotWidth = maxPillWidth;
-    final pillHeight = 25.0;
+    const pillHeight = 25.0;
     final totalHeight = spriteSize + 2 + pillHeight;
 
     // Plant bird feet (bottom of sprite) right at anchor.dy, with dark-glass
@@ -465,25 +510,314 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
     final rawLeft = anchor.dx - slotWidth / 2;
     final rawTop = anchor.dy - spriteSize;
 
+    final double minSafeTop = math.max(46.0, topInset + 44.0);
+    final double maxSafeTop = math.max(
+      minSafeTop,
+      viewportHeight - totalHeight - (widget.bottomOverlayClearance + 76.0),
+    );
+
     final double safeLeft = rawLeft
         .clamp(6.0, math.max(6.0, viewportWidth - slotWidth - 6.0))
         .toDouble();
-    final double safeTop = rawTop
-        .clamp(46.0, math.max(46.0, viewportHeight - totalHeight - 58.0))
-        .toDouble();
+    final double safeTop = rawTop.clamp(minSafeTop, maxSafeTop).toDouble();
+    final birdRect = Rect.fromLTWH(safeLeft, safeTop, slotWidth, totalHeight);
+
+    final Rect mappedRoomRect;
+    if (bird.roomBounds != null) {
+      final rawRoom = TreehouseSceneAnchors.mapRect(
+        imageRect,
+        bird.roomBounds!,
+      );
+      final clampedLeft = rawRoom.left.clamp(0.0, viewportWidth - 48.0);
+      final clampedTop = rawRoom.top.clamp(0.0, viewportHeight - 48.0);
+      final clampedRight =
+          rawRoom.right.clamp(clampedLeft + 48.0, viewportWidth);
+      final clampedBottom =
+          rawRoom.bottom.clamp(clampedTop + 48.0, viewportHeight);
+      mappedRoomRect = Rect.fromLTRB(
+        clampedLeft.toDouble(),
+        clampedTop.toDouble(),
+        clampedRight.toDouble(),
+        clampedBottom.toDouble(),
+      );
+    } else {
+      mappedRoomRect = birdRect.inflate(8);
+    }
+
+    // Calibrate safe horizontal pacing bounds in logical pixels inside this
+    // room's floor so the bird strolls naturally without clipping walls/edges.
+    final birdCenterX = birdRect.center.dx;
+    final halfSprite = spriteSize * 0.46;
+    final minAllowedCenterX = math.max(
+      mappedRoomRect.left + halfSprite,
+      halfSprite + 4.0,
+    );
+    final maxAllowedCenterX = math.min(
+      mappedRoomRect.right - halfSprite,
+      viewportWidth - halfSprite - 4.0,
+    );
+    double pacingRangeLeft = 0.0;
+    double pacingRangeRight = 0.0;
+    if (bird.walkSpan != null) {
+      final targetMinX = imageRect.left + imageRect.width * bird.walkSpan!.minFx;
+      final targetMaxX = imageRect.left + imageRect.width * bird.walkSpan!.maxFx;
+      final clampedMinX = math.max(targetMinX, minAllowedCenterX);
+      final clampedMaxX = math.min(targetMaxX, maxAllowedCenterX);
+      pacingRangeLeft = math.max(0.0, birdCenterX - clampedMinX).clamp(0.0, 34.0);
+      pacingRangeRight =
+          math.max(0.0, clampedMaxX - birdCenterX).clamp(0.0, 34.0);
+    }
+
+    // Unified bounding box containing both the full cutaway room interior and
+    // the bird sprite + floating pill so tapping or long-pressing anywhere in
+    // the room gives unified scale/glow feedback without sibling occlusion.
+    final unionRect = mappedRoomRect.expandToInclude(birdRect);
+    final localRoomRect = mappedRoomRect.shift(-unionRect.topLeft);
+    final localBirdRect = birdRect.shift(-unionRect.topLeft);
 
     final staggerOffset =
         bird.phaseOffset != 0.0 ? bird.phaseOffset : index * 1.05;
 
-    return Positioned(
-      left: safeLeft,
-      top: safeTop,
-      width: slotWidth,
-      child: _SceneBirdHotspotButton(
+    return Positioned.fromRect(
+      rect: unionRect,
+      child: _InteractiveCutawayRoom(
         bird: bird,
+        localRoomRect: localRoomRect,
+        localBirdRect: localBirdRect,
         spriteSize: spriteSize,
+        pacingRangeLeft: pacingRangeLeft,
+        pacingRangeRight: pacingRangeRight,
         ambientAnimation: _ambientController,
         phaseOffset: staggerOffset,
+      ),
+    );
+  }
+}
+
+class _InteractiveCutawayRoom extends StatefulWidget {
+  final TreehouseSceneBirdHotspot bird;
+  final Rect localRoomRect;
+  final Rect localBirdRect;
+  final double spriteSize;
+  final double pacingRangeLeft;
+  final double pacingRangeRight;
+  final Animation<double> ambientAnimation;
+  final double phaseOffset;
+
+  const _InteractiveCutawayRoom({
+    required this.bird,
+    required this.localRoomRect,
+    required this.localBirdRect,
+    required this.spriteSize,
+    required this.pacingRangeLeft,
+    required this.pacingRangeRight,
+    required this.ambientAnimation,
+    required this.phaseOffset,
+  });
+
+  @override
+  State<_InteractiveCutawayRoom> createState() =>
+      _InteractiveCutawayRoomState();
+}
+
+class _InteractiveCutawayRoomState extends State<_InteractiveCutawayRoom> {
+  final GlobalKey<AnimatedMascotSpriteState> _spriteKey =
+      GlobalKey<AnimatedMascotSpriteState>();
+  bool _isPressed = false;
+  bool _isLongPressGlow = false;
+  Timer? _flashTimer;
+
+  @override
+  void dispose() {
+    _flashTimer?.cancel();
+    super.dispose();
+  }
+
+  void _setPressed(bool value) {
+    if (_isPressed == value || !mounted) return;
+    setState(() => _isPressed = value);
+  }
+
+  void _handleTap() {
+    _setPressed(false);
+    final spriteState = _spriteKey.currentState;
+    if (spriteState != null) {
+      spriteState.triggerHopAndTap(widget.bird.onTap);
+    } else {
+      widget.bird.onTap();
+    }
+  }
+
+  void _handleLongPress() {
+    final onLongPress = widget.bird.onLongPress;
+    if (onLongPress == null) return;
+    HapticFeedback.mediumImpact();
+    _flashTimer?.cancel();
+    setState(() {
+      _isPressed = false;
+      _isLongPressGlow = true;
+    });
+    onLongPress();
+    _flashTimer = Timer(const Duration(milliseconds: 260), () {
+      if (mounted) {
+        setState(() => _isLongPressGlow = false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bird = widget.bird;
+    final disableAnimations =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final activeHighlight = _isPressed || _isLongPressGlow;
+    final animDuration =
+        disableAnimations ? Duration.zero : const Duration(milliseconds: 120);
+
+    return Semantics(
+      button: true,
+      label: '${bird.name} • ${bird.compactMetric}',
+      child: GestureDetector(
+        key: bird.roomKey,
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _setPressed(true),
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
+        onTap: _handleTap,
+        onLongPress: bird.onLongPress != null ? _handleLongPress : null,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.97 : 1.0,
+          duration: animDuration,
+          curve: Curves.easeOutCubic,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Subtle press / long-press interior glow covering the cutaway room
+              Positioned.fromRect(
+                rect: widget.localRoomRect,
+                child: IgnorePointer(
+                  child: AnimatedContainer(
+                    duration: animDuration,
+                    curve: Curves.easeOutCubic,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: activeHighlight
+                          ? RadialGradient(
+                              colors: [
+                                bird.accentColor.withValues(
+                                  alpha: _isLongPressGlow ? 0.34 : 0.22,
+                                ),
+                                bird.accentColor.withValues(alpha: 0.08),
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.62, 1.0],
+                            )
+                          : null,
+                      border: Border.all(
+                        color: bird.accentColor.withValues(
+                          alpha: activeHighlight
+                              ? (_isLongPressGlow ? 0.72 : 0.50)
+                              : 0.0,
+                        ),
+                        width: 1.5,
+                      ),
+                      boxShadow: activeHighlight
+                          ? [
+                              BoxShadow(
+                                color: bird.accentColor.withValues(alpha: 0.28),
+                                blurRadius: 16,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Living animated bird sprite + floating dark-glass status pill
+              Positioned.fromRect(
+                rect: widget.localBirdRect,
+                child: KeyedSubtree(
+                  key: bird.key,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedMascotSprite(
+                        key: _spriteKey,
+                        spriteAsset: bird.spriteAsset,
+                        size: widget.spriteSize,
+                        accentColor: bird.accentColor,
+                        fallbackIcon: bird.fallbackIcon,
+                        ambientAnimation: widget.ambientAnimation,
+                        phaseOffset: widget.phaseOffset,
+                        poseSwitchInterval: bird.poseSwitchInterval,
+                        blinkFrames: bird.blinkFrames,
+                        flutterFrames: bird.flutterFrames,
+                        enableRoomPacing:
+                            (widget.pacingRangeLeft + widget.pacingRangeRight) >=
+                                2.0,
+                        pacingRangeLeft: widget.pacingRangeLeft,
+                        pacingRangeRight: widget.pacingRangeRight,
+                        showSubtleHalo: false,
+                      ),
+                      const SizedBox(height: 2),
+                      // Compact floating dark-glass full-pill status chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xD911141C),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: bird.accentColor.withValues(alpha: 0.55),
+                            width: 0.9,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.34),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: bird.accentColor,
+                              ),
+                            ),
+                            const SizedBox(width: 4.5),
+                            Flexible(
+                              child: Text(
+                                '${bird.name} • ${bird.compactMetric}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 0.1,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -519,29 +853,45 @@ class _ScenePhasePreviewScrubber extends StatelessWidget {
         ),
     ];
 
-    return Container(
+    return SizedBox(
       key: const Key('nest_scene_phase_scrubber'),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xCC10131C),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-      ),
+      height: 48,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            for (final opt in options)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: _buildChip(
-                  key: Key(opt.$1),
-                  phase: opt.$2,
-                  icon: opt.$3,
-                  label: opt.$4,
+            // Sleek dark-glass pill rail visually centered behind 48dp hit targets
+            Positioned.fill(
+              top: 8,
+              bottom: 8,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xCC10131C),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.16),
+                    ),
+                  ),
                 ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final opt in options)
+                    _buildChip(
+                      key: Key(opt.$1),
+                      phase: opt.$2,
+                      icon: opt.$3,
+                      label: opt.$4,
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -557,48 +907,58 @@ class _ScenePhasePreviewScrubber extends StatelessWidget {
     final isSelected = selectedOverride == phase;
     final isLiveActive = selectedOverride == null && phase == activePhase;
 
-    return InkWell(
+    return GestureDetector(
       key: key,
+      behavior: HitTestBehavior.opaque,
       onTap: () => onSelectPhase(phase),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFF59E0B).withValues(alpha: 0.28)
-              : (isLiveActive
-                  ? Colors.white.withValues(alpha: 0.10)
-                  : Colors.transparent),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFFFBBF24)
-                : (isLiveActive
-                    ? Colors.white.withValues(alpha: 0.24)
-                    : Colors.transparent),
-            width: 0.9,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 12,
-              color: isSelected
-                  ? const Color(0xFFFDE68A)
-                  : const Color(0xFFD1D5DB),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? Colors.white : const Color(0xFFD1D5DB),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFFF59E0B).withValues(alpha: 0.28)
+                    : (isLiveActive
+                        ? Colors.white.withValues(alpha: 0.10)
+                        : Colors.transparent),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFFFBBF24)
+                      : (isLiveActive
+                          ? Colors.white.withValues(alpha: 0.24)
+                          : Colors.transparent),
+                  width: 0.9,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 12,
+                    color: isSelected
+                        ? const Color(0xFFFDE68A)
+                        : const Color(0xFFD1D5DB),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color:
+                          isSelected ? Colors.white : const Color(0xFFD1D5DB),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -625,179 +985,118 @@ class _SceneTopStatusPill extends StatelessWidget {
         ? BeforeYouGoWeatherBanner.resolveWeatherVisual(context, weather!)
         : null;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xBF12151E),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.24),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 4,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.center,
-        children: [
-          InkWell(
-            onTap: onTapAlarm,
-            borderRadius: BorderRadius.circular(8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.alarm_rounded,
-                  size: 14,
-                  color: RooHouseScreen.rooColor,
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  nextAlarmTime ?? l10n.tr('nest_status_no_alarm'),
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+    return SizedBox(
+      height: 48,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Sleek dark-glass capsule visually centered inside 48dp hit zone
+            Positioned.fill(
+              top: 7,
+              bottom: 7,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xBF12151E),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.16),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.24),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-          if (weather != null)
-            InkWell(
-              onTap: onTapWeather,
-              borderRadius: BorderRadius.circular(8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    weatherVisual?.icon ?? Icons.wb_cloudy_outlined,
-                    size: 14,
-                    color: const Color(0xFF93C5FD),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    '${weather!.temperatureCelsius.round()}°C • ${weather!.condition}',
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFE5E7EB),
+                  GestureDetector(
+                    key: const Key('nest_scene_top_alarm_tap'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onTapAlarm,
+                    child: ConstrainedBox(
+                      constraints:
+                          const BoxConstraints(minWidth: 48, minHeight: 48),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.alarm_rounded,
+                              size: 14,
+                              color: RooHouseScreen.rooColor,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              nextAlarmTime ??
+                                  l10n.tr('nest_status_no_alarm'),
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
+                  if (weather != null) ...[
+                    Text(
+                      '•',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Colors.white.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    GestureDetector(
+                      key: const Key('nest_scene_top_weather_tap'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onTapWeather,
+                      child: ConstrainedBox(
+                        constraints:
+                            const BoxConstraints(minWidth: 48, minHeight: 48),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                weatherVisual?.icon ?? Icons.wb_cloudy_outlined,
+                                size: 14,
+                                color: const Color(0xFF93C5FD),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '${weather!.temperatureCelsius.round()}°C • ${weather!.condition}',
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFE5E7EB),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SceneBirdHotspotButton extends StatefulWidget {
-  final TreehouseSceneBirdHotspot bird;
-  final double spriteSize;
-  final Animation<double> ambientAnimation;
-  final double phaseOffset;
-
-  const _SceneBirdHotspotButton({
-    required this.bird,
-    required this.spriteSize,
-    required this.ambientAnimation,
-    required this.phaseOffset,
-  });
-
-  @override
-  State<_SceneBirdHotspotButton> createState() =>
-      _SceneBirdHotspotButtonState();
-}
-
-class _SceneBirdHotspotButtonState extends State<_SceneBirdHotspotButton> {
-  final GlobalKey<AnimatedMascotSpriteState> _spriteKey =
-      GlobalKey<AnimatedMascotSpriteState>();
-
-  @override
-  Widget build(BuildContext context) {
-    final bird = widget.bird;
-
-    return GestureDetector(
-      key: bird.key,
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        final spriteState = _spriteKey.currentState;
-        if (spriteState != null) {
-          spriteState.triggerHopAndTap(bird.onTap);
-        } else {
-          bird.onTap();
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedMascotSprite(
-            key: _spriteKey,
-            spriteAsset: bird.spriteAsset,
-            size: widget.spriteSize,
-            accentColor: bird.accentColor,
-            fallbackIcon: bird.fallbackIcon,
-            ambientAnimation: widget.ambientAnimation,
-            phaseOffset: widget.phaseOffset,
-            blinkFrames: bird.blinkFrames,
-            flutterFrames: bird.flutterFrames,
-            showSubtleHalo: false,
-          ),
-          const SizedBox(height: 2),
-          // Compact floating dark-glass status pill ("Roo • 06:30", "Scout • 28°C")
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-            decoration: BoxDecoration(
-              color: const Color(0xD911141C),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: bird.accentColor.withValues(alpha: 0.68),
-                width: 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.34),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 5.5,
-                  height: 5.5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: bird.accentColor,
-                  ),
-                ),
-                const SizedBox(width: 4.5),
-                Flexible(
-                  child: Text(
-                    '${bird.name} • ${bird.compactMetric}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

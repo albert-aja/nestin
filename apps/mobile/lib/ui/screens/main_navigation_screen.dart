@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -56,6 +57,30 @@ import 'time/tasks_screen.dart';
 import 'timers/timers_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
+  /// Height of the undocked floating pill dock capsule.
+  static const double dockHeight = 60.0;
+
+  /// Horizontal inset of the floating pill navbar from viewport edges (`16–20dp`).
+  static const double dockHorizontalMargin = 18.0;
+
+  /// Floating vertical offset above the bottom safe-area inset (`12–16dp`).
+  static const double dockBottomMargin = 14.0;
+
+  /// Height the raised center `+` Quick Capture button protrudes above the pill.
+  static const double fabProtrusion = 16.0;
+
+  /// Extra bottom clearance above the raised `+` Quick Capture button so bottom
+  /// hints and scroll content never crowd the FAB (`>= 24dp`).
+  static const double fabExtraClearance = 26.0;
+
+  /// Combined overhang clearance (`42dp`) above the pill top edge.
+  static const double fabClearance = fabProtrusion + fabExtraClearance;
+
+  /// Full bottom clearance above the bottom safe-area inset for `extendBody`
+  /// screens (`14 + 60 + 16 + 26 = 116dp`).
+  static const double floatingDockClearance =
+      dockBottomMargin + dockHeight + fabProtrusion + fabExtraClearance;
+
   const MainNavigationScreen({super.key});
 
   @override
@@ -177,6 +202,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       try {
         Provider.of<SettingsProvider>(context, listen: false)
             .evaluateAutoLock();
+      } catch (_) {}
+      try {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final l10n = AppLocalizations.of(context);
+        Provider.of<InspirationProvider>(context, listen: false)
+            .topUpDailyWallpaperCacheIfNeeded(
+          isDark: isDark,
+          l10n: l10n,
+        );
       } catch (_) {}
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden ||
@@ -486,16 +520,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       return ActiveAlarmScreen(alarm: ringingAlarm);
     }
 
+    final bottomSafeInset = MediaQuery.paddingOf(context).bottom;
+    final overlayClearance =
+        bottomSafeInset + MainNavigationScreen.floatingDockClearance;
+
     final pages = [
       HomeDashboardScreen(
         onNavigateTab: _handleLegacyTabRoute,
+        bottomOverlayClearance: overlayClearance,
       ),
       NestTreehouseScreen(
         isActive: _currentIndex == 1,
+        bottomOverlayClearance: overlayClearance,
       ),
     ];
 
     return Scaffold(
+      extendBody: true,
       body: FadeThroughIndexedStack(
         index: _currentIndex,
         children: pages,
@@ -534,102 +575,162 @@ class _ThreeSlotBottomDock extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = AppColors.isDark(context);
-    final selectedColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    final selectedColor = AppColors.primaryAdaptive(context);
     final unselectedColor = AppColors.textSecondary(context);
-    final surfaceColor = AppColors.recessedSurface(context);
+    final pillRadius = BorderRadius.circular(30);
 
-    return Material(
-      color: surfaceColor,
+    final pillInner = Material(
+      type: MaterialType.transparency,
       child: Container(
         decoration: BoxDecoration(
-          color: surfaceColor,
-          border: Border(
-            top: BorderSide(color: AppColors.border(context), width: 1),
+          color: isDark
+              ? AppColors.darkCard.withValues(alpha: 0.88)
+              : AppColors.lightCard,
+          borderRadius: pillRadius,
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.11)
+                : Colors.black.withValues(alpha: 0.05),
+            width: 1.0,
           ),
         ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 64,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Row(
-                  children: [
-                    // Left Slot: Dashboard
-                    Expanded(
-                      child: _DockTabItem(
-                        itemKey: const Key('nav_slot_dashboard'),
-                        icon: Icons.space_dashboard_outlined,
-                        activeIcon: Icons.space_dashboard_rounded,
-                        label: l10n.tr('nav_dashboard'),
-                        isSelected: currentIndex == 0,
-                        selectedColor: selectedColor,
-                        unselectedColor: unselectedColor,
-                        onTap: () => onSelectTab(0),
-                      ),
-                    ),
-                    // Spacer reserving clean breathing room for center raised button
-                    const SizedBox(width: 84),
-                    // Right Slot: Nest
-                    Expanded(
-                      child: _DockTabItem(
-                        itemKey: const Key('nav_slot_nest'),
-                        icon: Icons.cottage_outlined,
-                        activeIcon: Icons.cottage_rounded,
-                        label: l10n.tr('nav_nest'),
-                        isSelected: currentIndex == 1,
-                        selectedColor: selectedColor,
-                        unselectedColor: unselectedColor,
-                        onTap: () => onSelectTab(1),
-                      ),
-                    ),
-                  ],
-                ),
-                // Center Slot: Raised Nestin Crimson (+) Quick Capture Button
-                Positioned(
-                  top: -16,
-                  child: Tooltip(
-                    message: l10n.tr('nav_quick_capture_hint'),
-                    child: Semantics(
-                      button: true,
-                      label: l10n.tr('quick_capture'),
-                      child: GestureDetector(
-                        key: const Key('nav_slot_quick_capture'),
-                        onTap: onQuickCaptureTap,
-                        onLongPress: onQuickCaptureLongPress,
-                        child: Container(
-                          width: 58,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primary,
-                            border: Border.all(
-                              color: surfaceColor,
-                              width: 4,
+        child: Row(
+          children: [
+            // Left Slot: Dashboard
+            Expanded(
+              child: _DockTabItem(
+                itemKey: const Key('nav_slot_dashboard'),
+                icon: Icons.space_dashboard_outlined,
+                activeIcon: Icons.space_dashboard_rounded,
+                label: l10n.tr('nav_dashboard'),
+                isSelected: currentIndex == 0,
+                selectedColor: selectedColor,
+                unselectedColor: unselectedColor,
+                onTap: () => onSelectTab(0),
+              ),
+            ),
+            // Spacer reserving clean breathing room for center raised Leaf Green button
+            const SizedBox(width: 82),
+            // Right Slot: Nest
+            Expanded(
+              child: _DockTabItem(
+                itemKey: const Key('nav_slot_nest'),
+                icon: Icons.cottage_outlined,
+                activeIcon: Icons.cottage_rounded,
+                label: l10n.tr('nav_nest'),
+                isSelected: currentIndex == 1,
+                selectedColor: selectedColor,
+                unselectedColor: unselectedColor,
+                onTap: () => onSelectTab(1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          MainNavigationScreen.dockHorizontalMargin,
+          0,
+          MainNavigationScreen.dockHorizontalMargin,
+          MainNavigationScreen.dockBottomMargin,
+        ),
+        child: SizedBox(
+          height:
+              MainNavigationScreen.dockHeight + MainNavigationScreen.fabProtrusion,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
+            children: [
+              // Undocked floating pill capsule
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: MainNavigationScreen.dockHeight,
+                child: Container(
+                  key: const Key('main_floating_pill_dock'),
+                  decoration: BoxDecoration(
+                    borderRadius: pillRadius,
+                    boxShadow: isDark
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.44),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary
-                                    .withValues(alpha: isDark ? 0.42 : 0.34),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.09),
+                              blurRadius: 22,
+                              offset: const Offset(0, 8),
+                            ),
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: pillRadius,
+                    child: isDark
+                        ? BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                            child: pillInner,
+                          )
+                        : pillInner,
+                  ),
+                ),
+              ),
+              // Center Slot: Raised Nestin Leaf Green (+) Quick Capture Button
+              Positioned(
+                top: 0,
+                child: Tooltip(
+                  message: l10n.tr('nav_quick_capture_hint'),
+                  child: Semantics(
+                    button: true,
+                    label: l10n.tr('quick_capture'),
+                    child: GestureDetector(
+                      key: const Key('nav_slot_quick_capture'),
+                      onTap: onQuickCaptureTap,
+                      onLongPress: onQuickCaptureLongPress,
+                      child: Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: selectedColor,
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkCard
+                                : AppColors.lightCard,
+                            width: 3.5,
                           ),
-                          child: const Icon(
-                            Icons.add_rounded,
-                            color: Colors.white,
-                            size: 30,
-                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: selectedColor
+                                  .withValues(alpha: isDark ? 0.42 : 0.34),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.add_rounded,
+                          color: Colors.white,
+                          size: 30,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -661,51 +762,57 @@ class _DockTabItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isSelected ? selectedColor : unselectedColor;
+    final isDark = AppColors.isDark(context);
     final disableAnimations =
         MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     return InkWell(
       key: itemKey,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: disableAnimations
-                    ? Duration.zero
-                    : const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? selectedColor.withValues(alpha: 0.14)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  isSelected ? activeIcon : icon,
-                  size: 22,
-                  color: color,
-                ),
+      borderRadius: BorderRadius.circular(24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        child: SizedBox.expand(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: disableAnimations
+                        ? Duration.zero
+                        : const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? selectedColor.withValues(alpha: isDark ? 0.18 : 0.12)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      isSelected ? activeIcon : icon,
+                      size: 21,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                      color: color,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                  color: color,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -197,7 +197,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               icon: const Icon(Icons.check_rounded, size: 18),
               label: const Text('Save'),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.rooCrimson,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
@@ -422,12 +422,12 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: (isCustom ? AppColors.accent : AppColors.primary).withValues(alpha: 0.16),
+                                  color: (isCustom ? AppColors.accent : AppColors.rooCrimson).withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
                                   isCustom ? Icons.audio_file_rounded : Icons.music_note_rounded,
-                                  color: isCustom ? AppColors.accent : AppColors.primaryLight,
+                                  color: isCustom ? AppColors.accent : AppColors.rooCrimsonLight,
                                   size: 20,
                                 ),
                               ),
@@ -517,7 +517,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     min: 0.1,
                     max: 1.0,
                     divisions: 9,
-                    activeColor: AppColors.primary,
+                    activeColor: AppColors.rooCrimson,
                     onChanged: (val) => setState(() => _volume = val),
                   ),
                   SwitchListTile(
@@ -674,31 +674,33 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   const Divider(height: 24),
 
                   // Mode: Inherit vs Override
-                  RadioListTile<bool>(
-                    title: const Text('Inherit Global Default Profile'),
-                    subtitle: Text(
-                      'Uses settings from Settings tab (${globalProfile.typeLabel} • ${globalProfile.difficultyLabel} • ${globalProfile.questionsCount} rounds)',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    value: true,
+                  RadioGroup<bool>(
                     groupValue: _challengeInherited,
-                    contentPadding: EdgeInsets.zero,
                     onChanged: (val) {
                       setState(() => _challengeInherited = val ?? true);
                     },
-                  ),
-                  RadioListTile<bool>(
-                    title: const Text('Custom Challenge Override for this Alarm'),
-                    subtitle: const Text(
-                      'Set unique challenge rules specifically for this alarm',
-                      style: TextStyle(fontSize: 12),
+                    child: Column(
+                      children: [
+                        RadioListTile<bool>(
+                          title: const Text('Inherit Global Default Profile'),
+                          subtitle: Text(
+                            'Uses settings from Settings tab (${globalProfile.typeLabel} • ${globalProfile.difficultyLabel} • ${globalProfile.questionsCount} rounds)',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          value: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        const RadioListTile<bool>(
+                          title: Text('Custom Challenge Override for this Alarm'),
+                          subtitle: Text(
+                            'Set unique challenge rules specifically for this alarm',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          value: false,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ],
                     ),
-                    value: false,
-                    groupValue: _challengeInherited,
-                    contentPadding: EdgeInsets.zero,
-                    onChanged: (val) {
-                      setState(() => _challengeInherited = val ?? false);
-                    },
                   ),
 
                   // Custom Challenge Controls (shown when override selected)
@@ -831,37 +833,43 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        for (final mode in SerenAwakeningHandoffMode.values)
-                          RadioListTile<SerenAwakeningHandoffMode>(
-                            key: ValueKey('alarm_edit_handoff_${mode.name}'),
-                            value: mode,
-                            groupValue: _serenAwakeningHandoff,
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                            title: Text(
-                              '${mode.iconEmoji} ${l10n.tr(mode.labelKey)}',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: mode.descriptionKey != null
-                                ? Text(
-                                    l10n.tr(mode.descriptionKey!),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary(context),
+                        RadioGroup<SerenAwakeningHandoffMode>(
+                          groupValue: _serenAwakeningHandoff,
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _serenAwakeningHandoff = val;
+                              });
+                            }
+                          },
+                          child: Column(
+                            children: [
+                              for (final mode in SerenAwakeningHandoffMode.values)
+                                RadioListTile<SerenAwakeningHandoffMode>(
+                                  key: ValueKey('alarm_edit_handoff_${mode.name}'),
+                                  value: mode,
+                                  contentPadding: EdgeInsets.zero,
+                                  dense: true,
+                                  title: Text(
+                                    '${mode.iconEmoji} ${l10n.tr(mode.labelKey)}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  )
-                                : null,
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() {
-                                  _serenAwakeningHandoff = val;
-                                });
-                              }
-                            },
+                                  ),
+                                  subtitle: mode.descriptionKey != null
+                                      ? Text(
+                                          l10n.tr(mode.descriptionKey!),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.textSecondary(context),
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                            ],
                           ),
+                        ),
                       ],
                     );
                   },
@@ -895,7 +903,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         height: 38,
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary
+              ? AppColors.rooCrimson
               : AppColors.adaptive(
                   context,
                   dark: const Color(0xFF282A32),

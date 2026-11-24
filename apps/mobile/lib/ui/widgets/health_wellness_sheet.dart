@@ -212,7 +212,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     }
 
     if (wearable == null) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -233,7 +233,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     final record = wearable.latestRecord;
     if (record != null) {
       await healthProvider.ingestWearableRecord(record);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

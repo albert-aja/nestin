@@ -181,7 +181,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                           ),
                           Switch.adaptive(
                             value: sleepWellness.isEnabled,
-                            activeColor: const Color(0xFF8B5CF6),
+                            activeThumbColor: const Color(0xFF8B5CF6),
                             onChanged: (val) {
                               sleepWellness.toggleEnabled(
                                 val,

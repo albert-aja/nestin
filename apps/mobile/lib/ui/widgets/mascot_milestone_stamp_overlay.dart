@@ -64,7 +64,7 @@ class MascotMilestoneSpec {
           type: MascotMilestoneType.rooOnFire,
           mascotName: 'Roo',
           assetPath: 'assets/mascots/sprites/roo/on_fire.png',
-          accentColor: AppColors.primary,
+          accentColor: AppColors.rooCrimson,
           secondaryColor: AppColors.accent,
           fallbackIcon: Icons.local_fire_department_rounded,
           stampIcon: Icons.local_fire_department_rounded,
@@ -282,8 +282,8 @@ class _MascotMilestoneStampBadgeState extends State<MascotMilestoneStampBadge>
                             letterSpacing: 1.1,
                             color: AppColors.adaptive(
                               context,
-                              dark: spec.accentColor == AppColors.primary
-                                  ? AppColors.primaryLight
+                              dark: spec.accentColor == AppColors.rooCrimson
+                                  ? AppColors.rooCrimsonLight
                                   : spec.accentColor,
                               light: spec.accentColor,
                             ),

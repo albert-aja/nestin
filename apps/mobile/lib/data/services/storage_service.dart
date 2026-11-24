@@ -49,6 +49,7 @@ import '../models/automation_rule.dart';
 import '../models/entity_link.dart';
 import '../models/seren_relaxation_models.dart';
 import '../models/mental_wellness_models.dart';
+import '../models/daily_wallpaper_config.dart';
 import 'weather_service.dart';
 
 class StorageService {
@@ -139,6 +140,8 @@ class StorageService {
       'nestin_seren_relaxation_prefs_v1';
   static const String _keyMentalWellnessData =
       'nestin_mental_wellness_data_v1';
+  static const String _keyDailyWallpaperConfig =
+      'nestin_daily_wallpaper_config_v1';
 
   final SharedPreferences _prefs;
 
@@ -1195,6 +1198,7 @@ class StorageService {
       'entityLinks': loadEntityLinks().map((e) => e.toJson()).toList(),
       'serenRelaxationPrefs': loadSerenRelaxationPreferences().toJson(),
       'mentalWellnessData': loadMentalWellnessData().toJson(),
+      'dailyWallpaperConfig': loadDailyWallpaperConfig().toJson(),
       'experienceDrafts': loadExperienceDrafts().map(
         (key, value) => MapEntry(key, value.toJson()),
       ),
@@ -1336,6 +1340,27 @@ class StorageService {
     await _prefs.setString(
       _keyMentalWellnessData,
       jsonEncode(data.toJson()),
+    );
+  }
+
+  DailyWallpaperConfig loadDailyWallpaperConfig() {
+    final raw = _prefs.getString(_keyDailyWallpaperConfig);
+    if (raw == null || raw.isEmpty) {
+      return const DailyWallpaperConfig();
+    }
+    try {
+      return DailyWallpaperConfig.fromJson(
+        Map<String, dynamic>.from(jsonDecode(raw) as Map),
+      );
+    } catch (_) {
+      return const DailyWallpaperConfig();
+    }
+  }
+
+  Future<void> saveDailyWallpaperConfig(DailyWallpaperConfig config) async {
+    await _prefs.setString(
+      _keyDailyWallpaperConfig,
+      jsonEncode(config.toJson()),
     );
   }
 
@@ -1680,6 +1705,13 @@ class StorageService {
         await saveMentalWellnessData(
           MentalWellnessStateData.fromJson(
             Map<String, dynamic>.from(map['mentalWellnessData'] as Map),
+          ),
+        );
+      }
+      if (map['dailyWallpaperConfig'] is Map) {
+        await saveDailyWallpaperConfig(
+          DailyWallpaperConfig.fromJson(
+            Map<String, dynamic>.from(map['dailyWallpaperConfig'] as Map),
           ),
         );
       }

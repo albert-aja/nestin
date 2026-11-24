@@ -25,9 +25,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class _FakeBackendGatewayService extends BackendGatewayService {
   final List<Map<String, dynamic>> wallpapers;
 
-  _FakeBackendGatewayService(SharedPreferences prefs, this.wallpapers)
+  _FakeBackendGatewayService(super.prefs, this.wallpapers)
       : super(
-          prefs,
           config: const BackendGatewayConfig(
             apiBaseUrl: 'https://api.nestin.local',
             supabaseUrl: 'https://supabase.nestin.local',

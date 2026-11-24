@@ -256,6 +256,7 @@ class _NestinAppState extends State<NestinApp> {
               BackendGatewayService(storageService.prefs),
             ),
             notificationService: notificationService,
+            storageService: storageService,
           ),
         ),
         ChangeNotifierProvider(

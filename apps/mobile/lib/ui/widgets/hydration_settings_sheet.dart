@@ -127,7 +127,7 @@ class HydrationSettingsSheet extends StatelessWidget {
                         ),
                         Switch.adaptive(
                           value: hydration.remindersEnabled,
-                          activeColor: const Color(0xFF8B5CF6),
+                          activeThumbColor: const Color(0xFF8B5CF6),
                           onChanged: (val) {
                             hydration.toggleReminders(val);
                           },

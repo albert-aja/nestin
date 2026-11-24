@@ -161,7 +161,6 @@ class HobbyProvider extends ChangeNotifier {
     if (index == -1 || durationMinutes <= 0) return [];
 
     final hobby = _hobbies[index];
-    final oldHours = hobby.totalHoursPracticed;
     final oldMilestoneIds = hobby.unlockedMilestones.map((m) => m.id).toSet();
 
     final now = DateTime.now();

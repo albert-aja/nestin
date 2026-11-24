@@ -45,7 +45,6 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
     showDialog(
       context: context,
       builder: (ctx) {
-        final dialogL10n = ctx.l10n;
         final violetAccent = AppColors.adaptive(
           ctx,
           dark: const Color(0xFFA78BFA),

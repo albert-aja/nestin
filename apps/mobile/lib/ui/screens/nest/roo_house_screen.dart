@@ -22,7 +22,7 @@ import 'bird_house_shared.dart';
 
 /// Roo's House — Time, Planning, Habits & Digital Discipline (`#E04A3A`).
 class RooHouseScreen extends StatelessWidget {
-  static const Color rooColor = Color(0xFFE04A3A);
+  static const Color rooColor = AppColors.rooCrimson;
 
   const RooHouseScreen({super.key});
 
@@ -188,8 +188,8 @@ class RooHouseScreen extends StatelessWidget {
     final isDark = AppColors.isDark(context);
     final accentInk = AppColors.adaptive(
       context,
-      dark: AppColors.primaryLight,
-      light: AppColors.primaryDark,
+      dark: AppColors.rooCrimsonLight,
+      light: AppColors.rooCrimsonDark,
     );
 
     return Container(

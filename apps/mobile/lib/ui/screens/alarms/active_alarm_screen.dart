@@ -149,7 +149,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                         gradient: const RadialGradient(
                           colors: [
                             AppColors.accent,
-                            AppColors.primary,
+                            AppColors.rooCrimson,
                           ],
                         ),
                         boxShadow: [
@@ -328,12 +328,12 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.rooCrimson,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 8,
-                      shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                      shadowColor: AppColors.rooCrimson.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -357,12 +357,12 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.rooCrimson,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 8,
-                      shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                      shadowColor: AppColors.rooCrimson.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

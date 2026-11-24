@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/inspiration_models.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../providers/inspiration_provider.dart';
+import '../../widgets/inspiration/daily_wallpaper_sheet.dart';
 import '../../widgets/inspiration/inspiration_notification_sheet.dart';
 import 'quote_card_studio_screen.dart';
 
@@ -564,6 +565,10 @@ class _InspirationScreenState extends State<InspirationScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Opt-in Daily Lock-Screen Wallpaper Entry Card
+          _buildDailyWallpaperEntryCard(context, provider, featured),
           const SizedBox(height: 16),
 
           // Search + Language + Favorites Quick Filter
@@ -707,6 +712,120 @@ class _InspirationScreenState extends State<InspirationScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDailyWallpaperEntryCard(
+    BuildContext context,
+    InspirationProvider provider,
+    InspirationQuote featured,
+  ) {
+    final l10n = context.l10n;
+    final wpConfig = provider.dailyWallpaperConfig;
+    final isEnabled = wpConfig.enabled && provider.isDailyWallpaperAndroid;
+
+    return Material(
+      color: AppColors.cardSurface(context),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => DailyWallpaperSheet.show(
+          context,
+          initialQuoteText: featured.quoteText,
+          initialAuthorName: featured.author,
+          initialMascotDomain: featured.mascotDomain,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isEnabled
+                  ? AppColors.primary.withValues(alpha: 0.45)
+                  : AppColors.border(context),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.wallpaper_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            l10n.tr('daily_wp_entry_title'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary(context),
+                            ),
+                          ),
+                        ),
+                        if (isEnabled) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              l10n.tr('daily_wp_badge_active'),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      isEnabled
+                          ? l10n.tr('daily_wp_entry_active_desc', {
+                              'time': wpConfig.formattedRefreshTime,
+                            })
+                          : l10n.tr('daily_wp_entry_desc'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textSecondary(context),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

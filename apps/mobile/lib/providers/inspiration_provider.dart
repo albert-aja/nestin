@@ -1,13 +1,19 @@
 import 'package:material_ui/material_ui.dart';
 import '../core/l10n/app_localizations.dart';
+import '../data/models/daily_wallpaper_config.dart';
 import '../data/models/inspiration_models.dart';
 import '../data/services/backend_gateway_service.dart';
+import '../data/services/daily_wallpaper_service.dart';
 import '../data/services/inspiration_service.dart';
 import '../data/services/notification_service.dart';
+import '../data/services/quote_card_export_service.dart';
+import '../data/services/storage_service.dart';
 
 class InspirationProvider extends ChangeNotifier {
   final InspirationService _service;
   final NotificationService? _notifications;
+  final StorageService? _storage;
+  final DailyWallpaperService _dailyWallpaperService;
 
   InspirationQuote? _featuredQuote;
   List<InspirationQuote> _quotes = [];
@@ -19,6 +25,8 @@ class InspirationProvider extends ChangeNotifier {
   List<InspirationSubmission> _submissions = [];
   InspirationNotificationPreferences _notificationPreferences =
       const InspirationNotificationPreferences();
+  DailyWallpaperConfig _dailyWallpaperConfig = const DailyWallpaperConfig();
+  bool _isPreparingDailyWallpapers = false;
 
   bool _isLoading = false;
   bool _hasLoadedOnce = false;
@@ -37,7 +45,12 @@ class InspirationProvider extends ChangeNotifier {
   InspirationProvider(
     this._service, {
     NotificationService? notificationService,
-  }) : _notifications = notificationService {
+    StorageService? storageService,
+    DailyWallpaperService? dailyWallpaperService,
+  })  : _notifications = notificationService,
+        _storage = storageService,
+        _dailyWallpaperService =
+            dailyWallpaperService ?? const DailyWallpaperService() {
     _hydrateFromCache();
   }
 
@@ -52,6 +65,9 @@ class InspirationProvider extends ChangeNotifier {
     _userQuotes = _service.loadUserQuotes();
     _submissions = _service.loadSubmissions();
     _notificationPreferences = _service.loadNotificationPreferences();
+    if (_storage != null) {
+      _dailyWallpaperConfig = _storage.loadDailyWallpaperConfig();
+    }
   }
 
   InspirationQuote get featuredQuote =>
@@ -388,6 +404,193 @@ class InspirationProvider extends ChangeNotifier {
       title: l10n.tr('nestin_inspiration'),
       body: '"${quote.quoteText}" — ${quote.author}',
       quoteId: quote.id,
+    );
+  }
+
+  // ===========================================================================
+  // Daily Affirmation Lock-Screen Wallpaper (Opt-in)
+  // ===========================================================================
+
+  DailyWallpaperConfig get dailyWallpaperConfig => _dailyWallpaperConfig;
+  bool get isPreparingDailyWallpapers => _isPreparingDailyWallpapers;
+  bool get isDailyWallpaperAndroid => _dailyWallpaperService.isAndroid;
+  bool get isDailyWallpaperIOS => _dailyWallpaperService.isIOS;
+
+  static const Set<String> _calmGroundedCategories = {
+    'calm',
+    'mindfulness',
+    'gratitude',
+    'peace',
+    'focus',
+    'reflection',
+    'rest',
+    'patience',
+    'simplicity',
+    'self-care',
+    'gentle-living',
+  };
+
+  /// Deterministically picks a grounded quote for [date] and [dayOffset]
+  /// according to the active [DailyWallpaperSource].
+  InspirationQuote selectQuoteForDailyWallpaper({
+    required DateTime date,
+    required int dayOffset,
+    required DailyWallpaperSource source,
+    required String locale,
+  }) {
+    final allCached =
+        _quotes.isNotEmpty ? _quotes : InspirationService.starterQuotes;
+    final localePool = allCached.where((q) => q.locale == locale).toList();
+    final basePool = localePool.isNotEmpty ? localePool : allCached;
+
+    List<InspirationQuote> pool;
+    switch (source) {
+      case DailyWallpaperSource.favorites:
+        final favLocale =
+            _favorites.where((q) => q.locale == locale).toList();
+        pool = favLocale.isNotEmpty
+            ? favLocale
+            : (_favorites.isNotEmpty ? _favorites : basePool);
+      case DailyWallpaperSource.calmGrounded:
+        final calm = basePool.where((q) {
+          final cat = q.category.toLowerCase();
+          final domain = (q.mascotDomain ?? '').toLowerCase();
+          return _calmGroundedCategories.contains(cat) ||
+              domain == 'seren' ||
+              domain == 'echo' ||
+              domain == 'pippin';
+        }).toList();
+        pool = calm.isNotEmpty ? calm : basePool;
+      case DailyWallpaperSource.dailyFeatured:
+        if (dayOffset == 0) {
+          return _service.loadCachedFeaturedQuote(locale: locale);
+        }
+        pool = basePool;
+    }
+
+    if (pool.isEmpty) return featuredQuote;
+    final seed = (date.year * 372) + (date.month * 31) + date.day + dayOffset;
+    return pool[seed.abs() % pool.length];
+  }
+
+  Future<void> updateDailyWallpaperConfig(
+    DailyWallpaperConfig updated, {
+    required bool isDark,
+    required AppLocalizations l10n,
+  }) async {
+    _dailyWallpaperConfig = updated;
+    await _storage?.saveDailyWallpaperConfig(updated);
+    notifyListeners();
+
+    if (!_dailyWallpaperService.isAndroid) {
+      return;
+    }
+
+    if (!updated.enabled) {
+      await _dailyWallpaperService.cancelDailyWallpaper();
+      return;
+    }
+
+    await _preRenderAndScheduleDailyWallpapers(
+      config: updated,
+      isDark: isDark,
+      l10n: l10n,
+    );
+  }
+
+  Future<void> _preRenderAndScheduleDailyWallpapers({
+    required DailyWallpaperConfig config,
+    required bool isDark,
+    required AppLocalizations l10n,
+  }) async {
+    if (_isPreparingDailyWallpapers) return;
+    _isPreparingDailyWallpapers = true;
+    notifyListeners();
+    try {
+      final locale = l10n.isIndonesian ? 'id' : 'en';
+      await _dailyWallpaperService.preRenderRollingCache(
+        config: config,
+        quoteForDate: (date, offset) => selectQuoteForDailyWallpaper(
+          date: date,
+          dayOffset: offset,
+          source: config.quoteSource,
+          locale: locale,
+        ),
+        isDark: isDark,
+        l10n: l10n,
+      );
+      await _dailyWallpaperService.scheduleDailyWallpaper(config);
+    } catch (_) {
+      // Non-fatal: keep saved preferences intact even if rendering fails in headless env.
+    } finally {
+      _isPreparingDailyWallpapers = false;
+      notifyListeners();
+    }
+  }
+
+  /// Called on `AppLifecycleState.resumed` to silently top up the 7-day cache
+  /// whenever fewer than 5 future days remain cached.
+  Future<void> topUpDailyWallpaperCacheIfNeeded({
+    required bool isDark,
+    required AppLocalizations l10n,
+  }) async {
+    if (!_dailyWallpaperConfig.enabled || !_dailyWallpaperService.isAndroid) {
+      return;
+    }
+    final needsTopUp = await _dailyWallpaperService.needsCacheTopUp();
+    if (!needsTopUp) return;
+    await _preRenderAndScheduleDailyWallpapers(
+      config: _dailyWallpaperConfig,
+      isDark: isDark,
+      l10n: l10n,
+    );
+  }
+
+  Future<bool> applyTodayWallpaperNow({
+    required GlobalKey boundaryKey,
+    required bool isDark,
+    required AppLocalizations l10n,
+  }) async {
+    final filePath =
+        await _dailyWallpaperService.captureAndSaveTodayFromBoundary(
+      boundaryKey: boundaryKey,
+    );
+    final applied = await _dailyWallpaperService.applyWallpaperNow(
+      filePath: filePath,
+      target: _dailyWallpaperConfig.target,
+    );
+    if (applied) {
+      final todayKey = DailyWallpaperService.formatDateKey(DateTime.now());
+      _dailyWallpaperConfig =
+          _dailyWallpaperConfig.copyWith(lastAppliedDate: todayKey);
+      await _storage?.saveDailyWallpaperConfig(_dailyWallpaperConfig);
+      notifyListeners();
+    }
+    if (_dailyWallpaperConfig.enabled) {
+      // Refresh remaining 6 days asynchronously so schedule stays aligned.
+      await _preRenderAndScheduleDailyWallpapers(
+        config: _dailyWallpaperConfig,
+        isDark: isDark,
+        l10n: l10n,
+      );
+    }
+    return applied;
+  }
+
+  Future<QuoteCardExportOutcome> saveTodayWallpaperForIos({
+    required GlobalKey boundaryKey,
+    String? quoteText,
+    String? authorName,
+  }) async {
+    final bytes = await _dailyWallpaperService.exportService.captureBoundaryPng(
+      boundaryKey,
+      pixelRatio: DailyWallpaperService.defaultPixelRatio,
+    );
+    final text = quoteText ?? featuredQuote.quoteText;
+    final author = authorName ?? featuredQuote.author;
+    return _dailyWallpaperService.saveForIosManualUse(
+      pngBytes: bytes,
+      shareText: '“$text” — $author (Nestin)',
     );
   }
 }

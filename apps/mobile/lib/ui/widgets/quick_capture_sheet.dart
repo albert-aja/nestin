@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,13 +35,14 @@ enum CaptureType {
   wishlist,
 }
 
-/// Redesigned 3-Zone Quick Capture Sheet:
-/// - Zone 1 (Top): Smart Text Capture (5 text types, NLP date detector,
-///   compact optional chips, bird-tinted Save button)
-/// - Zone 2 (Middle): 4-Column Quick Actions (+ Money, + Alarm, BeforeYouGo,
-///   inline +1 Glass)
+/// Refined 3-Zone Quick Capture Sheet (`24dp` top radius, `AppColors.sheetSurface`):
+/// - Zone 1 (Top): Smart Text Capture (borderless full-pill 5-type selector,
+///   focused NLP input, compact borderless optional chips for Date/Time,
+///   Priority, Category & Notes, bird-tinted Save button)
+/// - Zone 2 (Middle): 4-Column Quick Actions (`+ Money`, `+ Alarm`,
+///   `BeforeYouGo`, inline `+1 Glass` with 48dp+ touch targets)
 /// - Zone 3 (Bottom): Calm Anchor full-width soft lavender pill for Seren's
-///   "Need a Moment?" / Mental Aid
+///   "Need a Moment?" (Mental Aid), smoothly collapsing Zones 2 & 3 on focus/keyboard
 class QuickCaptureSheet extends StatefulWidget {
   final CaptureType? initialType;
 
@@ -86,7 +87,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final FocusNode _notesFocusNode = FocusNode();
 
   AlarmCategory _category = AlarmCategory.fromType(AlarmCategoryType.personal);
+  TaskPriority _priority = TaskPriority.medium;
+  DateTime? _manualDueDate;
+  TimeOfDay? _manualDueTime;
   ParsedDateResult? _parsedNlp;
+
+  bool _showDateTimePicker = false;
+  bool _showPriorityPicker = false;
   bool _showNotesField = false;
   bool _showCategoryPicker = false;
   bool _isInputFocused = false;
@@ -160,6 +167,77 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     }
   }
 
+  Color _priorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.urgent:
+        return const Color(0xFFEF4444);
+      case TaskPriority.high:
+        return const Color(0xFFF97316);
+      case TaskPriority.medium:
+        return const Color(0xFF3B82F6);
+      case TaskPriority.low:
+        return const Color(0xFF6B7280);
+    }
+  }
+
+  String _priorityLabel(AppLocalizations l10n, TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.urgent:
+        return l10n.tr('urgent');
+      case TaskPriority.high:
+        return l10n.tr('high');
+      case TaskPriority.medium:
+        return l10n.tr('medium');
+      case TaskPriority.low:
+        return l10n.tr('low');
+    }
+  }
+
+  String _dateTimeChipLabel(AppLocalizations l10n) {
+    final effectiveDate = _manualDueDate ?? _parsedNlp?.date;
+    final effectiveTime = _manualDueTime ?? _parsedNlp?.time;
+    if (effectiveDate == null && effectiveTime == null) {
+      return l10n.tr('qc_datetime_chip');
+    }
+    final parts = <String>[];
+    if (effectiveDate != null) {
+      parts.add(l10n.formatDate(effectiveDate, 'MMM d'));
+    }
+    if (effectiveTime != null) {
+      final hh = effectiveTime.hour.toString().padLeft(2, '0');
+      final mm = effectiveTime.minute.toString().padLeft(2, '0');
+      parts.add('$hh:$mm');
+    }
+    return parts.join(' • ');
+  }
+
+  Future<void> _pickManualDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _manualDueDate ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 5),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _manualDueDate = picked;
+      });
+    }
+  }
+
+  Future<void> _pickManualTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _manualDueTime ?? TimeOfDay.now(),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _manualDueTime = picked;
+      });
+    }
+  }
+
   @override
   void dispose() {
     if (!_didSubmit) {
@@ -187,6 +265,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       title = _parsedNlp!.cleanTitle;
     }
 
+    final resolvedDate = _manualDueDate ?? _parsedNlp?.date;
+    final resolvedTime = _manualDueTime ?? _parsedNlp?.time;
+
     switch (_selectedType) {
       case CaptureType.note:
         Provider.of<NoteProvider>(context, listen: false).addNote(
@@ -207,9 +288,10 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             id: const Uuid().v4(),
             title: title,
             notes: content,
+            priority: _priority,
             category: _category,
-            dueDate: _parsedNlp?.date ?? now,
-            dueTime: _parsedNlp?.time,
+            dueDate: resolvedDate ?? now,
+            dueTime: resolvedTime,
             createdAt: now,
           ),
         );
@@ -217,9 +299,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
 
       case CaptureType.reminder:
         DateTime reminderDate = now.add(const Duration(hours: 2));
-        if (_parsedNlp != null && _parsedNlp!.hasMatch) {
-          final d = _parsedNlp!.date ?? now;
-          final t = _parsedNlp!.time ?? const TimeOfDay(hour: 9, minute: 0);
+        if (resolvedDate != null || resolvedTime != null) {
+          final d = resolvedDate ?? now;
+          final t = resolvedTime ?? const TimeOfDay(hour: 9, minute: 0);
           reminderDate = DateTime(d.year, d.month, d.day, t.hour, t.minute);
         }
         Provider.of<ReminderProvider>(context, listen: false).addReminder(
@@ -293,11 +375,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     } on ProviderNotFoundException {
       return;
     }
-    final goalJustMet = await hydration.addGlass();
+    final future = hydration.addGlass();
+    if (mounted) {
+      setState(() {
+        _loggedWaterInline = true;
+      });
+    }
+    final goalJustMet = await future;
     if (!mounted) return;
-    setState(() {
-      _loggedWaterInline = true;
-    });
     try {
       Provider.of<WearableProvider>(context, listen: false)
           .syncHydrationToWearable(hydration.currentMilliliters);
@@ -323,6 +408,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ? Duration.zero
         : const Duration(milliseconds: 200);
     final activeAccent = _accentForType(_selectedType);
+    final hasCustomDateTime =
+        _manualDueDate != null || _manualDueTime != null || _parsedNlp != null;
 
     HydrationProvider? hydration;
     try {
@@ -332,15 +419,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     }
 
     return Container(
+      key: const Key('quick_capture_sheet_container'),
       padding: EdgeInsets.only(
         top: 10,
-        left: 18,
-        right: 18,
+        left: 16,
+        right: 16,
         bottom: viewInsetsBottom + 20,
       ),
       decoration: BoxDecoration(
         color: AppColors.sheetSurface(context),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -352,15 +440,15 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
               child: Container(
                 width: 38,
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 10),
+                margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: AppColors.scrimHandle(context),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
 
-            // Header Row
+            // Header Row (48x48dp action targets + borderless full-pill restored badge)
             Row(
               children: [
                 Icon(Icons.bolt_rounded, color: activeAccent, size: 22),
@@ -373,37 +461,46 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                     children: [
                       Text(
                         l10n.tr('quick_capture'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       if (_restoredDraft)
                         Container(
+                          key: const Key('qc_draft_restored_pill'),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 2,
+                            horizontal: 9,
+                            vertical: 3.5,
                           ),
                           decoration: BoxDecoration(
-                            color: activeAccent.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            l10n.tr('qc_draft_restored'),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.adaptive(
-                                context,
-                                dark: activeAccent,
-                                light: Color.lerp(
-                                      activeAccent,
-                                      Colors.black,
-                                      0.2,
-                                    ) ??
-                                    activeAccent,
-                              ),
+                            color: activeAccent.withValues(
+                              alpha: isDark ? 0.16 : 0.10,
                             ),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: activeAccent,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                l10n.tr('qc_draft_restored'),
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary(context),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -416,28 +513,30 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                       FocusScope.of(context).unfocus();
                     },
                     style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
+                      minimumSize: const Size(48, 48),
                     ),
                     child: Text(
                       l10n.tr('qc_hide_keyboard'),
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 IconButton(
+                  key: const Key('qc_close_btn'),
+                  constraints:
+                      const BoxConstraints(minWidth: 48, minHeight: 48),
                   icon: const Icon(Icons.close_rounded, size: 22),
-                  visualDensity: VisualDensity.compact,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
 
             // =================================================================
             // ZONE 1: SMART TEXT CAPTURE
             // =================================================================
+            // Horizontal borderless full-pill type selector (48dp touch height)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -470,7 +569,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
 
             // Single Focused Text Input wired to NaturalLanguageDateParser
             TextField(
@@ -528,67 +627,208 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                 ),
               ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
-            // Compact Optional Field Chips (Notes, Category, Place Reminder)
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                FilterChip(
-                  key: const Key('qc_toggle_notes_chip'),
-                  selected: _showNotesField,
-                  visualDensity: VisualDensity.compact,
-                  avatar: Icon(
-                    Icons.notes_rounded,
-                    size: 14,
-                    color: _showNotesField
-                        ? activeAccent
-                        : AppColors.textSecondary(context),
-                  ),
-                  label: Text(
-                    l10n.tr('qc_add_notes_chip'),
-                    style: const TextStyle(fontSize: 11.5),
-                  ),
-                  onSelected: (v) => setState(() => _showNotesField = v),
-                ),
-                FilterChip(
-                  key: const Key('qc_toggle_category_chip'),
-                  selected: _showCategoryPicker,
-                  visualDensity: VisualDensity.compact,
-                  avatar: Icon(
-                    _category.icon,
-                    size: 14,
-                    color: _category.color,
-                  ),
-                  label: Text(
-                    l10n.categoryName(_category.type),
-                    style: const TextStyle(fontSize: 11.5),
-                  ),
-                  onSelected: (v) => setState(() => _showCategoryPicker = v),
-                ),
-                if (_selectedType == CaptureType.reminder)
-                  ActionChip(
-                    visualDensity: VisualDensity.compact,
-                    avatar: const Icon(
-                      Icons.location_on_rounded,
-                      size: 14,
-                      color: _scoutBlue,
+            // Compact Borderless Icon Chips (Date/Time, Priority, Category, Notes, Place)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  if (_selectedType == CaptureType.task ||
+                      _selectedType == CaptureType.reminder)
+                    _buildOptionalPillChip(
+                      key: const Key('qc_toggle_datetime_chip'),
+                      icon: Icons.schedule_rounded,
+                      accentColor: activeAccent,
+                      label: _dateTimeChipLabel(l10n),
+                      isActive: _showDateTimePicker || hasCustomDateTime,
+                      tabular: true,
+                      onTap: () => setState(() {
+                        _showDateTimePicker = !_showDateTimePicker;
+                        if (_showDateTimePicker) {
+                          _showPriorityPicker = false;
+                          _showCategoryPicker = false;
+                        }
+                      }),
                     ),
-                    label: Text(
-                      l10n.tr('qc_geofence_btn'),
-                      style: const TextStyle(fontSize: 11.5),
+                  if (_selectedType == CaptureType.task)
+                    _buildOptionalPillChip(
+                      key: const Key('qc_toggle_priority_chip'),
+                      icon: Icons.flag_rounded,
+                      accentColor: _priorityColor(_priority),
+                      label: _priorityLabel(l10n, _priority),
+                      isActive:
+                          _showPriorityPicker || _priority != TaskPriority.medium,
+                      onTap: () => setState(() {
+                        _showPriorityPicker = !_showPriorityPicker;
+                        if (_showPriorityPicker) {
+                          _showDateTimePicker = false;
+                          _showCategoryPicker = false;
+                        }
+                      }),
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      showLocationReminderEditorDialog(context);
-                    },
+                  _buildOptionalPillChip(
+                    key: const Key('qc_toggle_category_chip'),
+                    icon: _category.icon,
+                    accentColor: _category.color,
+                    label: l10n.categoryName(_category.type),
+                    isActive: _showCategoryPicker,
+                    onTap: () => setState(() {
+                      _showCategoryPicker = !_showCategoryPicker;
+                      if (_showCategoryPicker) {
+                        _showDateTimePicker = false;
+                        _showPriorityPicker = false;
+                      }
+                    }),
                   ),
-              ],
+                  _buildOptionalPillChip(
+                    key: const Key('qc_toggle_notes_chip'),
+                    icon: Icons.notes_rounded,
+                    accentColor: activeAccent,
+                    label: l10n.tr('qc_add_notes_chip'),
+                    isActive: _showNotesField,
+                    onTap: () =>
+                        setState(() => _showNotesField = !_showNotesField),
+                  ),
+                  if (_selectedType == CaptureType.reminder)
+                    _buildOptionalPillChip(
+                      key: const Key('qc_geofence_chip'),
+                      icon: Icons.location_on_rounded,
+                      accentColor: _scoutBlue,
+                      label: l10n.tr('qc_geofence_btn'),
+                      isActive: false,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        showLocationReminderEditorDialog(context);
+                      },
+                    ),
+                ],
+              ),
             ),
 
+            // Inline Date/Time Quick Picker Row
+            if (_showDateTimePicker &&
+                (_selectedType == CaptureType.task ||
+                    _selectedType == CaptureType.reminder))
+              Padding(
+                padding: const EdgeInsets.only(top: 2, bottom: 4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildOptionalPillChip(
+                        key: const Key('qc_date_today_btn'),
+                        icon: Icons.today_rounded,
+                        accentColor: activeAccent,
+                        label: l10n.tr('today'),
+                        isActive: _manualDueDate != null &&
+                            _manualDueDate!.day == DateTime.now().day,
+                        onTap: () => setState(() {
+                          final now = DateTime.now();
+                          _manualDueDate =
+                              DateTime(now.year, now.month, now.day);
+                        }),
+                      ),
+                      _buildOptionalPillChip(
+                        key: const Key('qc_date_tomorrow_btn'),
+                        icon: Icons.wb_sunny_outlined,
+                        accentColor: activeAccent,
+                        label: l10n.tr('tomorrow'),
+                        isActive: _manualDueDate != null &&
+                            _manualDueDate!.day ==
+                                DateTime.now()
+                                    .add(const Duration(days: 1))
+                                    .day,
+                        onTap: () => setState(() {
+                          final t = DateTime.now().add(const Duration(days: 1));
+                          _manualDueDate = DateTime(t.year, t.month, t.day);
+                        }),
+                      ),
+                      _buildOptionalPillChip(
+                        key: const Key('qc_pick_date_btn'),
+                        icon: Icons.calendar_month_rounded,
+                        accentColor: activeAccent,
+                        label: l10n.tr('qc_pick_date'),
+                        isActive: false,
+                        onTap: _pickManualDate,
+                      ),
+                      _buildOptionalPillChip(
+                        key: const Key('qc_pick_time_btn'),
+                        icon: Icons.access_time_rounded,
+                        accentColor: activeAccent,
+                        label: l10n.tr('qc_pick_time'),
+                        isActive: _manualDueTime != null,
+                        onTap: _pickManualTime,
+                      ),
+                      if (_manualDueDate != null || _manualDueTime != null)
+                        _buildOptionalPillChip(
+                          key: const Key('qc_clear_date_btn'),
+                          icon: Icons.close_rounded,
+                          accentColor: AppColors.textSecondary(context),
+                          label: l10n.tr('qc_clear_date'),
+                          isActive: false,
+                          onTap: () => setState(() {
+                            _manualDueDate = null;
+                            _manualDueTime = null;
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Inline Priority Picker Row
+            if (_showPriorityPicker && _selectedType == CaptureType.task)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, bottom: 4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: TaskPriority.values.map((prio) {
+                      final color = _priorityColor(prio);
+                      return _buildOptionalPillChip(
+                        key: Key('qc_priority_${prio.name}'),
+                        dotColor: color,
+                        accentColor: color,
+                        label: _priorityLabel(l10n, prio),
+                        isActive: _priority == prio,
+                        onTap: () => setState(() {
+                          _priority = prio;
+                          _showPriorityPicker = false;
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+
+            // Inline Category Picker Row
+            if (_showCategoryPicker)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, bottom: 4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: AlarmCategory.predefined.map((cat) {
+                      final isSelected = _category.type == cat.type;
+                      return _buildOptionalPillChip(
+                        key: Key('qc_cat_${cat.type.name}'),
+                        icon: cat.icon,
+                        accentColor: cat.color,
+                        label: l10n.categoryName(cat.type),
+                        isActive: isSelected,
+                        onTap: () => setState(() {
+                          _category = cat;
+                          _showCategoryPicker = false;
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+
             if (_showNotesField) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               TextField(
                 key: const Key('qc_notes_input'),
                 controller: _contentController,
@@ -603,52 +843,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
               ),
             ],
 
-            if (_showCategoryPicker) ...[
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: AlarmCategory.predefined.map((cat) {
-                    final isSelected = _category.type == cat.type;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: ChoiceChip(
-                        selected: isSelected,
-                        visualDensity: VisualDensity.compact,
-                        label: Text(
-                          l10n.categoryName(cat.type),
-                          style: const TextStyle(fontSize: 11.5),
-                        ),
-                        selectedColor: cat.color,
-                        avatar: Icon(
-                          cat.icon,
-                          size: 13,
-                          color: isSelected ? Colors.white : cat.color,
-                        ),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _category = cat;
-                              _showCategoryPicker = false;
-                            });
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
+            const SizedBox(height: 8),
 
-            const SizedBox(height: 12),
-
-            // Primary Bird-Tinted Save Button
+            // Primary Bird-Tinted Save Button (min 48dp height)
             ElevatedButton(
               key: const Key('qc_save_btn'),
               onPressed: _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: activeAccent,
                 foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -665,7 +869,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             ),
 
             // =================================================================
-            // ZONES 2 & 3: Smoothly collapse when text field is focused
+            // ZONES 2 & 3: Smoothly collapse when text field / keyboard active
             // =================================================================
             AnimatedSize(
               duration: animDuration,
@@ -678,10 +882,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 16),
-                        Divider(height: 1, color: AppColors.border(context)),
-                        const SizedBox(height: 12),
+                        Divider(
+                          height: 1,
+                          color: AppColors.border(context).withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(height: 14),
 
-                        // ZONE 2: High-Frequency 4-Column Quick Actions
+                        // ZONE 2: High-Frequency 4-Column Quick Actions (borderless tonal tiles)
                         Row(
                           key: const Key('qc_zone_quick_actions'),
                           children: [
@@ -743,15 +950,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                                         'goal': hydration.dailyGoalGlasses,
                                       })
                                     : l10n.tr('qc_action_add_glass'),
+                                tabular: _loggedWaterInline,
                                 onTap: _logOneGlassInline,
                               ),
                             ),
                           ],
                         ),
 
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
 
-                        // ZONE 3: Calm Anchor — Full-Width Soft Lavender Seren Pill
+                        // ZONE 3: Calm Anchor — Full-Width Borderless Soft Lavender Pill
                         InkWell(
                           key: const Key('qc_mental_aid_chip'),
                           onTap: () {
@@ -762,33 +970,30 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                               ),
                             );
                           },
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(999),
                           child: Container(
                             key: const Key('qc_zone_calm_anchor'),
+                            constraints: const BoxConstraints(minHeight: 56),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 14,
-                              vertical: 12,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
                               color: _serenLavender.withValues(
-                                alpha: isDark ? 0.16 : 0.10,
+                                alpha: isDark ? 0.16 : 0.12,
                               ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _serenLavender.withValues(
-                                  alpha: isDark ? 0.36 : 0.28,
-                                ),
-                              ),
+                              borderRadius: BorderRadius.circular(999),
                             ),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  width: 36,
+                                  height: 36,
                                   decoration: BoxDecoration(
                                     color: _serenLavender.withValues(
                                       alpha: isDark ? 0.24 : 0.16,
                                     ),
-                                    borderRadius: BorderRadius.circular(10),
+                                    shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.spa_rounded,
@@ -801,6 +1006,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         l10n.tr('qc_calm_anchor_title'),
@@ -809,11 +1015,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                                         style: TextStyle(
                                           fontSize: 13.5,
                                           fontWeight: FontWeight.w800,
-                                          color: AppColors.adaptive(
-                                            context,
-                                            dark: const Color(0xFFC4B5FD),
-                                            light: const Color(0xFF5B21B6),
-                                          ),
+                                          color: AppColors.textPrimary(context),
                                         ),
                                       ),
                                       const SizedBox(height: 1),
@@ -830,14 +1032,11 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 4),
                                 Icon(
                                   Icons.chevron_right_rounded,
                                   size: 18,
-                                  color: AppColors.adaptive(
-                                    context,
-                                    dark: const Color(0xFFC4B5FD),
-                                    light: const Color(0xFF6D28D9),
-                                  ),
+                                  color: AppColors.textSecondary(context),
                                 ),
                               ],
                             ),
@@ -852,6 +1051,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     );
   }
 
+  /// Borderless full-pill capture type chip with `>= 48dp` touch height.
   Widget _buildTypePill({
     required String label,
     required IconData icon,
@@ -861,33 +1061,124 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     final tint = _accentForType(type);
     return Padding(
       padding: const EdgeInsets.only(right: 6),
-      child: ChoiceChip(
+      child: InkWell(
         key: Key('qc_type_pill_${type.name}'),
-        selected: isSelected,
-        visualDensity: VisualDensity.compact,
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            color: isSelected ? Colors.white : AppColors.textPrimary(context),
+        borderRadius: BorderRadius.circular(999),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() {
+            _selectedType = type;
+            QuickCaptureSheet._lastUsedType = type;
+            _showDateTimePicker = false;
+            _showPriorityPicker = false;
+            _reparseNlp(_titleController.text);
+          });
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: isSelected ? tint : AppColors.subtleFill(context),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: isSelected ? Colors.white : tint,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textPrimary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        avatar: Icon(
-          icon,
-          size: 14,
-          color: isSelected ? Colors.white : tint,
+      ),
+    );
+  }
+
+  /// Compact borderless optional chip with `>= 48dp` hit target.
+  Widget _buildOptionalPillChip({
+    Key? key,
+    IconData? icon,
+    Color? dotColor,
+    required Color accentColor,
+    required String label,
+    required bool isActive,
+    bool tabular = false,
+    required VoidCallback onTap,
+  }) {
+    final isDark = AppColors.isDark(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: InkWell(
+        key: key,
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? accentColor.withValues(alpha: isDark ? 0.18 : 0.12)
+                    : AppColors.subtleFill(context),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (dotColor != null) ...[
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: dotColor,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ] else if (icon != null) ...[
+                    Icon(
+                      icon,
+                      size: 14,
+                      color: isActive
+                          ? accentColor
+                          : AppColors.textSecondary(context),
+                    ),
+                    const SizedBox(width: 5),
+                  ],
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+                      color: AppColors.textPrimary(context),
+                      fontFeatures:
+                          tabular ? const [FontFeature.tabularFigures()] : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-        selectedColor: tint,
-        onSelected: (val) {
-          if (val) {
-            setState(() {
-              _selectedType = type;
-              QuickCaptureSheet._lastUsedType = type;
-              _reparseNlp(_titleController.text);
-            });
-          }
-        },
       ),
     );
   }
@@ -898,6 +1189,7 @@ class _QuickActionIconTile extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String label;
+  final bool tabular;
   final VoidCallback onTap;
 
   const _QuickActionIconTile({
@@ -905,6 +1197,7 @@ class _QuickActionIconTile extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.label,
+    this.tabular = false,
     required this.onTap,
   });
 
@@ -914,16 +1207,17 @@ class _QuickActionIconTile extends StatelessWidget {
     return InkWell(
       key: tileKey,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 74),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.cardSurface(context),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border(context)),
+          color: AppColors.elevatedSurface(context),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -943,6 +1237,8 @@ class _QuickActionIconTile extends StatelessWidget {
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary(context),
+                fontFeatures:
+                    tabular ? const [FontFeature.tabularFigures()] : null,
               ),
             ),
           ],

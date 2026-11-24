@@ -1,10 +1,19 @@
 import 'package:material_ui/material_ui.dart';
 
 class AppColors {
-  // Brand Rooster & Sunrise Palette
-  static const Color primary = Color(0xFFE04A3A); // Nestin Crimson
-  static const Color primaryLight = Color(0xFFFF6B5B);
-  static const Color primaryDark = Color(0xFFB83224);
+  // Brand Nestin Leaf Green Palette (sampled from assets/banner.jpg)
+  static const Color primary = Color(0xFF649330); // Nestin Leaf Green (Light Mode)
+  static const Color primaryLight = Color(0xFF7CB342); // Nestin Leaf Green (Dark Mode)
+  static const Color primaryDark = Color(0xFF4B7022); // Deep Nestin Leaf Green
+
+  // Top Navbar Wordmark Inks (assets/banner.jpg)
+  static const Color wordmarkCharcoal = Color(0xFF2D3036); // "nest" in Light Mode
+  static const Color wordmarkOffWhite = Color(0xFFF3F5F7); // "nest" in Dark Mode
+
+  // Roo Domain Accent Palette (Strictly for Roo's room, alarms & badges)
+  static const Color rooCrimson = Color(0xFFE04A3A); // Roo Crimson
+  static const Color rooCrimsonLight = Color(0xFFFF6B5B);
+  static const Color rooCrimsonDark = Color(0xFFB83224);
 
   static const Color accent = Color(0xFFFF9E1B); // Sunrise Amber
   static const Color accentLight = Color(0xFFFFB854);
@@ -53,6 +62,10 @@ class AppColors {
   // Context-aware Adaptive Tokens (preserve dark surface depth + crisp light contrast)
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
+
+  /// Context-aware Nestin Leaf Green brand accent (`#649330` Light / `#7CB342` Dark).
+  static Color primaryAdaptive(BuildContext context) =>
+      isDark(context) ? primaryLight : primary;
 
   static Color scaffoldBg(BuildContext context) =>
       isDark(context) ? darkBg : lightBg;

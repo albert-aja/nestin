@@ -57,7 +57,7 @@ class AlarmsListScreen extends StatelessWidget {
             MaterialPageRoute(builder: (_) => const AlarmEditScreen()),
           );
         },
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.rooCrimson,
         icon: const Icon(Icons.add_alarm_rounded, color: Colors.white),
         label: Text(
           l10n.tr('new_alarm'),
@@ -223,13 +223,13 @@ class AlarmsListScreen extends StatelessWidget {
                       provider.triggerAlarm(alarm);
                     },
                     icon: const Icon(Icons.play_circle_outline_rounded,
-                        size: 16, color: AppColors.primary),
+                        size: 16, color: AppColors.rooCrimson),
                     label: Text(
                       context.l10n.tr('test_ring'),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: AppColors.rooCrimson,
                       ),
                     ),
                     style: TextButton.styleFrom(

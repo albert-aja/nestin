@@ -11,7 +11,7 @@ class AppTheme {
       canvasColor: AppColors.darkCardElevated,
       dividerColor: AppColors.darkBorder,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.primary,
+        primary: AppColors.primaryLight,
         secondary: AppColors.accent,
         surface: AppColors.darkCard,
         surfaceContainerLowest: AppColors.darkRecessed,
@@ -41,8 +41,8 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkPanel,
-        selectedColor: AppColors.primary,
-        secondarySelectedColor: AppColors.primary,
+        selectedColor: AppColors.primaryLight,
+        secondarySelectedColor: AppColors.primaryLight,
         side: const BorderSide(color: AppColors.darkBorder),
         labelStyle: WidgetStateTextStyle.resolveWith((states) {
           return TextStyle(
@@ -83,7 +83,7 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkCard,
-        selectedItemColor: AppColors.accent,
+        selectedItemColor: AppColors.primaryLight,
         unselectedItemColor: Color(0xFF8E929E),
         type: BottomNavigationBarType.fixed,
         elevation: 12,
@@ -103,7 +103,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
@@ -113,7 +113,7 @@ class AppTheme {
           return const Color(0xFFA0A5B1);
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          if (states.contains(WidgetState.selected)) return AppColors.primaryLight;
           return const Color(0xFF333640);
         }),
       ),

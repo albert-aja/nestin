@@ -50,6 +50,13 @@ extension TreehouseDayPhaseX on TreehouseDayPhase {
         TreehouseDayPhase.night => 'treehouse_phase_short_night',
       };
 
+  String get bannerTitleKey => switch (this) {
+        TreehouseDayPhase.dawn => 'nest_treehouse_dawn',
+        TreehouseDayPhase.day => 'nest_treehouse_day',
+        TreehouseDayPhase.sunset => 'nest_treehouse_dusk',
+        TreehouseDayPhase.night => 'nest_treehouse_night',
+      };
+
   IconData get icon => switch (this) {
         TreehouseDayPhase.dawn => Icons.wb_twilight_rounded,
         TreehouseDayPhase.day => Icons.wb_sunny_rounded,
@@ -174,6 +181,30 @@ abstract final class TreehouseSceneAnchors {
     );
   }
 
+  /// Maps a fractional (`0.0–1.0`) room rectangle onto [imageRect].
+  static Rect mapRect(Rect imageRect, Rect fractional) {
+    return Rect.fromLTRB(
+      imageRect.left + imageRect.width * fractional.left,
+      imageRect.top + imageRect.height * fractional.top,
+      imageRect.left + imageRect.width * fractional.right,
+      imageRect.top + imageRect.height * fractional.bottom,
+    );
+  }
+
+  // --- 6 Calibrated Non-Overlapping Cutaway Room Bounds (0.0–1.0) ---
+  // Top Attic (Observatory): Echo
+  static const Rect echoRoomBounds = Rect.fromLTRB(0.40, 0.115, 0.75, 0.265);
+  // Upper-Left (Clockwork Room): Roo
+  static const Rect rooRoomBounds = Rect.fromLTRB(0.11, 0.245, 0.51, 0.422);
+  // Mid-Left (Open Balcony): Scout
+  static const Rect scoutRoomBounds = Rect.fromLTRB(0.05, 0.435, 0.46, 0.568);
+  // Mid-Right (Tea & Lavender Room): Seren
+  static const Rect serenRoomBounds = Rect.fromLTRB(0.515, 0.38, 0.92, 0.572);
+  // Lower-Left (Explorer Library): Pippin
+  static const Rect pippinRoomBounds = Rect.fromLTRB(0.09, 0.585, 0.505, 0.782);
+  // Lower-Right (Organizer Workshop): Twill
+  static const Rect twillRoomBounds = Rect.fromLTRB(0.515, 0.585, 0.93, 0.778);
+
   // --- 6 Bird Room Floor / Balcony Bottom-Center Perches ---
   static const Offset echoPerch = Offset(0.562, 0.256);
   static const Offset rooPerch = Offset(0.326, 0.400);
@@ -182,19 +213,36 @@ abstract final class TreehouseSceneAnchors {
   static const Offset pippinPerch = Offset(0.308, 0.752);
   static const Offset twillPerch = Offset(0.742, 0.750);
 
+  // --- Safe Horizontal Walk Floor Bounds (fractional X) per Room ---
+  // Calibrated inside each room's open timber floor clear of furniture/walls.
+  static const ({double minFx, double maxFx}) echoWalkSpan =
+      (minFx: 0.500, maxFx: 0.624);
+  static const ({double minFx, double maxFx}) rooWalkSpan =
+      (minFx: 0.276, maxFx: 0.390);
+  static const ({double minFx, double maxFx}) scoutWalkSpan =
+      (minFx: 0.165, maxFx: 0.365);
+  static const ({double minFx, double maxFx}) serenWalkSpan =
+      (minFx: 0.638, maxFx: 0.772);
+  static const ({double minFx, double maxFx}) pippinWalkSpan =
+      (minFx: 0.256, maxFx: 0.366);
+  static const ({double minFx, double maxFx}) twillWalkSpan =
+      (minFx: 0.680, maxFx: 0.798);
+
   // --- Roo's Room Props (Upper-Left) ---
   static const Offset rooClockDialCenter = Offset(0.214, 0.312);
   static const double rooClockDialRadiusFraction = 0.0235;
   static const Offset rooPendulumPivot = Offset(0.214, 0.336);
   static const double rooPendulumLengthFraction = 0.039;
-  static const Offset rooGearLarge = Offset(0.398, 0.296);
-  static const Offset rooGearRight = Offset(0.432, 0.310);
-  static const Offset rooGearSmall = Offset(0.371, 0.314);
+  static const Offset rooGearLarge = Offset(0.378, 0.296);
+  static const Offset rooGearRight = Offset(0.425, 0.315);
+  static const Offset rooGearSmall = Offset(0.334, 0.317);
 
   // --- Seren's Room Props (Mid-Right) ---
   static const Offset serenLeftCupRim = Offset(0.640, 0.503);
   static const Offset serenRightCupRim = Offset(0.770, 0.503);
   static const Offset serenLampCenter = Offset(0.705, 0.424);
+  static const Offset serenLeftLavender = Offset(0.580, 0.515);
+  static const Offset serenRightLavender = Offset(0.830, 0.515);
 
   // --- Echo's Attic Props (Top) ---
   static const List<Offset> echoSkylightCorners = [
@@ -204,10 +252,33 @@ abstract final class TreehouseSceneAnchors {
     Offset(0.408, 0.172),
   ];
   static const Offset echoWarmGlowCenter = Offset(0.565, 0.212);
+  static const Offset echoTelescopeLens = Offset(0.642, 0.203);
+  static const Offset echoTelescopeEyepiece = Offset(0.695, 0.221);
 
   // --- Scout's Balcony Props (Mid-Left) ---
   static const Offset scoutLanternRopeTop = Offset(0.075, 0.355);
   static const Offset scoutLanternGlass = Offset(0.075, 0.408);
+  static const Offset scoutMapAnchor = Offset(0.105, 0.472);
+
+  // --- Pippin's Explorer Library Props (Lower-Left) ---
+  static const Offset pippinLampCenter = Offset(0.300, 0.625);
+  static const Offset pippinMapCompass = Offset(0.410, 0.672);
+  static const Offset pippinOpenBook = Offset(0.408, 0.724);
+
+  // --- Twill's Organizer Workshop Props (Lower-Right) ---
+  static const Offset twillLampCenter = Offset(0.726, 0.618);
+  static const List<Offset> twillHangingKeys = [
+    Offset(0.606, 0.654),
+    Offset(0.632, 0.654),
+    Offset(0.658, 0.654),
+    Offset(0.684, 0.654),
+    Offset(0.710, 0.654),
+  ];
+  static const List<Offset> twillHangingTools = [
+    Offset(0.624, 0.690),
+    Offset(0.646, 0.690),
+    Offset(0.672, 0.690),
+  ];
 
   // --- 4 Outdoor Hanging Lantern Glass Centers ---
   static const List<Offset> outdoorLanterns = [
@@ -218,16 +289,22 @@ abstract final class TreehouseSceneAnchors {
   ];
 }
 
-/// Paints all live interior room prop animations mapped directly onto the
-/// treehouse artwork via [imageRect]:
-/// - **Roo's Room:** Real-time grandfather clock hands (rendered even when
-///   animations are disabled), swinging brass pendulum, rotating wall cogs.
-/// - **Seren's Room:** Soft rising sine-wave steam wisps over both teacups +
-///   gentle breathing halo around the hanging lamp when Seren audio is active.
-/// - **Echo's Attic:** Twinkling skylight stars at night + warm unlogged glow
-///   when today's mood/diary hasn't been logged yet.
-/// - **Scout's Balcony:** Subtle lantern sway glow + diagonal rain streaks
-///   outside the balcony when weather indicates rain.
+/// Paints all live interior room prop animations across ALL 6 rooms mapped
+/// directly onto the treehouse artwork via [imageRect]:
+/// - **Roo's Clockwork Room (Upper-Left):** High-contrast rotating antique
+///   brass/gold wall gears with crisp teeth & warm highlight, real-time
+///   grandfather clock hands (always painted), and swinging brass pendulum.
+/// - **Echo's Attic Observatory (Top):** Twinkling stars inside the skylight +
+///   subtle warm attic lantern & brass telescope lens shimmer.
+/// - **Scout's Balcony (Mid-Left):** Gently swaying hanging lantern & balcony
+///   map corner + weather-reactive particles (diagonal rain streaks, cool
+///   breeze lines, or sunlit motes from `LocalWeatherService`).
+/// - **Seren's Tea Room (Mid-Right):** Soft rising translucent sine-wave steam
+///   wisps over both teacups + gentle breathing lavender & hanging lamp glow.
+/// - **Pippin's Explorer Library (Lower-Left):** Floating warm dust motes in
+///   the hanging Edison lamp beam + subtle pulsing lightbulb & compass glow.
+/// - **Twill's Organizer Workshop (Lower-Right):** Subtle gentle sway shimmer
+///   on the hanging keys/tools + warm workshop dome lamp glow.
 class TreehouseRoomEffectsPainter extends CustomPainter {
   final Animation<double> animation;
   final Rect imageRect;
@@ -237,6 +314,8 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
   final bool isSerenPlaying;
   final bool hasLoggedTodayReflection;
   final bool isRainy;
+  final bool isHeavyRain;
+  final bool isCoolBreeze;
 
   const TreehouseRoomEffectsPainter({
     required this.animation,
@@ -247,11 +326,14 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
     required this.isSerenPlaying,
     required this.hasLoggedTodayReflection,
     required this.isRainy,
+    this.isHeavyRain = false,
+    this.isCoolBreeze = false,
   }) : super(repaint: animation);
 
   static const _softGlowBlur = MaskFilter.blur(BlurStyle.normal, 12);
   static const _steamBlur = MaskFilter.blur(BlurStyle.normal, 2.2);
   static const _lanternBlur = MaskFilter.blur(BlurStyle.normal, 9);
+  static const _moteBlur = MaskFilter.blur(BlurStyle.normal, 3.2);
 
   static const List<({double x, double y, double size, int freq, double phase})>
       _skylightStars = [
@@ -266,27 +348,56 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
     (x: 0.618, y: 0.175, size: 2.2, freq: 4, phase: 3.8),
   ];
 
+  // 8 warm floating dust motes inside Pippin's hanging Edison lamp cone
+  static const List<
+      ({
+        double cx,
+        double cy,
+        double rx,
+        double ry,
+        double r,
+        int fx,
+        int fy,
+        double phase,
+      })> _pippinDustMotes = [
+    (cx: 0.275, cy: 0.662, rx: 0.014, ry: 0.010, r: 1.7, fx: 1, fy: 2, phase: 0.2),
+    (cx: 0.305, cy: 0.674, rx: 0.018, ry: 0.012, r: 2.1, fx: 2, fy: 1, phase: 1.3),
+    (cx: 0.332, cy: 0.660, rx: 0.015, ry: 0.009, r: 1.6, fx: 1, fy: 1, phase: 2.4),
+    (cx: 0.262, cy: 0.698, rx: 0.016, ry: 0.013, r: 1.9, fx: 2, fy: 1, phase: 3.5),
+    (cx: 0.296, cy: 0.710, rx: 0.020, ry: 0.011, r: 2.2, fx: 1, fy: 2, phase: 4.4),
+    (cx: 0.342, cy: 0.702, rx: 0.017, ry: 0.012, r: 1.8, fx: 1, fy: 2, phase: 5.1),
+    (cx: 0.316, cy: 0.735, rx: 0.018, ry: 0.009, r: 1.6, fx: 2, fy: 1, phase: 0.9),
+    (cx: 0.282, cy: 0.738, rx: 0.014, ry: 0.008, r: 1.5, fx: 1, fy: 1, phase: 2.9),
+  ];
+
   @override
   void paint(Canvas canvas, Size size) {
     final t = disableAnimations ? 0.0 : animation.value;
 
     _paintRooWallCogs(canvas, t);
     _paintRooGrandfatherClock(canvas, t);
-    _paintSerenSteamAndLamp(canvas, t);
     _paintEchoAttic(canvas, t);
     _paintScoutBalcony(canvas, t);
+    _paintSerenSteamAndLamp(canvas, t);
+    _paintPippinLibrary(canvas, t);
+    _paintTwillWorkshop(canvas, t);
   }
 
   void _paintRooWallCogs(Canvas canvas, double t) {
     final w = imageRect.width;
-    final cogTint = phase.isNight || phase.isSunset
-        ? const Color(0xFFB98042)
-        : const Color(0xFF9C6B3B);
-    final alpha = phase.isNight ? 0.34 : 0.38;
+    // Boosted antique brass/gold tones with crisp contour & specular highlight
+    final brassFill = phase.isNight || phase.isSunset
+        ? const Color(0xFFE5AE49)
+        : const Color(0xFFD09434);
+    final bronzeOutline = phase.isNight || phase.isSunset
+        ? const Color(0xFF7B4A1B)
+        : const Color(0xFF6B3E17);
+    final warmHighlight = const Color(0xFFFFF4C8);
+    final alpha = phase.isNight ? 0.88 : 0.86;
 
     // 12-tooth primary gear rotating clockwise (+1 rev per 12s), meshed with
-    // 6-tooth secondary gears counter-rotating (-2 revs per 12s) for exact
-    // seamless looping at t = 0 == 1.
+    // 8-tooth secondary gears counter-rotating (-1.5 revs -> use 6-tooth/-2 revs
+    // for exact seamless integer looping at t = 0 == 1).
     final mainAngle = disableAnimations ? 0.15 : t * 2 * math.pi;
     final subAngle = disableAnimations ? -0.30 : -t * 2 * math.pi * 2 + 0.28;
 
@@ -297,10 +408,12 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
         TreehouseSceneAnchors.rooGearLarge.dx,
         TreehouseSceneAnchors.rooGearLarge.dy,
       ),
-      radius: w * 0.022,
+      radius: w * 0.0285,
       teeth: 12,
       rotation: mainAngle,
-      color: cogTint.withValues(alpha: alpha),
+      brassColor: brassFill.withValues(alpha: alpha),
+      outlineColor: bronzeOutline.withValues(alpha: alpha * 0.86),
+      highlightColor: warmHighlight.withValues(alpha: phase.isNight ? 0.62 : 0.54),
     );
     _drawGear(
       canvas,
@@ -309,10 +422,12 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
         TreehouseSceneAnchors.rooGearRight.dx,
         TreehouseSceneAnchors.rooGearRight.dy,
       ),
-      radius: w * 0.0135,
+      radius: w * 0.0175,
       teeth: 6,
       rotation: subAngle,
-      color: cogTint.withValues(alpha: alpha * 0.92),
+      brassColor: brassFill.withValues(alpha: alpha * 0.94),
+      outlineColor: bronzeOutline.withValues(alpha: alpha * 0.82),
+      highlightColor: warmHighlight.withValues(alpha: phase.isNight ? 0.56 : 0.48),
     );
     _drawGear(
       canvas,
@@ -321,10 +436,12 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
         TreehouseSceneAnchors.rooGearSmall.dx,
         TreehouseSceneAnchors.rooGearSmall.dy,
       ),
-      radius: w * 0.0115,
+      radius: w * 0.0155,
       teeth: 6,
-      rotation: subAngle + 0.5,
-      color: cogTint.withValues(alpha: alpha * 0.85),
+      rotation: subAngle + 0.52,
+      brassColor: brassFill.withValues(alpha: alpha * 0.90),
+      outlineColor: bronzeOutline.withValues(alpha: alpha * 0.78),
+      highlightColor: warmHighlight.withValues(alpha: phase.isNight ? 0.52 : 0.44),
     );
   }
 
@@ -334,49 +451,104 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
     required double radius,
     required int teeth,
     required double rotation,
-    required Color color,
+    required Color brassColor,
+    required Color outlineColor,
+    required Color highlightColor,
   }) {
+    // 1. Subtle recessed wall shadow for crisp 3D contrast on tan timber wall
+    canvas.save();
+    canvas.translate(center.dx + 1.2, center.dy + 1.6);
+    canvas.rotate(rotation);
+    final shadowPaint = Paint()
+      ..color = const Color(0xFF3E220E).withValues(alpha: 0.24)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (radius * 0.28).clamp(1.6, 3.6);
+    canvas.drawCircle(Offset.zero, radius * 0.72, shadowPaint);
+    canvas.restore();
+
+    // 2. Main antique brass/gold gear body
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(rotation);
 
-    final rimPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = (radius * 0.28).clamp(1.2, 3.0);
-    final toothPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = (radius * 0.24).clamp(1.1, 2.6)
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(Offset.zero, radius * 0.72, rimPaint);
-    canvas.drawCircle(Offset.zero, radius * 0.22, Paint()..color = color);
-
     final step = (2 * math.pi) / teeth;
+
+    // Crisp dark bronze contour behind gear teeth for unmistakable readability
+    final toothContourPaint = Paint()
+      ..color = outlineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (radius * 0.34).clamp(2.2, 4.4)
+      ..strokeCap = StrokeCap.square;
+    final toothBrassPaint = Paint()
+      ..color = brassColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (radius * 0.22).clamp(1.4, 3.0)
+      ..strokeCap = StrokeCap.square;
+
     for (var i = 0; i < teeth; i++) {
       final a = i * step;
-      canvas.drawLine(
-        Offset(math.cos(a) * radius * 0.72, math.sin(a) * radius * 0.72),
-        Offset(math.cos(a) * radius * 1.04, math.sin(a) * radius * 1.04),
-        toothPaint,
-      );
+      final p0 = Offset(math.cos(a) * radius * 0.70, math.sin(a) * radius * 0.70);
+      final p1 = Offset(math.cos(a) * radius * 1.05, math.sin(a) * radius * 1.05);
+      canvas.drawLine(p0, p1, toothContourPaint);
+      canvas.drawLine(p0, p1, toothBrassPaint);
     }
 
-    // 3 interior spokes
-    final spokePaint = Paint()
-      ..color = color
-      ..strokeWidth = (radius * 0.14).clamp(0.8, 1.8);
-    for (var s = 0; s < 3; s++) {
-      final a = s * (2 * math.pi / 3);
-      canvas.drawLine(
-        Offset.zero,
-        Offset(math.cos(a) * radius * 0.68, math.sin(a) * radius * 0.68),
-        spokePaint,
-      );
+    // Outer rim contour + rich brass rim + inner rim line
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 0.72,
+      Paint()
+        ..color = outlineColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (radius * 0.34).clamp(2.2, 4.2),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 0.72,
+      Paint()
+        ..color = brassColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (radius * 0.22).clamp(1.4, 2.9),
+    );
+
+    // 4 crisp brass interior spokes
+    final spokeContour = Paint()
+      ..color = outlineColor
+      ..strokeWidth = (radius * 0.20).clamp(1.4, 2.5);
+    final spokeBrass = Paint()
+      ..color = brassColor
+      ..strokeWidth = (radius * 0.12).clamp(0.9, 1.8);
+    for (var s = 0; s < 4; s++) {
+      final a = s * (math.pi / 2);
+      final end = Offset(math.cos(a) * radius * 0.66, math.sin(a) * radius * 0.66);
+      canvas.drawLine(Offset.zero, end, spokeContour);
+      canvas.drawLine(Offset.zero, end, spokeBrass);
     }
+
+    // Center hub + warm brass rivet highlight
+    canvas.drawCircle(Offset.zero, radius * 0.28, Paint()..color = outlineColor);
+    canvas.drawCircle(Offset.zero, radius * 0.22, Paint()..color = brassColor);
+    canvas.drawCircle(
+      Offset(-radius * 0.06, -radius * 0.06),
+      (radius * 0.09).clamp(0.8, 1.8),
+      Paint()..color = highlightColor,
+    );
 
     canvas.restore();
+
+    // 3. Subtle fixed top-left specular gold sheen arc across gear rim
+    final arcRect = Rect.fromCircle(center: center, radius: radius * 0.74);
+    canvas.drawArc(
+      arcRect,
+      -math.pi * 0.85,
+      math.pi * 0.55,
+      false,
+      Paint()
+        ..color = highlightColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (radius * 0.09).clamp(0.8, 1.6)
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   void _paintRooGrandfatherClock(Canvas canvas, double t) {
@@ -557,30 +729,63 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
       }
     }
 
-    // 2. Gentle breathing halo on Seren's hanging lamp when relaxation audio plays
-    if (isSerenPlaying) {
-      final lampCenter = TreehouseSceneAnchors.mapPoint(
-        imageRect,
-        TreehouseSceneAnchors.serenLampCenter.dx,
-        TreehouseSceneAnchors.serenLampCenter.dy,
-      );
-      final pulse = disableAnimations
-          ? 0.5
-          : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2); // 6s calm breathing cycle
-      final radius = w * (0.044 + 0.026 * pulse);
+    // 2. Gentle breathing halo on Seren's hanging lamp + soft lavender pot glow
+    final lampCenter = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.serenLampCenter.dx,
+      TreehouseSceneAnchors.serenLampCenter.dy,
+    );
+    final pulse = disableAnimations
+        ? 0.5
+        : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2); // 6s calm breathing cycle
+    final lampBaseIntensity = isSerenPlaying
+        ? 1.0
+        : (phase.isNight || phase.isSunset ? 0.58 : 0.34);
+    final lampRadius =
+        w * ((isSerenPlaying ? 0.048 : 0.036) + 0.022 * pulse * lampBaseIntensity);
 
+    canvas.drawCircle(
+      lampCenter,
+      lampRadius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFDE68A)
+                .withValues(alpha: (0.42 + 0.18 * pulse) * lampBaseIntensity),
+            const Color(0xFFC4B5FD)
+                .withValues(alpha: (0.24 + 0.12 * pulse) * lampBaseIntensity),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.52, 1.0],
+        ).createShader(Rect.fromCircle(center: lampCenter, radius: lampRadius)),
+    );
+
+    // Subtle meditative breathing lavender aura around both lavender pots
+    final lavenderPulse = disableAnimations
+        ? 0.5
+        : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2 + 1.4);
+    final lavenderAlpha = (phase.isNight ? 0.24 : 0.17) *
+        (0.65 + 0.35 * lavenderPulse) *
+        (isSerenPlaying ? 1.35 : 1.0);
+    for (final potAnchor in const [
+      TreehouseSceneAnchors.serenLeftLavender,
+      TreehouseSceneAnchors.serenRightLavender,
+    ]) {
+      final potCenter =
+          TreehouseSceneAnchors.mapPoint(imageRect, potAnchor.dx, potAnchor.dy);
+      final potRadius = w * (0.034 + 0.010 * lavenderPulse);
       canvas.drawCircle(
-        lampCenter,
-        radius,
+        potCenter,
+        potRadius,
         Paint()
           ..shader = RadialGradient(
             colors: [
-              const Color(0xFFFDE68A).withValues(alpha: 0.44 + 0.16 * pulse),
-              const Color(0xFFC4B5FD).withValues(alpha: 0.24 + 0.12 * pulse),
+              const Color(0xFFC4B5FD).withValues(alpha: lavenderAlpha),
+              const Color(0xFFA78BFA).withValues(alpha: lavenderAlpha * 0.35),
               Colors.transparent,
             ],
-            stops: const [0.0, 0.52, 1.0],
-          ).createShader(Rect.fromCircle(center: lampCenter, radius: radius)),
+            stops: const [0.0, 0.55, 1.0],
+          ).createShader(Rect.fromCircle(center: potCenter, radius: potRadius)),
       );
     }
   }
@@ -588,64 +793,99 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
   void _paintEchoAttic(Canvas canvas, double t) {
     final w = imageRect.width;
 
-    // 1. Twinkling stars inside Echo's skylight at Night
-    if (phase.isNight) {
-      for (final star in _skylightStars) {
-        final pos = TreehouseSceneAnchors.mapPoint(imageRect, star.x, star.y);
-        final twinkle = disableAnimations
-            ? 0.75
-            : 0.22 +
-                0.78 *
-                    (0.5 +
-                        0.5 *
-                            math.sin(
-                              t * 2 * math.pi * star.freq + star.phase,
-                            ));
-        final radius = (star.size * (w / 390.0)).clamp(1.2, 3.6) *
-            (0.75 + 0.35 * twinkle);
-        _drawFourPointStar(
-          canvas,
-          pos,
-          radius,
-          const Color(0xFFFFFBEB).withValues(alpha: twinkle),
-        );
-      }
-    }
-
-    // 2. Soft warm glow if today's mood/diary hasn't been logged yet
-    if (!hasLoggedTodayReflection) {
-      final center = TreehouseSceneAnchors.mapPoint(
-        imageRect,
-        TreehouseSceneAnchors.echoWarmGlowCenter.dx,
-        TreehouseSceneAnchors.echoWarmGlowCenter.dy,
-      );
-      final breathe = disableAnimations
-          ? 0.5
-          : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2 + 1.1);
-      final radius = w * (0.088 + 0.020 * breathe);
-
-      canvas.drawCircle(
-        center,
+    // 1. Twinkling stars inside Echo's skylight (bright at Night/Sunset, soft glints at Dawn/Day)
+    final starIntensity = switch (phase) {
+      TreehouseDayPhase.night => 1.0,
+      TreehouseDayPhase.sunset => 0.72,
+      TreehouseDayPhase.dawn => 0.42,
+      TreehouseDayPhase.day => 0.24,
+    };
+    final starCount = phase.isNight ? _skylightStars.length : 5;
+    for (var i = 0; i < starCount; i++) {
+      final star = _skylightStars[i];
+      final pos = TreehouseSceneAnchors.mapPoint(imageRect, star.x, star.y);
+      final twinkle = disableAnimations
+          ? 0.75
+          : 0.22 +
+              0.78 *
+                  (0.5 +
+                      0.5 *
+                          math.sin(
+                            t * 2 * math.pi * star.freq + star.phase,
+                          ));
+      final radius = (star.size * (w / 390.0)).clamp(1.2, 3.6) *
+          (0.75 + 0.35 * twinkle);
+      _drawFourPointStar(
+        canvas,
+        pos,
         radius,
-        Paint()
-          ..shader = RadialGradient(
-            colors: [
-              const Color(0xFFFBBF24).withValues(alpha: 0.28 + 0.12 * breathe),
-              const Color(0xFFFDE68A).withValues(alpha: 0.12 + 0.06 * breathe),
-              Colors.transparent,
-            ],
-            stops: const [0.0, 0.55, 1.0],
-          ).createShader(Rect.fromCircle(center: center, radius: radius))
-          ..maskFilter = _softGlowBlur,
+        const Color(0xFFFFFBEB).withValues(alpha: twinkle * starIntensity),
       );
     }
+
+    // 2. Subtle brass telescope lens & eyepiece shimmer
+    final lensGlint = disableAnimations
+        ? 0.55
+        : 0.25 + 0.75 * (0.5 + 0.5 * math.sin(t * 2 * math.pi * 2 + 0.8));
+    final lensPos = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.echoTelescopeLens.dx,
+      TreehouseSceneAnchors.echoTelescopeLens.dy,
+    );
+    final eyePos = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.echoTelescopeEyepiece.dx,
+      TreehouseSceneAnchors.echoTelescopeEyepiece.dy,
+    );
+    _drawFourPointStar(
+      canvas,
+      lensPos,
+      (w * 0.011).clamp(2.4, 5.2) * (0.75 + 0.35 * lensGlint),
+      const Color(0xFFFFF4C4).withValues(alpha: 0.42 + 0.45 * lensGlint),
+    );
+    canvas.drawCircle(
+      eyePos,
+      (w * 0.016).clamp(3.0, 7.0),
+      Paint()
+        ..color = const Color(0xFFFDE68A).withValues(alpha: 0.24 * lensGlint)
+        ..maskFilter = _moteBlur,
+    );
+
+    // 3. Cozy warm attic lantern shimmer (boosted when today's reflection isn't logged yet)
+    final center = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.echoWarmGlowCenter.dx,
+      TreehouseSceneAnchors.echoWarmGlowCenter.dy,
+    );
+    final breathe = disableAnimations
+        ? 0.5
+        : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2 + 1.1);
+    final unloggedBoost = hasLoggedTodayReflection ? 0.52 : 1.0;
+    final radius = w * ((hasLoggedTodayReflection ? 0.064 : 0.088) + 0.018 * breathe);
+
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFBBF24)
+                .withValues(alpha: (0.28 + 0.12 * breathe) * unloggedBoost),
+            const Color(0xFFFDE68A)
+                .withValues(alpha: (0.12 + 0.06 * breathe) * unloggedBoost),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.55, 1.0],
+        ).createShader(Rect.fromCircle(center: center, radius: radius))
+        ..maskFilter = _softGlowBlur,
+    );
   }
 
   void _paintScoutBalcony(Canvas canvas, double t) {
     final w = imageRect.width;
     final h = imageRect.height;
 
-    // 1. Subtle balcony lantern sway shimmer (pivoting from upper-left branch)
+    // 1. Gently swaying balcony branch lantern glow + crisp swing glint
     final ropeTop = TreehouseSceneAnchors.mapPoint(
       imageRect,
       TreehouseSceneAnchors.scoutLanternRopeTop.dx,
@@ -656,7 +896,7 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
       TreehouseSceneAnchors.scoutLanternGlass.dx,
       TreehouseSceneAnchors.scoutLanternGlass.dy,
     );
-    final swayAmp = isRainy ? 0.095 : 0.055;
+    final swayAmp = isRainy || isCoolBreeze ? 0.095 : 0.055;
     final swayAngle =
         disableAnimations ? 0.0 : math.sin(t * 2 * math.pi * 3 + 0.4) * swayAmp;
     final ropeLen = (glassRest - ropeTop).distance;
@@ -664,62 +904,89 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
         Offset(math.sin(swayAngle) * ropeLen, math.cos(swayAngle) * ropeLen);
 
     final glowAlpha = switch (phase) {
-      TreehouseDayPhase.night => 0.34,
-      TreehouseDayPhase.sunset => 0.30,
-      TreehouseDayPhase.dawn => 0.22,
-      TreehouseDayPhase.day => isRainy ? 0.18 : 0.08,
+      TreehouseDayPhase.night => 0.36,
+      TreehouseDayPhase.sunset => 0.32,
+      TreehouseDayPhase.dawn => 0.24,
+      TreehouseDayPhase.day => isRainy ? 0.20 : 0.12,
     };
 
     canvas.drawCircle(
       swayedCenter,
-      w * 0.042,
+      w * 0.044,
       Paint()
         ..color = const Color(0xFFFBBF24).withValues(alpha: glowAlpha)
         ..maskFilter = _lanternBlur,
     );
 
-    // 2. Soft diagonal rain streaks outside Scout's balcony when rainy
-    if (isRainy) {
-      final rainRect = Rect.fromLTRB(
-        imageRect.left,
-        imageRect.top + h * 0.31,
-        imageRect.left + w * 0.44,
-        imageRect.top + h * 0.59,
+    // 2. Subtle gentle flutter shimmer along Scout's balcony map stand
+    final mapPos = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.scoutMapAnchor.dx,
+      TreehouseSceneAnchors.scoutMapAnchor.dy,
+    );
+    final mapFlutter = disableAnimations
+        ? 0.0
+        : math.sin(t * 2 * math.pi * 3 + 1.2) * (isCoolBreeze || isRainy ? 2.6 : 1.5);
+    final mapEdgePath = Path()
+      ..moveTo(mapPos.dx - w * 0.032, mapPos.dy - h * 0.012)
+      ..quadraticBezierTo(
+        mapPos.dx + mapFlutter * 0.6,
+        mapPos.dy - h * 0.016 + mapFlutter * 0.4,
+        mapPos.dx + w * 0.034,
+        mapPos.dy - h * 0.014 + mapFlutter,
       );
-      canvas.save();
-      canvas.clipRect(rainRect);
+    canvas.drawPath(
+      mapEdgePath,
+      Paint()
+        ..color = const Color(0xFFFFF8E1).withValues(alpha: phase.isNight ? 0.32 : 0.50)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (w * 0.0036).clamp(1.0, 2.0)
+        ..strokeCap = StrokeCap.round,
+    );
 
+    // 3. Weather-reactive particles from LocalWeatherService outside Scout's balcony
+    final balconySkyRect = Rect.fromLTRB(
+      imageRect.left,
+      imageRect.top + h * 0.31,
+      imageRect.left + w * 0.44,
+      imageRect.top + h * 0.59,
+    );
+    canvas.save();
+    canvas.clipRect(balconySkyRect);
+
+    if (isRainy) {
+      // Diagonal rain streaks (heavier & faster in storm conditions)
       final rainPaint = Paint()
         ..color = (phase.isNight
                 ? const Color(0xFFBFDBFE)
                 : const Color(0xFFE0F2FE))
             .withValues(alpha: phase.isNight ? 0.36 : 0.48)
-        ..strokeWidth = (w * 0.0032).clamp(1.0, 1.8)
+        ..strokeWidth = (w * (isHeavyRain ? 0.0038 : 0.0032)).clamp(1.0, 2.0)
         ..strokeCap = StrokeCap.round;
 
-      final streakLen = h * 0.026;
-      final slantDx = -streakLen * 0.28;
+      final streakLen = h * (isHeavyRain ? 0.032 : 0.026);
+      final slantDx = -streakLen * (isHeavyRain ? 0.34 : 0.28);
+      final dropCount = isHeavyRain ? 32 : 24;
+      final speedMult = isHeavyRain ? 10.0 : 8.0;
 
-      const dropCount = 24;
       for (var i = 0; i < dropCount; i++) {
-        // Deterministic pseudo-random distribution across balcony outdoor sky
         final seedX = ((i * 37 + 13) % 100) / 100.0;
         final seedY = ((i * 53 + 7) % 100) / 100.0;
-        // 8 fall cycles per 12s = calm natural rain cadence, seamless wrap
         final fallProgress = disableAnimations
             ? seedY
-            : (seedY + t * 8.0 * (i.isEven ? 1.0 : 1.5)) % 1.0;
+            : (seedY + t * speedMult * (i.isEven ? 1.0 : 1.5)) % 1.0;
 
-        final x = rainRect.left + seedX * rainRect.width;
-        final y = rainRect.top + fallProgress * rainRect.height;
+        final x = balconySkyRect.left + seedX * balconySkyRect.width;
+        final y = balconySkyRect.top + fallProgress * balconySkyRect.height;
 
-        // Soft edge fade near right side of balcony so rain stays outdoor
-        final edgeFade =
-            (1.0 - ((x - rainRect.left) / rainRect.width - 0.72).clamp(0.0, 0.28) / 0.28);
+        final edgeFade = (1.0 -
+            ((x - balconySkyRect.left) / balconySkyRect.width - 0.72)
+                    .clamp(0.0, 0.28) /
+                0.28);
         if (edgeFade <= 0.05) continue;
 
         rainPaint.color = rainPaint.color.withValues(
-          alpha: (phase.isNight ? 0.34 : 0.44) * edgeFade,
+          alpha: (phase.isNight ? 0.36 : 0.48) * edgeFade,
         );
         canvas.drawLine(
           Offset(x, y),
@@ -727,8 +994,322 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
           rainPaint,
         );
       }
+    } else if (isCoolBreeze) {
+      // Graceful translucent curved breeze ribbons drifting across Scout's balcony
+      const breezeCount = 5;
+      for (var i = 0; i < breezeCount; i++) {
+        final progress = disableAnimations ? (i * 0.2) : (t * 2.0 + i * 0.23) % 1.0;
+        final alpha = math.sin(progress * math.pi) * (phase.isNight ? 0.26 : 0.38);
+        if (alpha <= 0.03) continue;
 
-      canvas.restore();
+        final startX = balconySkyRect.left + (progress - 0.15) * balconySkyRect.width * 0.92;
+        final baseY = balconySkyRect.top + balconySkyRect.height * (0.20 + i * 0.15);
+        final segLen = balconySkyRect.width * (0.24 + (i % 2) * 0.08);
+        final waveAmp = h * 0.008;
+
+        final path = Path()
+          ..moveTo(startX, baseY)
+          ..cubicTo(
+            startX + segLen * 0.33,
+            baseY - waveAmp,
+            startX + segLen * 0.66,
+            baseY + waveAmp,
+            startX + segLen,
+            baseY - waveAmp * 0.4,
+          );
+        canvas.drawPath(
+          path,
+          Paint()
+            ..color = (phase.isNight
+                    ? const Color(0xFFBAE6FD)
+                    : Colors.white)
+                .withValues(alpha: alpha)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = (w * 0.0034).clamp(1.0, 1.8)
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+    } else {
+      // Clear/Warm skies: soft drifting golden sunlit balcony motes
+      const moteCount = 8;
+      for (var i = 0; i < moteCount; i++) {
+        final seedX = ((i * 29 + 11) % 85) / 100.0;
+        final seedY = ((i * 41 + 19) % 80) / 100.0;
+        final driftX = disableAnimations
+            ? 0.0
+            : math.sin(t * 2 * math.pi + i * 1.1) * w * 0.015;
+        final driftY = disableAnimations
+            ? 0.0
+            : math.cos(t * 2 * math.pi + i * 1.6) * h * 0.010;
+        final shimmer = disableAnimations
+            ? 0.34
+            : 0.16 + 0.42 * (0.5 + 0.5 * math.sin(t * 2 * math.pi * 2 + i * 0.9));
+
+        final pos = Offset(
+          balconySkyRect.left + seedX * balconySkyRect.width + driftX,
+          balconySkyRect.top + seedY * balconySkyRect.height + driftY,
+        );
+        final r = (1.6 + (i % 3) * 0.5) * (w / 390.0);
+        canvas.drawCircle(
+          pos,
+          r * 2.1,
+          Paint()
+            ..color = const Color(0xFFFFF3C4).withValues(alpha: shimmer * 0.42)
+            ..maskFilter = _moteBlur,
+        );
+        canvas.drawCircle(
+          pos,
+          r,
+          Paint()..color = const Color(0xFFFFFBEB).withValues(alpha: shimmer),
+        );
+      }
+    }
+
+    canvas.restore();
+  }
+
+  void _paintPippinLibrary(Canvas canvas, double t) {
+    final w = imageRect.width;
+    final h = imageRect.height;
+
+    final bulbCenter = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.pippinLampCenter.dx,
+      TreehouseSceneAnchors.pippinLampCenter.dy,
+    );
+    final pulse = disableAnimations
+        ? 0.5
+        : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2 + 0.7);
+    final intensity = switch (phase) {
+      TreehouseDayPhase.night => 1.0,
+      TreehouseDayPhase.sunset => 0.85,
+      TreehouseDayPhase.dawn => 0.65,
+      TreehouseDayPhase.day => 0.48,
+    };
+
+    // 1. Subtle pulsing Edison lightbulb halo
+    final bulbRadius = w * (0.036 + 0.012 * pulse);
+    canvas.drawCircle(
+      bulbCenter,
+      bulbRadius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFEF08A).withValues(alpha: (0.44 + 0.16 * pulse) * intensity),
+            const Color(0xFFF59E0B).withValues(alpha: (0.16 + 0.08 * pulse) * intensity),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.50, 1.0],
+        ).createShader(Rect.fromCircle(center: bulbCenter, radius: bulbRadius)),
+    );
+
+    // 2. Soft warm conical hanging lamp beam illuminating the reading rug
+    final beamBottomY = imageRect.top + h * 0.752;
+    final beamPath = Path()
+      ..moveTo(bulbCenter.dx - w * 0.012, bulbCenter.dy + h * 0.004)
+      ..lineTo(bulbCenter.dx + w * 0.012, bulbCenter.dy + h * 0.004)
+      ..lineTo(bulbCenter.dx + w * 0.105, beamBottomY)
+      ..lineTo(bulbCenter.dx - w * 0.095, beamBottomY)
+      ..close();
+    canvas.drawPath(
+      beamPath,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFFFDE68A).withValues(alpha: (0.18 + 0.05 * pulse) * intensity),
+            const Color(0xFFFDE68A).withValues(alpha: 0.06 * intensity),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.58, 1.0],
+        ).createShader(
+          Rect.fromLTRB(
+            bulbCenter.dx - w * 0.11,
+            bulbCenter.dy,
+            bulbCenter.dx + w * 0.11,
+            beamBottomY,
+          ),
+        ),
+    );
+
+    // 3. Floating warm dust motes drifting lazily inside the lamp beam
+    for (final mote in _pippinDustMotes) {
+      final dx = disableAnimations
+          ? 0.0
+          : math.sin(t * 2 * math.pi * mote.fx + mote.phase) * w * mote.rx;
+      final dy = disableAnimations
+          ? 0.0
+          : math.cos(t * 2 * math.pi * mote.fy + mote.phase * 1.2) * h * mote.ry;
+      final shimmer = disableAnimations
+          ? 0.45
+          : 0.22 +
+              0.68 * (0.5 + 0.5 * math.sin(t * 2 * math.pi * 2 + mote.phase));
+      final pos = TreehouseSceneAnchors.mapPoint(imageRect, mote.cx, mote.cy) +
+          Offset(dx, dy);
+      final r = (mote.r * (w / 390.0)).clamp(1.1, 2.8);
+
+      canvas.drawCircle(
+        pos,
+        r * 2.0,
+        Paint()
+          ..color = const Color(0xFFFDE68A)
+              .withValues(alpha: shimmer * 0.36 * (0.55 + 0.45 * intensity))
+          ..maskFilter = _moteBlur,
+      );
+      canvas.drawCircle(
+        pos,
+        r,
+        Paint()
+          ..color = const Color(0xFFFFFBEB)
+              .withValues(alpha: shimmer * (0.65 + 0.35 * intensity)),
+      );
+    }
+
+    // 4. Subtle pulsing compass / explorer map glint
+    final compassPulse = disableAnimations
+        ? 0.5
+        : 0.3 + 0.7 * (0.5 + 0.5 * math.sin(t * 2 * math.pi * 2 + 2.5));
+    final mapPos = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.pippinMapCompass.dx,
+      TreehouseSceneAnchors.pippinMapCompass.dy,
+    );
+    _drawFourPointStar(
+      canvas,
+      mapPos,
+      (w * 0.010).clamp(2.2, 4.6) * (0.75 + 0.30 * compassPulse),
+      const Color(0xFF6EE7B7).withValues(alpha: 0.36 + 0.42 * compassPulse),
+    );
+    final bookPos = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.pippinOpenBook.dx,
+      TreehouseSceneAnchors.pippinOpenBook.dy,
+    );
+    canvas.drawCircle(
+      bookPos,
+      w * 0.026,
+      Paint()
+        ..color = const Color(0xFFFDE68A)
+            .withValues(alpha: (0.14 + 0.08 * compassPulse) * intensity)
+        ..maskFilter = _moteBlur,
+    );
+  }
+
+  void _paintTwillWorkshop(Canvas canvas, double t) {
+    final w = imageRect.width;
+    final h = imageRect.height;
+
+    // 1. Warm pulsing workshop dome lamp glow + subtle workbench cone
+    final lampCenter = TreehouseSceneAnchors.mapPoint(
+      imageRect,
+      TreehouseSceneAnchors.twillLampCenter.dx,
+      TreehouseSceneAnchors.twillLampCenter.dy,
+    );
+    final pulse = disableAnimations
+        ? 0.5
+        : 0.5 - 0.5 * math.cos(t * 2 * math.pi * 2 + 2.1);
+    final intensity = switch (phase) {
+      TreehouseDayPhase.night => 1.0,
+      TreehouseDayPhase.sunset => 0.85,
+      TreehouseDayPhase.dawn => 0.65,
+      TreehouseDayPhase.day => 0.46,
+    };
+
+    final lampRadius = w * (0.044 + 0.014 * pulse);
+    canvas.drawCircle(
+      lampCenter,
+      lampRadius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFEF3C7).withValues(alpha: (0.46 + 0.16 * pulse) * intensity),
+            const Color(0xFFF59E0B).withValues(alpha: (0.18 + 0.08 * pulse) * intensity),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.52, 1.0],
+        ).createShader(Rect.fromCircle(center: lampCenter, radius: lampRadius)),
+    );
+
+    final benchBottomY = imageRect.top + h * 0.742;
+    final conePath = Path()
+      ..moveTo(lampCenter.dx - w * 0.030, lampCenter.dy + h * 0.006)
+      ..lineTo(lampCenter.dx + w * 0.030, lampCenter.dy + h * 0.006)
+      ..lineTo(lampCenter.dx + w * 0.145, benchBottomY)
+      ..lineTo(lampCenter.dx - w * 0.145, benchBottomY)
+      ..close();
+    canvas.drawPath(
+      conePath,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFFFEF3C7).withValues(alpha: (0.14 + 0.04 * pulse) * intensity),
+            Colors.transparent,
+          ],
+        ).createShader(
+          Rect.fromLTRB(
+            lampCenter.dx - w * 0.15,
+            lampCenter.dy,
+            lampCenter.dx + w * 0.15,
+            benchBottomY,
+          ),
+        ),
+    );
+
+    // 2. Subtle gentle staggered sway highlights on the 5 hanging keys & tools
+    final keyLen = h * 0.022;
+    for (var i = 0; i < TreehouseSceneAnchors.twillHangingKeys.length; i++) {
+      final peg = TreehouseSceneAnchors.mapPoint(
+        imageRect,
+        TreehouseSceneAnchors.twillHangingKeys[i].dx,
+        TreehouseSceneAnchors.twillHangingKeys[i].dy,
+      );
+      final sway = disableAnimations
+          ? 0.0
+          : math.sin(t * 2 * math.pi * 2 + i * 0.85) * 0.085;
+      final tip = peg + Offset(math.sin(sway) * keyLen, math.cos(sway) * keyLen);
+      final glint = disableAnimations
+          ? 0.45
+          : 0.30 + 0.55 * (0.5 + 0.5 * math.sin(t * 2 * math.pi * 3 + i * 1.3));
+
+      canvas.drawLine(
+        peg,
+        tip,
+        Paint()
+          ..color = const Color(0xFFFFF8DC).withValues(alpha: 0.34 + 0.24 * glint)
+          ..strokeWidth = (w * 0.0042).clamp(1.2, 2.2)
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.drawCircle(
+        tip,
+        (w * 0.0048).clamp(1.3, 2.4),
+        Paint()
+          ..color = const Color(0xFFFDE68A).withValues(alpha: 0.48 + 0.32 * glint),
+      );
+    }
+
+    final toolLen = h * 0.015;
+    for (var i = 0; i < TreehouseSceneAnchors.twillHangingTools.length; i++) {
+      final peg = TreehouseSceneAnchors.mapPoint(
+        imageRect,
+        TreehouseSceneAnchors.twillHangingTools[i].dx,
+        TreehouseSceneAnchors.twillHangingTools[i].dy,
+      );
+      final sway = disableAnimations
+          ? 0.0
+          : math.sin(t * 2 * math.pi * 2 + i * 1.15 + 1.8) * 0.075;
+      final tip =
+          peg + Offset(math.sin(sway) * toolLen, math.cos(sway) * toolLen);
+      canvas.drawLine(
+        peg,
+        tip,
+        Paint()
+          ..color = const Color(0xFFFFF8DC).withValues(alpha: 0.40)
+          ..strokeWidth = (w * 0.0036).clamp(1.0, 1.9)
+          ..strokeCap = StrokeCap.round,
+      );
     }
   }
 
@@ -758,7 +1339,9 @@ class TreehouseRoomEffectsPainter extends CustomPainter {
         oldDelegate.disableAnimations != disableAnimations ||
         oldDelegate.isSerenPlaying != isSerenPlaying ||
         oldDelegate.hasLoggedTodayReflection != hasLoggedTodayReflection ||
-        oldDelegate.isRainy != isRainy;
+        oldDelegate.isRainy != isRainy ||
+        oldDelegate.isHeavyRain != isHeavyRain ||
+        oldDelegate.isCoolBreeze != isCoolBreeze;
   }
 }
 

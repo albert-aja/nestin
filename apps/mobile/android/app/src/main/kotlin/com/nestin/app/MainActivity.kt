@@ -25,6 +25,7 @@ import android.view.KeyEvent
 import androidx.core.content.ContextCompat
 import com.nestin.app.geofencing.GeofencingPlugin
 import com.nestin.app.oem.OemHardeningPlugin
+import com.nestin.app.wallpaper.DailyWallpaperPlugin
 import com.nestin.app.widgets.HabitChecklistWidgetProvider
 import com.nestin.app.widgets.HydrationWidgetProvider
 import com.nestin.app.widgets.NextAlarmWidgetProvider
@@ -45,6 +46,7 @@ class MainActivity : FlutterActivity() {
     private var oemPlugin: OemHardeningPlugin? = null
     private var geofencingPlugin: GeofencingPlugin? = null
     private var deviceControlPlugin: DeviceControlPlugin? = null
+    private var dailyWallpaperPlugin: DailyWallpaperPlugin? = null
     private var audioManager: AudioManager? = null
     private var becomingNoisyReceiver: BroadcastReceiver? = null
     private var audioDeviceCallback: AudioDeviceCallback? = null
@@ -82,6 +84,7 @@ class MainActivity : FlutterActivity() {
         oemPlugin = OemHardeningPlugin.register(this, flutterEngine)
         geofencingPlugin = GeofencingPlugin.register(this, flutterEngine)
         deviceControlPlugin = DeviceControlPlugin.register(this, flutterEngine)
+        dailyWallpaperPlugin = DailyWallpaperPlugin.register(this, flutterEngine)
         methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -698,6 +701,7 @@ class MainActivity : FlutterActivity() {
         textToSpeech?.shutdown()
         textToSpeech = null
         geofencingPlugin?.dispose()
+        dailyWallpaperPlugin?.dispose()
         super.onDestroy()
     }
 }

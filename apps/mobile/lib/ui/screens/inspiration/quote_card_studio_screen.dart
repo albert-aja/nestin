@@ -5,6 +5,7 @@ import '../../../data/models/inspiration_models.dart';
 import '../../../data/services/quote_card_export_service.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../providers/inspiration_provider.dart';
+import '../../widgets/inspiration/daily_wallpaper_sheet.dart';
 import '../../widgets/inspiration/mascot_helper.dart';
 
 class QuoteCardStudioScreen extends StatefulWidget {
@@ -218,6 +219,16 @@ class _QuoteCardStudioScreenState extends State<QuoteCardStudioScreen> {
       appBar: AppBar(
         title: Text(l10n.tr('quote_card_studio')),
         actions: [
+          IconButton(
+            tooltip: l10n.tr('daily_wp_entry_title'),
+            onPressed: () => DailyWallpaperSheet.show(
+              context,
+              initialQuoteText: widget.quoteText,
+              initialAuthorName: widget.authorName,
+              initialMascotDomain: _config.mascotDomain,
+            ),
+            icon: const Icon(Icons.wallpaper_rounded),
+          ),
           IconButton(
             tooltip: l10n.tr('save_png'),
             onPressed: _isExporting ? null : () => _exportCard(share: false),
