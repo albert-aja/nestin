@@ -55,7 +55,7 @@ class _TypingChallengeWidgetState extends State<TypingChallengeWidget> {
     final accentInk = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     return Column(
       mainAxisSize: MainAxisSize.min,

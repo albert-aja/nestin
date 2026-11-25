@@ -47,7 +47,7 @@ class _DailyCreativePromptHeroCardState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const accent = Color(0xFF10B981);
+    const accent = AppColors.pippin;
     final mediumColor = Color(
       int.parse(_featuredPrompt.medium.colorHex.replaceFirst('#', '0xFF')),
     );
@@ -64,7 +64,7 @@ class _DailyCreativePromptHeroCardState
         gradient: LinearGradient(
           colors: [
             accent.withValues(alpha: 0.14),
-            const Color(0xFFF59E0B).withValues(alpha: 0.10),
+            AppColors.twill.withValues(alpha: 0.10),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -114,8 +114,8 @@ class _DailyCreativePromptHeroCardState
                               fontWeight: FontWeight.w700,
                               color: AppColors.adaptive(
                                 context,
-                                dark: const Color(0xFF34D399),
-                                light: const Color(0xFF047857),
+                                dark: AppColors.pippinLight,
+                                light: AppColors.pippinDark,
                               ),
                             ),
                           ),
@@ -829,7 +829,7 @@ class _DailyCreativePromptSheetState extends State<DailyCreativePromptSheet> {
                     onPressed:
                         _submitting ? null : () => _logToPippinHobby(l10n),
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981),
+                      backgroundColor: AppColors.pippin,
                       foregroundColor: Colors.black,
                     ),
                     icon: const Icon(Icons.palette_outlined, size: 17),

@@ -12,7 +12,7 @@ import '../../../domain/money/money_reports.dart';
 import '../../../providers/money_provider.dart';
 import '../../../providers/settings_provider.dart';
 
-const Color kTwillAmber = Color(0xFFF59E0B);
+const Color kTwillAmber = AppColors.twill;
 
 Future<void> showMoneyTransactionSheet(
   BuildContext context, {
@@ -375,7 +375,7 @@ class _MoneyTransactionEditorSheetState
                         color: AppColors.adaptive(
                           context,
                           dark: kTwillAmber,
-                          light: const Color(0xFFB45309),
+                          light: AppColors.twillDark,
                         ),
                       ),
                     ),
@@ -545,7 +545,7 @@ class _MoneyTransactionEditorSheetState
                           color: AppColors.adaptive(
                             context,
                             dark: kTwillAmber,
-                            light: const Color(0xFFB45309),
+                            light: AppColors.twillDark,
                           ),
                           fontWeight: FontWeight.w700,
                         ),
@@ -1042,7 +1042,7 @@ class _MoneyBudgetEditorSheetState extends State<_MoneyBudgetEditorSheet> {
                     color: AppColors.adaptive(
                       context,
                       dark: kTwillAmber,
-                      light: const Color(0xFFB45309),
+                      light: AppColors.twillDark,
                     ),
                   ),
                 ),
@@ -1492,7 +1492,7 @@ class _MoneyCategoriesSheetState extends State<_MoneyCategoriesSheet> {
                   color: AppColors.adaptive(
                     context,
                     dark: kTwillAmber,
-                    light: const Color(0xFFB45309),
+                    light: AppColors.twillDark,
                   ),
                 ),
                 tooltip: l10n.tr('new_category'),

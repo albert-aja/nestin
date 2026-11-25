@@ -193,8 +193,8 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
 
     final violetAccent = AppColors.adaptive(
       context,
-      dark: const Color(0xFFA78BFA),
-      light: const Color(0xFF7C3AED),
+      dark: AppColors.serenLight,
+      light: AppColors.serenDeep,
     );
 
     return Container(
@@ -225,7 +225,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                        color: AppColors.seren.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -370,7 +370,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                       return ChoiceChip(
                         label: Text('${instruction.iconEmoji} ${instruction.label}'),
                         selected: isSelected,
-                        selectedColor: const Color(0xFF8B5CF6).withValues(alpha: 0.24),
+                        selectedColor: AppColors.seren.withValues(alpha: 0.24),
                         backgroundColor: AppColors.elevatedSurface(context),
                         labelStyle: TextStyle(
                           color: isSelected
@@ -381,7 +381,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                         ),
                         side: BorderSide(
                           color: isSelected
-                              ? const Color(0xFF8B5CF6)
+                              ? AppColors.seren
                               : AppColors.border(context),
                         ),
                         onSelected: (selected) {
@@ -474,7 +474,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _daysOfWeek.contains(day)
-                                  ? const Color(0xFF8B5CF6)
+                                  ? AppColors.seren
                                   : AppColors.elevatedSurface(context),
                               border: Border.all(
                                 color: _daysOfWeek.contains(day)
@@ -529,7 +529,6 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
                             ),
                             Switch(
                               value: _enableInventory,
-                              activeThumbColor: const Color(0xFF8B5CF6),
                               onChanged: (v) => setState(() => _enableInventory = v),
                             ),
                           ],
@@ -631,7 +630,7 @@ class _AddEditMedicationSheetState extends State<AddEditMedicationSheet> {
             ElevatedButton(
               onPressed: _saveMedication,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B5CF6),
+                backgroundColor: AppColors.seren,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

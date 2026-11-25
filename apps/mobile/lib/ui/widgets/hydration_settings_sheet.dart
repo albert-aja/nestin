@@ -56,11 +56,11 @@ class HydrationSettingsSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                      color: AppColors.seren.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.water_drop_rounded,
-                        color: Color(0xFF8B5CF6), size: 24),
+                        color: AppColors.seren, size: 24),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -127,7 +127,6 @@ class HydrationSettingsSheet extends StatelessWidget {
                         ),
                         Switch.adaptive(
                           value: hydration.remindersEnabled,
-                          activeThumbColor: const Color(0xFF8B5CF6),
                           onChanged: (val) {
                             hydration.toggleReminders(val);
                           },
@@ -144,8 +143,8 @@ class HydrationSettingsSheet extends StatelessWidget {
                                 : Icons.schedule_rounded,
                             size: 16,
                             color: hydration.isGoalMet
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF8B5CF6),
+                                ? AppColors.pippin
+                                : AppColors.seren,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -156,7 +155,7 @@ class HydrationSettingsSheet extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 color: hydration.isGoalMet
-                                    ? const Color(0xFF10B981)
+                                    ? AppColors.pippin
                                     : AppColors.textPrimary(context),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -197,7 +196,7 @@ class HydrationSettingsSheet extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF8B5CF6),
+                            color: AppColors.seren,
                           ),
                         ),
                       ],
@@ -215,9 +214,9 @@ class HydrationSettingsSheet extends StatelessWidget {
                         Expanded(
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: const Color(0xFF8B5CF6),
+                              activeTrackColor: AppColors.seren,
                               inactiveTrackColor: AppColors.trackSurface(context),
-                              thumbColor: const Color(0xFF8B5CF6),
+                              thumbColor: AppColors.seren,
                             ),
                             child: Slider(
                               value: hydration.dailyGoalGlasses.toDouble(),
@@ -286,7 +285,7 @@ class HydrationSettingsSheet extends StatelessWidget {
                                 ),
                               ),
                               selected: isSelected,
-                              selectedColor: const Color(0xFF8B5CF6),
+                              selectedColor: AppColors.seren,
                               backgroundColor: AppColors.trackSurface(context),
                               onSelected: (_) {
                                 hydration.updateSchedule(intervalMinutes: interval);
@@ -307,17 +306,17 @@ class HydrationSettingsSheet extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF8B5CF6)),
+                        side: const BorderSide(color: AppColors.seren),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       icon: const Icon(Icons.notifications_active_rounded,
-                          color: Color(0xFF8B5CF6), size: 18),
+                          color: AppColors.seren, size: 18),
                       label: const Text(
                         'Test Seren Nudge',
-                        style: TextStyle(color: Color(0xFF8B5CF6), fontSize: 13),
+                        style: TextStyle(color: AppColors.seren, fontSize: 13),
                       ),
                       onPressed: () async {
                         await hydration.testSendReminderNow();
@@ -336,7 +335,7 @@ class HydrationSettingsSheet extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B5CF6),
+                        backgroundColor: AppColors.seren,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

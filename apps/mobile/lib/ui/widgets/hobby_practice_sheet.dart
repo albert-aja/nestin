@@ -89,8 +89,8 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
         final l10n = ctx.l10n;
         final emeraldText = AppColors.adaptive(
           ctx,
-          dark: const Color(0xFF10B981),
-          light: const Color(0xFF047857),
+          dark: AppColors.pippin,
+          light: AppColors.pippinDark,
         );
         return AlertDialog(
           backgroundColor: AppColors.sheetSurface(ctx),
@@ -125,10 +125,10 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.14),
+                    color: AppColors.pippin.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.35)),
+                        color: AppColors.pippin.withValues(alpha: 0.35)),
                   ),
                   child: Row(
                     children: [
@@ -167,7 +167,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
             ElevatedButton(
               onPressed: () => Navigator.of(ctx).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
+                backgroundColor: AppColors.pippin,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
@@ -199,8 +199,8 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
           builder: (ctx, setDialogState) {
             final emeraldText = AppColors.adaptive(
               ctx,
-              dark: const Color(0xFF10B981),
-              light: const Color(0xFF047857),
+              dark: AppColors.pippin,
+              light: AppColors.pippinDark,
             );
             return AlertDialog(
               backgroundColor: AppColors.sheetSurface(ctx),
@@ -244,7 +244,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         return ChoiceChip(
                           label: Text('${mins}m'),
                           selected: isSel,
-                          selectedColor: const Color(0xFF10B981).withValues(alpha: 0.3),
+                          selectedColor: AppColors.pippin.withValues(alpha: 0.3),
                           backgroundColor: AppColors.elevatedSurface(ctx),
                           labelStyle: TextStyle(
                             color: isSel ? emeraldText : AppColors.textPrimary(ctx),
@@ -312,7 +312,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         return ChoiceChip(
                           label: Text(_localizeFocusTag(ctx, t)),
                           selected: isSel,
-                          selectedColor: const Color(0xFF10B981).withValues(alpha: 0.3),
+                          selectedColor: AppColors.pippin.withValues(alpha: 0.3),
                           backgroundColor: AppColors.elevatedSurface(ctx),
                           labelStyle: TextStyle(
                             color: isSel ? emeraldText : AppColors.textPrimary(ctx),
@@ -347,7 +347,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                                   ? Icons.star_rounded
                                   : Icons.star_outline_rounded,
                               color: star <= rating
-                                  ? const Color(0xFFF59E0B)
+                                  ? AppColors.twill
                                   : AppColors.textMuted(ctx),
                               size: 26,
                             ),
@@ -426,7 +426,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
+                    backgroundColor: AppColors.pippin,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -471,8 +471,8 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
           builder: (ctx, setDialogState) {
             final emeraldText = AppColors.adaptive(
               ctx,
-              dark: const Color(0xFF10B981),
-              light: const Color(0xFF047857),
+              dark: AppColors.pippin,
+              light: AppColors.pippinDark,
             );
             return AlertDialog(
               backgroundColor: AppColors.sheetSurface(ctx),
@@ -542,7 +542,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                             '${cat['emoji']} ${_localizeCategory(ctx, cat['name']!)}',
                           ),
                           selected: isSel,
-                          selectedColor: const Color(0xFF10B981).withValues(alpha: 0.3),
+                          selectedColor: AppColors.pippin.withValues(alpha: 0.3),
                           backgroundColor: AppColors.elevatedSurface(ctx),
                           labelStyle: TextStyle(
                             color: isSel ? emeraldText : AppColors.textPrimary(ctx),
@@ -647,7 +647,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
+                    backgroundColor: AppColors.pippin,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -672,8 +672,8 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
     final l10n = context.l10n;
     final emeraldText = AppColors.adaptive(
       context,
-      dark: const Color(0xFF10B981),
-      light: const Color(0xFF047857),
+      dark: AppColors.pippin,
+      light: AppColors.pippinDark,
     );
     return Container(
       constraints: BoxConstraints(
@@ -703,7 +703,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                          color: AppColors.pippin.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text('🦜', style: TextStyle(fontSize: 20)),
@@ -771,8 +771,8 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       '🏆 $badgesUnlocked',
                       AppColors.adaptive(
                         context,
-                        dark: const Color(0xFFF59E0B),
-                        light: const Color(0xFFB45309),
+                        dark: AppColors.twill,
+                        light: AppColors.twillDark,
                       ),
                     ),
                   ],
@@ -790,7 +790,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                 child: TabBar(
                   controller: _tabController,
                   indicator: BoxDecoration(
-                    color: const Color(0xFF10B981),
+                    color: AppColors.pippin,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   labelColor: Colors.white,
@@ -837,7 +837,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       fontSize: 14),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: AppColors.pippin,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
@@ -870,13 +870,13 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
     final l10n = context.l10n;
     final emeraldText = AppColors.adaptive(
       context,
-      dark: const Color(0xFF10B981),
-      light: const Color(0xFF047857),
+      dark: AppColors.pippin,
+      light: AppColors.pippinDark,
     );
     final amberText = AppColors.adaptive(
       context,
-      dark: const Color(0xFFF59E0B),
-      light: const Color(0xFFB45309),
+      dark: AppColors.twill,
+      light: AppColors.twillDark,
     );
 
     if (hobbies.isEmpty) {
@@ -950,7 +950,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF10B981)
+                                color: AppColors.pippin
                                     .withValues(alpha: 0.16),
                                 borderRadius: BorderRadius.circular(6),
                               ),
@@ -1020,7 +1020,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                       minHeight: 6,
                       backgroundColor: AppColors.trackSurface(context),
                       valueColor:
-                          const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                          const AlwaysStoppedAnimation<Color>(AppColors.pippin),
                     ),
                   ),
                 ] else ...[
@@ -1055,12 +1055,12 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                               horizontal: 8, vertical: 5),
                           decoration: BoxDecoration(
                             color: isUnlocked
-                                ? const Color(0xFF10B981).withValues(alpha: 0.18)
+                                ? AppColors.pippin.withValues(alpha: 0.18)
                                 : AppColors.sheetSurface(context),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: isUnlocked
-                                  ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                                  ? AppColors.pippin.withValues(alpha: 0.4)
                                   : AppColors.border(context),
                             ),
                           ),
@@ -1169,7 +1169,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppColors.pippin,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         shape: RoundedRectangleBorder(
@@ -1191,8 +1191,8 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
     final sessions = provider.sessions;
     final emeraldText = AppColors.adaptive(
       context,
-      dark: const Color(0xFF10B981),
-      light: const Color(0xFF047857),
+      dark: AppColors.pippin,
+      light: AppColors.pippinDark,
     );
 
     if (sessions.isEmpty) {
@@ -1240,7 +1240,7 @@ class _HobbyPracticeSheetState extends State<HobbyPracticeSheet>
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.16),
+                color: AppColors.pippin.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(Icons.timer_outlined,

@@ -117,8 +117,8 @@ class _EchoGratitudeJarPainter extends CustomPainter {
                 const Color(0xFF1A1C24).withValues(alpha: 0.88),
               ]
             : [
-                const Color(0xFFFFFBEB).withValues(alpha: 0.92),
-                const Color(0xFFEFF6FF).withValues(alpha: 0.85),
+                AppColors.twillSoft.withValues(alpha: 0.92),
+                AppColors.scoutSoft.withValues(alpha: 0.85),
               ],
       ).createShader(bodyRect);
     canvas.drawRRect(bodyRRect, glassFill);
@@ -228,7 +228,7 @@ class _EchoGratitudeJarPainter extends CustomPainter {
         ..strokeWidth = 2.0
         ..color = isDark
             ? Colors.white.withValues(alpha: 0.24)
-            : const Color(0xFF94A3B8).withValues(alpha: 0.55),
+            : AppColors.slate400.withValues(alpha: 0.55),
     );
     final shinePath = Path()
       ..moveTo(bodyRect.left + w * 0.09, bodyRect.top + h * 0.11)
@@ -247,7 +247,7 @@ class _EchoGratitudeJarPainter extends CustomPainter {
       corkRect,
       Paint()
         ..shader = const LinearGradient(
-          colors: [Color(0xFFD97706), Color(0xFFB45309)],
+          colors: [AppColors.echo, AppColors.twillDark],
         ).createShader(corkRect.outerRect),
     );
     canvas.drawRRect(
@@ -255,7 +255,7 @@ class _EchoGratitudeJarPainter extends CustomPainter {
       Paint()
         ..color = isDark
             ? const Color(0xFF475569)
-            : const Color(0xFFCBD5E1),
+            : AppColors.slate300,
     );
     canvas.drawRRect(
       rimRect,
@@ -264,7 +264,7 @@ class _EchoGratitudeJarPainter extends CustomPainter {
         ..strokeWidth = 1.4
         ..color = isDark
             ? Colors.white.withValues(alpha: 0.26)
-            : const Color(0xFF64748B).withValues(alpha: 0.5),
+            : AppColors.slate500.withValues(alpha: 0.5),
     );
 
     // Subtle Echo star on center glass
@@ -313,7 +313,7 @@ class GratitudeJarCard extends StatelessWidget {
     final accentInk = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -558,7 +558,7 @@ class _GratitudeJarSheetState extends State<GratitudeJarSheet>
     final accentInk = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     final localeCode = l10n.isIndonesian ? 'id' : 'en';
 

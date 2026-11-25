@@ -452,7 +452,7 @@ class _InspirationScreenState extends State<InspirationScreen> {
                 end: Alignment.bottomRight,
                 colors: AppColors.isDark(context)
                     ? const [Color(0xFF281927), Color(0xFF1A1B24)]
-                    : const [Color(0xFFFFEFE6), Color(0xFFFFFFFF)],
+                    : const [AppColors.peachSoft, Color(0xFFFFFFFF)],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(

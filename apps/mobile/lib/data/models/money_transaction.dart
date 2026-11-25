@@ -1,11 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 import '../../core/l10n/app_localizations.dart';
 import 'money_account.dart';
-
+
+import '../../core/theme/app_colors.dart';
 enum MoneyTransactionType {
-  income('money_income', Icons.south_west_rounded, Color(0xFF10B981)),
-  expense('money_expense', Icons.north_east_rounded, Color(0xFFEF4444)),
-  transfer('money_transfer', Icons.swap_horiz_rounded, Color(0xFF3B82F6));
+  income('money_income', Icons.south_west_rounded, AppColors.pippin),
+  expense('money_expense', Icons.north_east_rounded, AppColors.error),
+  transfer('money_transfer', Icons.swap_horiz_rounded, AppColors.scout);
 
   final String translationKey;
   final IconData icon;

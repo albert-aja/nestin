@@ -96,7 +96,7 @@ class MoneySummaryCard extends StatelessWidget {
                                       color: AppColors.adaptive(
                                         context,
                                         dark: kTwillAmber,
-                                        light: const Color(0xFFB45309),
+                                        light: AppColors.twillDark,
                                       ),
                                     ),
                                   ),

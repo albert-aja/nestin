@@ -5,6 +5,7 @@ import '../../core/l10n/app_localizations.dart';
 import '../../data/models/seren_relaxation_models.dart';
 import '../../providers/seren_relaxation_provider.dart';
 
+import '../../core/theme/app_colors.dart';
 /// Passive, low-GPU 2D ambient visual canvas for Seren Relaxation (Features E & F).
 /// Automatically pauses animation ticks when [lowMotion] is enabled or when
 /// [playbackMode] is [RelaxationPlaybackMode.audioOnly].
@@ -242,7 +243,7 @@ class SerenFullscreenVisualPlayer extends StatelessWidget {
             provider.playbackMode == RelaxationPlaybackMode.audioOnly;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF090A0F),
+          backgroundColor: AppColors.darkSurfaceDeep,
           body: Stack(
             fit: StackFit.expand,
             children: [
@@ -255,7 +256,7 @@ class SerenFullscreenVisualPlayer extends StatelessWidget {
                 )
               else
                 Container(
-                  color: const Color(0xFF090A0F),
+                  color: AppColors.darkSurfaceDeep,
                   alignment: Alignment.center,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -263,7 +264,7 @@ class SerenFullscreenVisualPlayer extends StatelessWidget {
                       const Icon(
                         Icons.headphones_rounded,
                         size: 56,
-                        color: Color(0xFFA78BFA),
+                        color: AppColors.serenLight,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -339,7 +340,7 @@ class SerenFullscreenVisualPlayer extends StatelessWidget {
                           return ChoiceChip(
                             label: Text(mode.label),
                             selected: selected,
-                            selectedColor: const Color(0xFF8B5CF6),
+                            selectedColor: AppColors.seren,
                             backgroundColor:
                                 Colors.black.withValues(alpha: 0.45),
                             labelStyle: TextStyle(
@@ -376,7 +377,7 @@ class SerenFullscreenVisualPlayer extends StatelessWidget {
                                 provider.isMixerPlaying
                                     ? Icons.pause_circle_filled_rounded
                                     : Icons.play_circle_fill_rounded,
-                                color: const Color(0xFFA78BFA),
+                                color: AppColors.serenLight,
                                 size: 36,
                               ),
                             ),
@@ -416,7 +417,7 @@ class SerenFullscreenVisualPlayer extends StatelessWidget {
                                 ),
                               ),
                               selected: provider.lowMotionVisuals,
-                              selectedColor: const Color(0xFF8B5CF6),
+                              selectedColor: AppColors.seren,
                               backgroundColor: Colors.white12,
                               onSelected: (v) => provider.setLowMotionVisuals(v),
                             ),

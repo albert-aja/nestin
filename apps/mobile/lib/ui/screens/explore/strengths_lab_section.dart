@@ -29,7 +29,7 @@ class StrengthsLabHeroCard extends StatelessWidget {
         draft != null && draft!.selectedOptionIdsByQuestion.isNotEmpty;
     final hasResult = latestResult != null && latestResult!.topMatches.isNotEmpty;
 
-    const accent = Color(0xFF8B5CF6);
+    const accent = AppColors.seren;
     final buttonLabel = hasDraft
         ? l10n.tr('exp_continue_draft')
         : (hasResult
@@ -43,7 +43,7 @@ class StrengthsLabHeroCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             accent.withValues(alpha: 0.14),
-            const Color(0xFF0EA5E9).withValues(alpha: 0.10),
+            AppColors.skyMid.withValues(alpha: 0.10),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -90,8 +90,8 @@ class StrengthsLabHeroCard extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: AppColors.adaptive(
                                 context,
-                                dark: const Color(0xFFC4B5FD),
-                                light: const Color(0xFF5B21B6),
+                                dark: AppColors.serenSoft,
+                                light: AppColors.violetDeep,
                               ),
                             ),
                           ),
@@ -212,7 +212,7 @@ class StrengthsLabResultCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                  color: AppColors.seren.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -222,8 +222,8 @@ class StrengthsLabResultCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     color: AppColors.adaptive(
                       context,
-                      dark: const Color(0xFFC4B5FD),
-                      light: const Color(0xFF5B21B6),
+                      dark: AppColors.serenSoft,
+                      light: AppColors.violetDeep,
                     ),
                   ),
                 ),
@@ -504,12 +504,12 @@ class _StrengthsLabWizardSheetState extends State<StrengthsLabWizardSheet> {
                     padding: const EdgeInsets.all(13),
                     decoration: BoxDecoration(
                       color: selected
-                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.14)
+                          ? AppColors.seren.withValues(alpha: 0.14)
                           : AppColors.cardSurface(context),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: selected
-                            ? const Color(0xFF8B5CF6)
+                            ? AppColors.seren
                             : AppColors.border(context),
                         width: selected ? 1.6 : 1,
                       ),
@@ -532,7 +532,7 @@ class _StrengthsLabWizardSheetState extends State<StrengthsLabWizardSheet> {
                         if (selected)
                           const Icon(
                             Icons.check_circle_rounded,
-                            color: Color(0xFF8B5CF6),
+                            color: AppColors.seren,
                             size: 20,
                           ),
                       ],

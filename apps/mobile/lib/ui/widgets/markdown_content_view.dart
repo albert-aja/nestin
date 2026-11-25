@@ -36,8 +36,8 @@ class MarkdownContentView extends StatelessWidget {
           fontSize: 13,
           color: AppColors.adaptive(
             context,
-            dark: const Color(0xFFD1D5DB),
-            light: const Color(0xFF374151),
+            dark: AppColors.gray300,
+            light: AppColors.slate700,
           ),
           height: 1.45,
         );
@@ -72,8 +72,8 @@ class MarkdownContentView extends StatelessWidget {
   }) {
     final checkedColor = AppColors.adaptive(
       context,
-      dark: const Color(0xFF10B981),
-      light: const Color(0xFF047857),
+      dark: AppColors.pippin,
+      light: AppColors.pippinDark,
     );
     final icon = Icon(
       item.isChecked
@@ -119,18 +119,18 @@ class MarkdownContentView extends StatelessWidget {
     final isDark = AppColors.isDark(context);
     final bulletAccent = AppColors.adaptive(
       context,
-      dark: const Color(0xFFA78BFA),
-      light: const Color(0xFF7C3AED),
+      dark: AppColors.serenLight,
+      light: AppColors.serenDeep,
     );
     final quoteBarColor = AppColors.adaptive(
       context,
-      dark: const Color(0xFF8B5CF6),
-      light: const Color(0xFF6D28D9),
+      dark: AppColors.seren,
+      light: AppColors.serenDark,
     );
     final codeColor = AppColors.adaptive(
       context,
-      dark: const Color(0xFFFBBF24),
-      light: const Color(0xFF9A3412),
+      dark: AppColors.twillLight,
+      light: AppColors.orangeBrown,
     );
     final spans = <InlineSpan>[];
     final lines = content.split('\n');
@@ -261,13 +261,13 @@ class MarkdownContentView extends StatelessWidget {
     final isDark = AppColors.isDark(context);
     final bulletAccent = AppColors.adaptive(
       context,
-      dark: const Color(0xFFA78BFA),
-      light: const Color(0xFF7C3AED),
+      dark: AppColors.serenLight,
+      light: AppColors.serenDeep,
     );
     final quoteBarColor = AppColors.adaptive(
       context,
-      dark: const Color(0xFF8B5CF6),
-      light: const Color(0xFF6D28D9),
+      dark: AppColors.seren,
+      light: AppColors.serenDark,
     );
     final widgets = <Widget>[];
     final lines = content.split('\n');
@@ -316,7 +316,7 @@ class MarkdownContentView extends StatelessWidget {
               AppColors.adaptive(
                 context,
                 dark: const Color(0xFFF3F4F6),
-                light: const Color(0xFF1F2937),
+                light: AppColors.gray800,
               ),
               6.0,
               3.0,
@@ -326,8 +326,8 @@ class MarkdownContentView extends StatelessWidget {
               FontWeight.w700,
               AppColors.adaptive(
                 context,
-                dark: const Color(0xFFE5E7EB),
-                light: const Color(0xFF374151),
+                dark: AppColors.gray200,
+                light: AppColors.slate700,
               ),
               4.0,
               2.0,
@@ -466,7 +466,7 @@ class MarkdownContentView extends StatelessWidget {
                 color: AppColors.adaptive(
                   context,
                   dark: const Color(0xFFB0B4C0),
-                  light: const Color(0xFF4B5563),
+                  light: AppColors.slate600,
                 ),
               ),
               isDark: isDark,
@@ -505,7 +505,7 @@ class MarkdownContentView extends StatelessWidget {
         color: AppColors.adaptive(
           context,
           dark: const Color(0xFF12131A),
-          light: const Color(0xFFF1F5F9),
+          light: AppColors.slate100,
         ),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border(context)),
@@ -519,8 +519,8 @@ class MarkdownContentView extends StatelessWidget {
             fontSize: 12,
             color: AppColors.adaptive(
               context,
-              dark: const Color(0xFFFBBF24),
-              light: const Color(0xFF9A3412),
+              dark: AppColors.twillLight,
+              light: AppColors.orangeBrown,
             ),
             height: 1.4,
           ),
@@ -565,11 +565,11 @@ class MarkdownContentView extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 1.5),
             decoration: BoxDecoration(
               color:
-                  isDark ? const Color(0xFF242733) : const Color(0xFFE2E8F0),
+                  isDark ? const Color(0xFF242733) : AppColors.slate200,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
                 color:
-                    isDark ? const Color(0xFF35394A) : const Color(0xFFCBD5E1),
+                    isDark ? const Color(0xFF35394A) : AppColors.slate300,
                 width: 0.8,
               ),
             ),
@@ -579,7 +579,7 @@ class MarkdownContentView extends StatelessWidget {
                 fontFamily: 'monospace',
                 fontSize: 11.5,
                 color:
-                    isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A3412),
+                    isDark ? AppColors.twillLight : AppColors.orangeBrown,
                 fontWeight: FontWeight.w600,
               ),
             ),

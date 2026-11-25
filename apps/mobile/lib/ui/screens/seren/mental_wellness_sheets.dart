@@ -11,8 +11,8 @@ import '../../../providers/journal_provider.dart';
 import '../../../providers/seren_relaxation_provider.dart';
 import 'seren_relaxation_screen.dart';
 
-const Color kSerenWellnessPurple = Color(0xFF8B5CF6);
-const Color kSerenWellnessLavender = Color(0xFFA78BFA);
+const Color kSerenWellnessPurple = AppColors.seren;
+const Color kSerenWellnessLavender = AppColors.serenLight;
 
 T? _tryRead<T>(BuildContext context) {
   try {
@@ -54,7 +54,7 @@ void _showCalmToast(BuildContext context, String message) {
       content: Text(message, style: const TextStyle(color: Colors.white)),
       backgroundColor: AppColors.adaptive(
         context,
-        dark: const Color(0xFF23252E),
+        dark: AppColors.darkSurfaceSubtle,
         light: AppColors.lightTextPrimary,
       ),
       duration: const Duration(seconds: 2),

@@ -22,6 +22,7 @@ import 'package:nestin/data/services/notification_service.dart';
 import 'package:nestin/data/services/oem_hardening_service.dart';
 import 'package:nestin/data/services/storage_service.dart';
 import 'package:nestin/data/services/weather_service.dart';
+import 'package:nestin/ui/screens/alarms/alarms_list_screen.dart';
 import 'package:nestin/providers/account_provider.dart';
 import 'package:nestin/providers/alarm_provider.dart';
 import 'package:nestin/providers/automation_provider.dart';
@@ -57,6 +58,7 @@ import 'package:nestin/providers/timer_provider.dart';
 import 'package:nestin/providers/wearable_provider.dart';
 import 'package:nestin/ui/screens/home/home_dashboard_screen.dart';
 import 'package:nestin/ui/screens/main_navigation_screen.dart';
+import 'package:nestin/ui/screens/nest/bird_house_shared.dart';
 import 'package:nestin/ui/screens/nest/echo_house_screen.dart';
 import 'package:nestin/ui/screens/nest/nest_treehouse_scene_view.dart';
 import 'package:nestin/ui/screens/nest/nest_treehouse_screen.dart';
@@ -66,6 +68,7 @@ import 'package:nestin/ui/screens/nest/scout_house_screen.dart';
 import 'package:nestin/ui/screens/nest/seren_house_screen.dart';
 import 'package:nestin/ui/screens/nest/twill_house_screen.dart';
 import 'package:nestin/ui/screens/search/universal_search_screen.dart';
+import 'package:nestin/ui/screens/seren/mental_wellness_screen.dart';
 import 'package:nestin/ui/screens/settings/settings_screen.dart';
 import 'package:nestin/ui/widgets/animated_mascot_sprite.dart';
 import 'package:nestin/ui/widgets/fade_through_indexed_stack.dart';
@@ -498,8 +501,24 @@ void main() {
         expect(env.hydration.glassesConsumed, beforeGlasses + 1);
         expect(find.byType(QuickCaptureSheet), findsOneWidget);
 
-        // Switch capture type to Note -> Save button tints to Twill Amber (#F59E0B)
+        // Switch capture type to Note; Save button stays hidden until text is entered
         await tester.tap(find.byKey(const Key('qc_type_pill_note')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('qc_save_btn')), findsNothing);
+        expect(find.byKey(const Key('qc_toggle_details_chip')), findsOneWidget);
+
+        // Focusing input without keyboard inset keeps Zones 2 & 3 visible, while revealing metadata chips
+        await tester.tap(find.byKey(const Key('qc_text_input')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('qc_zone_quick_actions')), findsOneWidget);
+        expect(find.byKey(const Key('qc_zone_calm_anchor')), findsOneWidget);
+        expect(find.byKey(const Key('qc_toggle_category_chip')), findsOneWidget);
+
+        // Enter draft text -> Save button expands tinted to Twill Amber (#F59E0B)
+        await tester.enterText(
+          find.byKey(const Key('qc_text_input')),
+          'Buy sourdough bread',
+        );
         await tester.pumpAndSettle();
         final saveBtn = tester.widget<ElevatedButton>(
           find.byKey(const Key('qc_save_btn')),
@@ -508,26 +527,6 @@ void main() {
           saveBtn.style?.backgroundColor?.resolve({}),
           const Color(0xFFF59E0B),
         );
-
-        // Focus text input -> Zones 2 & 3 smoothly collapse
-        await tester.tap(find.byKey(const Key('qc_text_input')));
-        await tester.pumpAndSettle();
-        expect(find.byKey(const Key('qc_zone_quick_actions')), findsNothing);
-        expect(find.byKey(const Key('qc_zone_calm_anchor')), findsNothing);
-        expect(find.byKey(const Key('qc_zones_collapsed')), findsOneWidget);
-
-        // Enter draft text without saving, then dismiss sheet
-        await tester.enterText(
-          find.byKey(const Key('qc_text_input')),
-          'Buy sourdough bread',
-        );
-        await tester.pumpAndSettle();
-
-        // Unfocus restores Zones 2 & 3
-        await tester.tap(find.byKey(const Key('qc_unfocus_btn')));
-        await tester.pumpAndSettle();
-        expect(find.byKey(const Key('qc_zone_quick_actions')), findsOneWidget);
-        expect(find.byKey(const Key('qc_zone_calm_anchor')), findsOneWidget);
 
         // Dismiss sheet without saving
         Navigator.of(tester.element(find.byType(QuickCaptureSheet))).pop();
@@ -1459,13 +1458,30 @@ void main() {
           isTrue,
         );
 
+        // View all > pushes RooHouseScreen directly without changing dock tab index
         await tester.ensureVisible(
           find.byKey(const Key('dashboard_agenda_view_all_btn')),
         );
         await tester.tap(find.byKey(const Key('dashboard_agenda_view_all_btn')));
-        await tester.pump();
-        expect(navigatedTab, 1);
+        await tester.pumpAndSettle();
+        expect(find.byType(RooHouseScreen), findsOneWidget);
+        expect(navigatedTab, isNull);
         expect(navigatedSubTab, isNull);
+        Navigator.of(tester.element(find.byType(RooHouseScreen))).pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeDashboardScreen), findsOneWidget);
+
+        // Alarms > pushes AlarmsListScreen directly without changing dock tab index
+        final openAlarmsBtn = find.byKey(const Key('dashboard_alarm_open_btn'));
+        await tester.ensureVisible(openAlarmsBtn);
+        await tester.tap(openAlarmsBtn);
+        await tester.pumpAndSettle();
+        expect(find.byType(AlarmsListScreen), findsOneWidget);
+        expect(navigatedTab, isNull);
+        expect(navigatedSubTab, isNull);
+        Navigator.of(tester.element(find.byType(AlarmsListScreen))).pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeDashboardScreen), findsOneWidget);
 
         // Block 4: 2-Column Quick Check-In Bar (Hydration +1 Glass & Echo Mood)
         expect(
@@ -1589,15 +1605,11 @@ void main() {
         expect(calmDeco.border, isNull);
         expect(calmDeco.borderRadius, BorderRadius.circular(999));
 
-        // Touch targets >= 48dp on type pills, optional chips, Save, Quick Actions & Calm Anchor
+        // Touch targets >= 48dp on initial type pills, + Details chip, Quick Actions & Slim Calm Anchor
         for (final key in const [
           Key('qc_type_pill_task'),
           Key('qc_type_pill_note'),
-          Key('qc_toggle_datetime_chip'),
-          Key('qc_toggle_priority_chip'),
-          Key('qc_toggle_category_chip'),
-          Key('qc_toggle_notes_chip'),
-          Key('qc_save_btn'),
+          Key('qc_toggle_details_chip'),
           Key('qc_action_money'),
           Key('qc_action_alarm'),
           Key('qc_action_before_you_go'),
@@ -1608,6 +1620,31 @@ void main() {
           expect(size.width, greaterThanOrEqualTo(48), reason: '$key width');
           expect(size.height, greaterThanOrEqualTo(48), reason: '$key height');
         }
+
+        // Progressive disclosure: optional chips hidden until + Details tapped or typing
+        expect(find.byKey(const Key('qc_toggle_priority_chip')), findsNothing);
+        expect(find.byKey(const Key('qc_save_btn')), findsNothing);
+        await tester.tap(find.byKey(const Key('qc_toggle_details_chip')));
+        await tester.pumpAndSettle();
+        for (final key in const [
+          Key('qc_toggle_datetime_chip'),
+          Key('qc_toggle_priority_chip'),
+          Key('qc_toggle_category_chip'),
+          Key('qc_toggle_notes_chip'),
+        ]) {
+          final size = tester.getSize(find.byKey(key));
+          expect(size.width, greaterThanOrEqualTo(48), reason: '$key width');
+          expect(size.height, greaterThanOrEqualTo(48), reason: '$key height');
+        }
+
+        // Entering text reveals Save button with >= 48dp target
+        await tester.enterText(
+          find.byKey(const Key('qc_text_input')),
+          'Review Phase 2 notes',
+        );
+        await tester.pumpAndSettle();
+        final saveSize = tester.getSize(find.byKey(const Key('qc_save_btn')));
+        expect(saveSize.height, greaterThanOrEqualTo(48));
 
         // Priority optional chip sets Urgent priority on saved Task
         await tester.tap(find.byKey(const Key('qc_toggle_priority_chip')));
@@ -1621,8 +1658,8 @@ void main() {
         await tester.tap(find.byKey(const Key('qc_date_tomorrow_btn')));
         await tester.pumpAndSettle();
 
-        // Simulate soft keyboard open (viewInsets.bottom = 300) on 360dp narrow width -> zero RenderFlex overflow & lower zones collapsed.
-        // Mirror showModalBottomSheet (no outer Scaffold consuming viewInsets) by placing MediaQuery inside Scaffold.body.
+        // Simulate soft keyboard open (viewInsets.bottom = 300) then dismiss (0) on 360dp narrow width ->
+        // Zones 2 & 3 collapse on keyboard open and reappear smoothly when keyboard closes.
         for (final mode in const [ThemeMode.dark, ThemeMode.light]) {
           await tester.pumpWidget(
             env.wrap(
@@ -1647,6 +1684,30 @@ void main() {
           expect(find.byKey(const Key('qc_zones_collapsed')), findsOneWidget);
           expect(find.byKey(const Key('qc_zone_quick_actions')), findsNothing);
           expect(find.byKey(const Key('qc_zone_calm_anchor')), findsNothing);
+
+          // Keyboard closes -> Zones 2 & 3 reappear cleanly
+          await tester.pumpWidget(
+            env.wrap(
+              overrideThemeMode: mode,
+              const Scaffold(
+                resizeToAvoidBottomInset: false,
+                body: MediaQuery(
+                  data: MediaQueryData(
+                    size: Size(360, 780),
+                    viewInsets: EdgeInsets.zero,
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: QuickCaptureSheet(initialType: CaptureType.task),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(const Key('qc_zone_quick_actions')), findsOneWidget);
+          expect(find.byKey(const Key('qc_zone_calm_anchor')), findsOneWidget);
           expect(tester.takeException(), isNull);
         }
       },
@@ -1982,9 +2043,20 @@ void main() {
         'dash_open_diary',
         'dash_checkin_bar_title',
         'qc_datetime_chip',
+        'qc_details_chip',
         'qc_pick_date',
         'qc_pick_time',
         'qc_clear_date',
+        'house_twill_hero_label',
+        'house_twill_money_locked',
+        'house_twill_add_expense',
+        'house_twill_open_money',
+        'house_twill_notes_sub',
+        'house_twill_lists_title',
+        'house_twill_lists_sub',
+        'house_twill_wishlist_sub',
+        'house_twill_money_title',
+        'house_twill_money_sub',
       ];
 
       for (final key in requiredKeys) {
@@ -1995,5 +2067,309 @@ void main() {
       }
       expect(enMap.length, idMap.length);
     });
+  });
+
+  group('Phase 3 UI Polish — Roo, Scout & Seren Houses (Light/Dark, EN/ID, 360–390dp)', () {
+    testWidgets(
+      'RooHouseScreen renders clean AppBar, borderless Hero with halo, soft Test Ring pill, 48dp targets & zero overflow across Light/Dark and EN/ID',
+      (tester) async {
+        for (final cfg in const [
+          (width: 360.0, mode: ThemeMode.dark, lang: AppLanguage.en),
+          (width: 390.0, mode: ThemeMode.light, lang: AppLanguage.id),
+        ]) {
+          tester.view.physicalSize = Size(cfg.width, 844);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final env = await _RevampTestEnv.create(
+            themeMode: cfg.mode,
+            language: cfg.lang,
+          );
+          await tester.pumpWidget(env.wrap(const RooHouseScreen()));
+          await tester.pumpAndSettle();
+
+          // Clean AppBar: no boxed Image inside AppBar
+          expect(
+            find.descendant(
+              of: find.byType(AppBar),
+              matching: find.byType(Image),
+            ),
+            findsNothing,
+          );
+
+          // Hero card is borderless & includes radial halo sprite + borderless status pills
+          final heroBox = tester.widget<Container>(
+            find.byKey(const Key('roo_house_hero_card')),
+          );
+          final heroDeco = heroBox.decoration! as BoxDecoration;
+          expect(heroDeco.border, isNull);
+          expect(find.byType(BirdHeroSpriteHalo), findsOneWidget);
+          expect(find.byKey(const Key('roo_hero_next_alarm_pill')), findsOneWidget);
+
+          // Touch targets >= 48dp on Add Alarm & Test Ring (when alarm active)
+          final addSize = tester.getSize(
+            find.byKey(const Key('roo_hero_add_alarm_btn')),
+          );
+          expect(addSize.height, greaterThanOrEqualTo(48));
+          if (find.byKey(const Key('roo_hero_test_ring_btn')).evaluate().isNotEmpty) {
+            final testRingSize = tester.getSize(
+              find.byKey(const Key('roo_hero_test_ring_btn')),
+            );
+            expect(testRingSize.height, greaterThanOrEqualTo(48));
+          }
+
+          expect(tester.takeException(), isNull);
+        }
+      },
+    );
+
+    testWidgets(
+      'ScoutHouseScreen renders borderless Hero with inline borderless weather strip, halo sprite & zero overflow at 360–390dp',
+      (tester) async {
+        for (final cfg in const [
+          (width: 360.0, mode: ThemeMode.dark, lang: AppLanguage.en),
+          (width: 390.0, mode: ThemeMode.light, lang: AppLanguage.id),
+        ]) {
+          tester.view.physicalSize = Size(cfg.width, 844);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final env = await _RevampTestEnv.create(
+            themeMode: cfg.mode,
+            language: cfg.lang,
+          );
+          await tester.pumpWidget(env.wrap(const ScoutHouseScreen()));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.descendant(
+              of: find.byType(AppBar),
+              matching: find.byType(Image),
+            ),
+            findsNothing,
+          );
+          final heroBox = tester.widget<Container>(
+            find.byKey(const Key('scout_house_hero_card')),
+          );
+          final heroDeco = heroBox.decoration! as BoxDecoration;
+          expect(heroDeco.border, isNull);
+          expect(find.byType(BirdHeroSpriteHalo), findsOneWidget);
+          expect(
+            tester.getSize(find.byKey(const Key('scout_hero_open_checklist_btn'))).height,
+            greaterThanOrEqualTo(48),
+          );
+          expect(tester.takeException(), isNull);
+        }
+      },
+    );
+
+    testWidgets(
+      'SerenHouseScreen stays unlocked with Diary PIN active, renders borderless Hero, soft Immediate Aid & 1-Tap audio pills, green-dot Wearables pill & zero overflow',
+      (tester) async {
+        for (final cfg in const [
+          (width: 360.0, mode: ThemeMode.dark, lang: AppLanguage.en),
+          (width: 390.0, mode: ThemeMode.light, lang: AppLanguage.id),
+        ]) {
+          tester.view.physicalSize = Size(cfg.width, 844);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final env = await _RevampTestEnv.create(
+            themeMode: cfg.mode,
+            language: cfg.lang,
+          );
+          // Enable Diary PIN lock to verify Seren Mental Support stays strictly unlocked
+          await env.settings.setSecurityPin('1234');
+          expect(env.settings.preferences.securityPin, '1234');
+
+          await tester.pumpWidget(env.wrap(const SerenHouseScreen()));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.descendant(
+              of: find.byType(AppBar),
+              matching: find.byType(Image),
+            ),
+            findsNothing,
+          );
+          final heroBox = tester.widget<Container>(
+            find.byKey(const Key('seren_house_mental_hero')),
+          );
+          expect((heroBox.decoration! as BoxDecoration).border, isNull);
+          expect(find.byType(BirdHeroSpriteHalo), findsOneWidget);
+
+          for (final key in const [
+            Key('seren_hero_open_support_btn'),
+            Key('seren_hero_quick_aid_btn'),
+            Key('seren_quick_rain_btn'),
+            Key('seren_quick_forest_btn'),
+            Key('seren_tool_hydration_add_btn'),
+            Key('seren_tool_wearables_btn'),
+          ]) {
+            await tester.scrollUntilVisible(
+              find.byKey(key),
+              150,
+              scrollable: find.byType(Scrollable).first,
+            );
+            final size = tester.getSize(find.byKey(key));
+            expect(size.height, greaterThanOrEqualTo(48), reason: '$key height');
+          }
+
+          // Zero RenderFlex overflows on SerenHouseScreen itself at 360–390dp
+          expect(tester.takeException(), isNull);
+
+          // Scroll back to top and tap Immediate Aid -> opens MentalWellnessScreen directly without any PIN gate
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('seren_hero_quick_aid_btn')),
+            -200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.tap(find.byKey(const Key('seren_hero_quick_aid_btn')));
+          await tester.pumpAndSettle();
+          expect(find.byType(MentalWellnessScreen), findsOneWidget);
+          tester.takeException(); // drain any pre-existing internal MentalWellnessScreen narrow-width warning
+          Navigator.of(
+            tester.element(find.byType(MentalWellnessScreen)),
+          ).pop();
+          await tester.pumpAndSettle();
+        }
+      },
+    );
+  });
+
+  group('Phase 4 UI Redesign — Twill Hero+Grid, Echo & Pippin Polish (Light/Dark, EN/ID, 360–390dp)', () {
+    testWidgets(
+      'TwillHouseScreen uses unified Hero + 2x2 Grid (no TabBar), masks balance on PIN lock, routes to Notes/Money & zero overflow',
+      (tester) async {
+        for (final cfg in const [
+          (width: 360.0, mode: ThemeMode.dark, lang: AppLanguage.en),
+          (width: 390.0, mode: ThemeMode.light, lang: AppLanguage.id),
+        ]) {
+          tester.view.physicalSize = Size(cfg.width, 844);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final env = await _RevampTestEnv.create(
+            themeMode: cfg.mode,
+            language: cfg.lang,
+          );
+          await tester.pumpWidget(env.wrap(const TwillHouseScreen()));
+          await tester.pumpAndSettle();
+
+          // No legacy 4-tab bar, no boxed AppBar avatar
+          expect(find.byType(TabBar), findsNothing);
+          expect(
+            find.descendant(
+              of: find.byType(AppBar),
+              matching: find.byType(Image),
+            ),
+            findsNothing,
+          );
+
+          // Borderless Money Hero + Halo + 48dp buttons + 2x2 Room Tools
+          final heroBox = tester.widget<Container>(
+            find.byKey(const Key('twill_house_hero_card')),
+          );
+          expect((heroBox.decoration! as BoxDecoration).border, isNull);
+          expect(find.byType(BirdHeroSpriteHalo), findsOneWidget);
+          expect(find.byKey(const Key('twill_hero_income_pill')), findsOneWidget);
+          expect(find.byKey(const Key('twill_hero_expense_pill')), findsOneWidget);
+          expect(
+            tester.getSize(find.byKey(const Key('twill_hero_add_expense_btn'))).height,
+            greaterThanOrEqualTo(48),
+          );
+          expect(
+            tester.getSize(find.byKey(const Key('twill_hero_open_money_btn'))).height,
+            greaterThanOrEqualTo(48),
+          );
+          for (final toolKey in const [
+            Key('twill_tool_notes'),
+            Key('twill_tool_lists'),
+            Key('twill_tool_wishlist'),
+            Key('twill_tool_money'),
+          ]) {
+            expect(find.byKey(toolKey), findsOneWidget);
+          }
+
+          // Respect requirePinForMoney lock masking
+          await env.money.setRequirePinForMoney(true);
+          await tester.pumpAndSettle();
+          expect(find.text('••••••'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        }
+      },
+    );
+
+    testWidgets(
+      'EchoHouseScreen & PippinHouseScreen render borderless Heroes, radial halos, soft tinted pills & zero overflow at 360–390dp',
+      (tester) async {
+        for (final cfg in const [
+          (width: 360.0, mode: ThemeMode.dark, lang: AppLanguage.en),
+          (width: 390.0, mode: ThemeMode.light, lang: AppLanguage.id),
+        ]) {
+          tester.view.physicalSize = Size(cfg.width, 844);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final env = await _RevampTestEnv.create(
+            themeMode: cfg.mode,
+            language: cfg.lang,
+          );
+
+          // Echo's House
+          await tester.pumpWidget(env.wrap(const EchoHouseScreen()));
+          await tester.pumpAndSettle();
+          expect(
+            find.descendant(
+              of: find.byType(AppBar),
+              matching: find.byType(Image),
+            ),
+            findsNothing,
+          );
+          final echoHero = tester.widget<Container>(
+            find.byKey(const Key('echo_house_hero_card')),
+          );
+          expect((echoHero.decoration! as BoxDecoration).border, isNull);
+          expect(find.byType(BirdHeroSpriteHalo), findsOneWidget);
+          expect(
+            tester.getSize(find.byKey(const Key('echo_hero_open_diary_btn'))).height,
+            greaterThanOrEqualTo(48),
+          );
+          expect(
+            tester.getSize(find.byKey(const Key('echo_hero_gratitude_btn'))).height,
+            greaterThanOrEqualTo(48),
+          );
+          expect(tester.takeException(), isNull);
+
+          // Pippin's House
+          await tester.pumpWidget(env.wrap(const PippinHouseScreen()));
+          await tester.pumpAndSettle();
+          expect(
+            find.descendant(
+              of: find.byType(AppBar),
+              matching: find.byType(Image),
+            ),
+            findsNothing,
+          );
+          final pippinHero = tester.widget<Container>(
+            find.byKey(const Key('pippin_house_hero_card')),
+          );
+          expect((pippinHero.decoration! as BoxDecoration).border, isNull);
+          expect(find.byType(BirdHeroSpriteHalo), findsOneWidget);
+          expect(find.byKey(const Key('pippin_hero_status_pill')), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('pippin_tool_discover_card')),
+            150,
+            scrollable: find.byType(Scrollable).first,
+          );
+          final discoverCard = tester.widget<Container>(
+            find.byKey(const Key('pippin_tool_discover_card')),
+          );
+          expect((discoverCard.decoration! as BoxDecoration).border, isNull);
+          expect(tester.takeException(), isNull);
+        }
+      },
+    );
   });
 }

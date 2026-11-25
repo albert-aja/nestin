@@ -26,7 +26,7 @@ class OrganizeHubScreen extends StatelessWidget {
             labelColor: AppColors.adaptive(
               context,
               dark: AppColors.accent,
-              light: const Color(0xFFB45309),
+              light: AppColors.twillDark,
             ),
             unselectedLabelColor: AppColors.textSecondary(context),
             indicatorWeight: 3,

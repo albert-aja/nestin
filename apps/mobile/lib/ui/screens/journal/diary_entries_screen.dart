@@ -62,12 +62,12 @@ class DiaryEntriesScreen extends StatelessWidget {
     final accentInk = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     final successInk = AppColors.adaptive(
       context,
       dark: AppColors.success,
-      light: const Color(0xFF047857),
+      light: AppColors.pippinDark,
     );
     return Container(
       padding: const EdgeInsets.all(12),
@@ -222,12 +222,12 @@ class DiaryEntriesScreen extends StatelessWidget {
     final headerAccentInk = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     final headerSuccessInk = AppColors.adaptive(
       context,
       dark: AppColors.success,
-      light: const Color(0xFF047857),
+      light: AppColors.pippinDark,
     );
 
     return Scaffold(
@@ -395,7 +395,7 @@ class DiaryEntriesScreen extends StatelessWidget {
               final accentInk = AppColors.adaptive(
                 context,
                 dark: AppColors.accent,
-                light: const Color(0xFFB45309),
+                light: AppColors.twillDark,
               );
 
               if (isLocked) {
@@ -841,7 +841,7 @@ class _DiaryEntryEditorSheetState extends State<_DiaryEntryEditorSheet> {
                 final accentInk = AppColors.adaptive(
                   context,
                   dark: AppColors.accent,
-                  light: const Color(0xFFB45309),
+                  light: AppColors.twillDark,
                 );
                 return InkWell(
                   onTap: () => setState(() => _mood = m),
@@ -1030,7 +1030,7 @@ class _DiaryEntryEditorSheetState extends State<_DiaryEntryEditorSheet> {
                         ? AppColors.adaptive(
                             context,
                             dark: AppColors.accent,
-                            light: const Color(0xFFB45309),
+                            light: AppColors.twillDark,
                           )
                         : AppColors.textSecondary(context),
                   ),
@@ -1058,7 +1058,6 @@ class _DiaryEntryEditorSheetState extends State<_DiaryEntryEditorSheet> {
                   ),
                   Switch(
                     value: _isPrivate,
-                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => setState(() => _isPrivate = val),
                   ),
                 ],

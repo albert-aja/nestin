@@ -18,9 +18,9 @@ class PomodoroView extends StatelessWidget {
       case FocusPhase.work:
         return AppColors.primary;
       case FocusPhase.shortBreak:
-        return const Color(0xFF10B981); // Emerald
+        return AppColors.pippin; // Emerald
       case FocusPhase.longBreak:
-        return const Color(0xFF06B6D4); // Cyan
+        return AppColors.cyan; // Cyan
     }
   }
 
@@ -104,14 +104,14 @@ class PomodoroView extends StatelessWidget {
                 'Short Break',
                 shortB,
                 (val) => setState(() => shortB = val),
-                color: const Color(0xFF10B981),
+                color: AppColors.pippin,
               ),
               const SizedBox(height: 14),
               _buildDurationRow(
                 'Long Break',
                 longB,
                 (val) => setState(() => longB = val),
-                color: const Color(0xFF06B6D4),
+                color: AppColors.cyan,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -253,7 +253,7 @@ class PomodoroView extends StatelessWidget {
     final isRestrictingNow =
         active != null && active.isRestrictingPhaseNow(DateTime.now());
     final accent = isRestrictingNow
-        ? const Color(0xFF10B981)
+        ? AppColors.pippin
         : (config.enabled ? AppColors.accent : AppColors.textMuted(context));
 
     return InkWell(
@@ -466,7 +466,7 @@ class PomodoroView extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: AppColors.adaptive(
                           context,
-                          dark: const Color(0xFFD1D5DB),
+                          dark: AppColors.gray300,
                           light: AppColors.lightTextPrimary,
                         ),
                       ),
@@ -475,7 +475,7 @@ class PomodoroView extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   const Icon(Icons.edit_rounded,
-                      size: 12, color: Color(0xFF6B7280)),
+                      size: 12, color: AppColors.darkTextMuted),
                 ],
               ),
             ),
@@ -564,7 +564,7 @@ class PomodoroView extends StatelessWidget {
     final ambientAccent = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     return Container(
       padding: const EdgeInsets.all(16),
@@ -715,7 +715,7 @@ class PomodoroView extends StatelessWidget {
             label: "Pomodoros Done",
             value: '${provider.todayCompletedPomodoros}',
             icon: Icons.check_circle_rounded,
-            color: const Color(0xFF10B981),
+            color: AppColors.pippin,
           ),
         ),
         const SizedBox(width: 10),
@@ -724,7 +724,7 @@ class PomodoroView extends StatelessWidget {
             label: "Total Minutes",
             value: '${provider.totalFocusMinutes}m',
             icon: Icons.insights_rounded,
-            color: const Color(0xFF06B6D4),
+            color: AppColors.cyan,
           ),
         ),
       ],
@@ -781,7 +781,7 @@ class PomodoroView extends StatelessWidget {
     final accent = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -854,7 +854,7 @@ class PomodoroView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: log.phase == FocusPhase.work
                             ? AppColors.primary.withValues(alpha: 0.15)
-                            : const Color(0xFF10B981).withValues(alpha: 0.15),
+                            : AppColors.pippin.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -864,7 +864,7 @@ class PomodoroView extends StatelessWidget {
                         size: 16,
                         color: log.phase == FocusPhase.work
                             ? AppColors.primary
-                            : const Color(0xFF10B981),
+                            : AppColors.pippin,
                       ),
                     ),
                     const SizedBox(width: 12),

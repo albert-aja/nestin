@@ -37,7 +37,7 @@ void main() {
       expect(cfg.showMascotSprite, isTrue);
     });
 
-    test('JSON round-trip preserves all fields', () {
+    test('JSON round-trip preserves all fields including customWallpaperId', () {
       const original = DailyWallpaperConfig(
         enabled: true,
         template: DailyWallpaperTemplate.treehouseGlassCard,
@@ -47,10 +47,29 @@ void main() {
         refreshMinute: 30,
         showMascotSprite: false,
         lastAppliedDate: '2026-11-24',
+        customWallpaperId: 'pack:botanical-greenhouse',
       );
       final restored = DailyWallpaperConfig.fromJson(original.toJson());
       expect(restored, equals(original));
       expect(restored.formattedRefreshTime, '06:30');
+      expect(restored.customWallpaperId, 'pack:botanical-greenhouse');
+
+      final backdrop = DailyWallpaperBackdrop.resolve(
+        customWallpaperId: restored.customWallpaperId,
+      );
+      expect(backdrop.hasBackdrop, isTrue);
+      expect(
+        backdrop.assetPath,
+        'assets/mascots/wallpapers/everyday/everyday_botanical_greenhouse.jpg',
+      );
+
+      final themeBackdrop = DailyWallpaperBackdrop.resolve(
+        customWallpaperId: 'theme:everydayTreehouse',
+      );
+      expect(
+        themeBackdrop.assetPath,
+        'assets/mascots/wallpapers/everyday/everyday_treehouse_welcome.jpg',
+      );
     });
 
     test('StorageService full backup export/restore round-trips config', () async {
@@ -366,6 +385,35 @@ void main() {
       expect(find.text('Daily Lock Screen Studio'), findsOneWidget);
       expect(find.text('Lock Screen Only'), findsNothing);
       expect(find.text('Daily Refresh Time'), findsNothing);
+
+      // Select an Everyday (non-seasonal) wallpaper for Daily Lock-Screen Affirmation
+      final backdropList = find.byKey(const Key('daily_wp_backdrop_list'));
+      await tester.scrollUntilVisible(
+        backdropList,
+        120,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pump();
+      expect(find.text('Wallpaper Background'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const Key('daily_wp_backdrop_opt_theme:everydaySunnyPicnic')),
+      );
+      await tester.pump();
+      expect(
+        provider.dailyWallpaperConfig.customWallpaperId,
+        'theme:everydaySunnyPicnic',
+      );
+      await tester.scrollUntilVisible(
+        find.byType(LockScreenWallpaperCanvas),
+        -160,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('lock_screen_custom_asset_image')),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -413,6 +461,60 @@ void main() {
       'daily_wp_label_steady_rhythm',
       'daily_wp_label_mindful_note',
       'daily_wp_label_clear_horizon',
+      'daily_wp_backdrop_section',
+      'daily_wp_backdrop_default',
+      'daily_wp_backdrop_personal_photo',
+      'daily_wp_backdrop_browse_more',
+      'wp_studio_title',
+      'wp_studio_subtitle',
+      'wp_studio_settings_entry_desc',
+      'wp_studio_active_label',
+      'wp_studio_filter_all',
+      'wp_studio_filter_everyday',
+      'wp_studio_filter_seasonal',
+      'wp_studio_filter_downloaded',
+      'wp_studio_everyday_section',
+      'wp_studio_seasonal_section',
+      'wp_studio_downloadable_section',
+      'wp_studio_downloadable_desc',
+      'wp_studio_badge_everyday',
+      'wp_studio_badge_seasonal',
+      'wp_studio_preview_btn',
+      'wp_studio_preview_loading_tab',
+      'wp_studio_preview_lockscreen_tab',
+      'wp_studio_set_loading_btn',
+      'wp_studio_set_lockscreen_btn',
+      'wp_studio_download_and_use_btn',
+      'wp_studio_loading_applied_toast',
+      'wp_studio_lockscreen_applied_toast',
+      'wp_studio_empty_downloaded',
+      'wp_studio_personal_photo_override_note',
+      'wp_studio_open_daily_affirmation',
+      'wp_studio_open_daily_affirmation_desc',
+      'splash_pack_botanical_greenhouse_opt',
+      'splash_pack_botanical_greenhouse_badge',
+      'splash_pack_botanical_greenhouse_title',
+      'splash_pack_botanical_greenhouse_subtitle',
+      'splash_pack_cozy_library_opt',
+      'splash_pack_cozy_library_badge',
+      'splash_pack_cozy_library_title',
+      'splash_pack_cozy_library_subtitle',
+      'splash_pack_morning_bakery_opt',
+      'splash_pack_morning_bakery_badge',
+      'splash_pack_morning_bakery_title',
+      'splash_pack_morning_bakery_subtitle',
+      'splash_pack_hilltop_stargazing_opt',
+      'splash_pack_hilltop_stargazing_badge',
+      'splash_pack_hilltop_stargazing_title',
+      'splash_pack_hilltop_stargazing_subtitle',
+      'splash_pack_mountain_camp_opt',
+      'splash_pack_mountain_camp_badge',
+      'splash_pack_mountain_camp_title',
+      'splash_pack_mountain_camp_subtitle',
+      'splash_pack_flock_sky_opt',
+      'splash_pack_flock_sky_badge',
+      'splash_pack_flock_sky_title',
+      'splash_pack_flock_sky_subtitle',
     ];
 
     test('all daily_wp_* keys exist in app_translations.dart and both ARB files', () {

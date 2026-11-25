@@ -596,7 +596,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                                         ? AppColors.textSecondary(context)
                                                         : AppColors.adaptive(
                                                             context,
-                                                            dark: const Color(0xFFD1D5DB),
+                                                            dark: AppColors.gray300,
                                                             light: AppColors.lightTextPrimary,
                                                           ),
                                                   ),

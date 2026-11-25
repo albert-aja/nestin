@@ -7,8 +7,8 @@ import '../../data/models/reading_item.dart';
 import '../../providers/reading_provider.dart';
 import 'mascot_milestone_stamp_overlay.dart';
 
-const Color _pippinEmerald = Color(0xFF10B981);
-const Color _pippinGold = Color(0xFFF59E0B);
+const Color _pippinEmerald = AppColors.pippin;
+const Color _pippinGold = AppColors.twill;
 
 /// Shared interactive slider + quick-step controls for updating reading pages.
 class ReadingProgressSlider extends StatefulWidget {
@@ -106,7 +106,7 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
                         ? AppColors.adaptive(
                             context,
                             dark: _pippinGold,
-                            light: const Color(0xFFB45309),
+                            light: AppColors.twillDark,
                           )
                         : AppColors.textSecondary(context),
                   ),
@@ -131,8 +131,8 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
                         context,
                         dark: activeColor,
                         light: book.isCompleted
-                            ? const Color(0xFFB45309)
-                            : const Color(0xFF047857),
+                            ? AppColors.twillDark
+                            : AppColors.pippinDark,
                       ),
                     ),
                   ),
@@ -216,8 +216,8 @@ class _ReadingProgressSliderState extends State<ReadingProgressSlider> {
                     context,
                     dark: activeColor,
                     light: book.isCompleted
-                        ? const Color(0xFFB45309)
-                        : const Color(0xFF047857),
+                        ? AppColors.twillDark
+                        : AppColors.pippinDark,
                   );
 
             return OutlinedButton(
@@ -405,7 +405,7 @@ Future<void> showSetReadingPageDialog(
                                 color: AppColors.adaptive(
                                   context,
                                   dark: _pippinEmerald,
-                                  light: const Color(0xFF047857),
+                                  light: AppColors.pippinDark,
                                 ),
                               ),
                             ),

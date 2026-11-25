@@ -23,8 +23,11 @@ import '../seren/seren_relaxation_screen.dart';
 import 'bird_house_shared.dart';
 
 /// Seren's House — Personal Wellness, Calm Support & Body Care (`#8B5CF6`).
+///
+/// Strictly unlocked even when Diary PIN/Biometric lock is active, with zero
+/// guilt or streak metrics anywhere in Seren's sanctuary.
 class SerenHouseScreen extends StatelessWidget {
-  static const Color serenColor = Color(0xFF8B5CF6);
+  static const Color serenColor = AppColors.seren;
 
   const SerenHouseScreen({super.key});
 
@@ -76,9 +79,6 @@ class SerenHouseScreen extends StatelessWidget {
         context,
         title: l10n.tr('house_seren_title'),
         subtitle: l10n.tr('nest_seren_subtitle'),
-        spriteAsset: 'assets/mascots/sprites/seren/hello.png',
-        accentColor: serenColor,
-        fallbackIcon: Icons.spa_rounded,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -86,7 +86,7 @@ class SerenHouseScreen extends StatelessWidget {
           _buildMentalWellnessHero(context, l10n),
           const SizedBox(height: 12),
           _buildRelaxAudioBar(context, l10n, relax, sleep),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           BirdSectionLabel(
             text: l10n.tr('house_seren_body_care'),
             accentColor: serenColor,
@@ -106,30 +106,39 @@ class SerenHouseScreen extends StatelessWidget {
                 title: l10n.tr('house_seren_hydration_title'),
                 subtitle: hydrationSub,
                 icon: Icons.water_drop_rounded,
-                accentColor: const Color(0xFF38BDF8),
+                accentColor: AppColors.sky,
                 trailingBadge: hydration != null
-                    ? InkWell(
-                        onTap: () async {
-                          HapticFeedback.lightImpact();
-                          final met = await hydration.addGlass();
-                          if (!context.mounted) return;
-                          tryReadProvider<WearableProvider>(context)
-                              ?.syncHydrationToWearable(
-                            hydration.currentMilliliters,
-                          );
-                          if (met) {
-                            MascotMilestoneStampOverlay.showSerenRefreshed(
-                              context,
-                              currentMl: hydration.currentMilliliters,
-                              targetMl: hydration.targetMilliliters,
+                    ? SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: IconButton(
+                          key: const Key('seren_tool_hydration_add_btn'),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 48,
+                            minHeight: 48,
+                          ),
+                          onPressed: () async {
+                            HapticFeedback.lightImpact();
+                            final met = await hydration.addGlass();
+                            if (!context.mounted) return;
+                            tryReadProvider<WearableProvider>(context)
+                                ?.syncHydrationToWearable(
+                              hydration.currentMilliliters,
                             );
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: const Icon(
-                          Icons.add_circle_rounded,
-                          color: serenColor,
-                          size: 22,
+                            if (met) {
+                              MascotMilestoneStampOverlay.showSerenRefreshed(
+                                context,
+                                currentMl: hydration.currentMilliliters,
+                                targetMl: hydration.targetMilliliters,
+                              );
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.add_circle_rounded,
+                            color: serenColor,
+                            size: 24,
+                          ),
                         ),
                       )
                     : null,
@@ -140,7 +149,7 @@ class SerenHouseScreen extends StatelessWidget {
                 title: l10n.tr('house_seren_med_title'),
                 subtitle: medSub,
                 icon: Icons.medication_rounded,
-                accentColor: const Color(0xFFA855F7),
+                accentColor: AppColors.purple,
                 onTap: () => MedicationTrackerSheet.show(context),
               ),
               BirdToolTile(
@@ -165,27 +174,14 @@ class SerenHouseScreen extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final isDark = AppColors.isDark(context);
-    final lavenderInk = AppColors.adaptive(
-      context,
-      dark: const Color(0xFFC4B5FD),
-      light: const Color(0xFF6D28D9),
-    );
 
     return Container(
       key: const Key('seren_house_mental_hero'),
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? const [Color(0xFF231D35), Color(0xFF1A1B22)]
-              : const [Color(0xFFF5F3FF), Color(0xFFEDE9FE)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: serenColor.withValues(alpha: isDark ? 0.42 : 0.3),
-        ),
+      decoration: birdHouseCardDecoration(
+        context,
+        heroTintColor: serenColor,
+        radius: 22,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,18 +213,12 @@ class SerenHouseScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
-                width: 74,
-                height: 74,
-                child: Image.asset(
-                  'assets/mascots/sprites/seren/gentle_breath_lotus.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.spa_rounded,
-                    size: 46,
-                    color: serenColor,
-                  ),
-                ),
+              const BirdHeroSpriteHalo(
+                assetPath:
+                    'assets/mascots/sprites/seren/gentle_breath_lotus.png',
+                accentColor: serenColor,
+                fallbackIcon: Icons.spa_rounded,
+                size: 80,
               ),
             ],
           ),
@@ -238,6 +228,7 @@ class SerenHouseScreen extends StatelessWidget {
             runSpacing: 8,
             children: [
               FilledButton.icon(
+                key: const Key('seren_hero_open_support_btn'),
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const MentalWellnessScreen(),
@@ -246,42 +237,57 @@ class SerenHouseScreen extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: serenColor,
                   foregroundColor: Colors.white,
-                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(48, 48),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
                 icon: const Icon(Icons.spa_rounded, size: 16),
                 label: Text(
                   l10n.tr('house_seren_hero_cta'),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              OutlinedButton.icon(
+              TextButton.icon(
+                key: const Key('seren_hero_quick_aid_btn'),
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const MentalWellnessScreen(initialLayer: 1),
+                    builder: (_) =>
+                        const MentalWellnessScreen(initialLayer: 1),
                   ),
                 ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: lavenderInk,
-                  side: BorderSide(color: serenColor.withValues(alpha: 0.45)),
-                  visualDensity: VisualDensity.compact,
+                style: TextButton.styleFrom(
+                  backgroundColor: serenColor.withValues(
+                    alpha: isDark ? 0.16 : 0.12,
+                  ),
+                  foregroundColor: AppColors.textPrimary(context),
+                  minimumSize: const Size(48, 48),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 14,
                     vertical: 10,
                   ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
-                icon: const Icon(Icons.favorite_outline_rounded, size: 16),
+                icon: const Icon(
+                  Icons.favorite_outline_rounded,
+                  size: 16,
+                  color: serenColor,
+                ),
                 label: Text(
                   l10n.tr('house_seren_hero_quick_aid'),
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: TextStyle(
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary(context),
                   ),
                 ),
               ),
@@ -298,19 +304,17 @@ class SerenHouseScreen extends StatelessWidget {
     SerenRelaxationProvider? relax,
     SleepWellnessProvider? sleep,
   ) {
-    final isPlaying =
-        (relax?.isMixerPlaying ?? false) || (sleep?.isWindDownAudioPlaying ?? false);
+    final isDark = AppColors.isDark(context);
+    final isPlaying = (relax?.isMixerPlaying ?? false) ||
+        (sleep?.isWindDownAudioPlaying ?? false);
 
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface(context),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isPlaying
-              ? serenColor.withValues(alpha: 0.5)
-              : AppColors.border(context),
-        ),
+      key: const Key('seren_relax_audio_card'),
+      padding: const EdgeInsets.all(16),
+      decoration: birdHouseCardDecoration(
+        context,
+        heroTintColor: isPlaying ? serenColor : null,
+        radius: 18,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,71 +327,74 @@ class SerenHouseScreen extends StatelessWidget {
               ),
             ),
             borderRadius: BorderRadius.circular(12),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: serenColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Image.asset(
-                    'assets/mascots/sprites/seren/headphones_bliss.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => const Icon(
-                      Icons.surround_sound_rounded,
-                      color: serenColor,
-                      size: 20,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Image.asset(
+                      'assets/mascots/sprites/seren/headphones_bliss.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.surround_sound_rounded,
+                        color: serenColor,
+                        size: 24,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.tr('house_seren_relax_title'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary(context),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l10n.tr('house_seren_relax_title'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary(context),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isPlaying
-                            ? l10n.tr('house_seren_relax_playing')
-                            : l10n.tr('house_seren_relax_idle'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: AppColors.textSecondary(context),
+                        const SizedBox(height: 2),
+                        Text(
+                          isPlaying
+                              ? l10n.tr('house_seren_relax_playing')
+                              : l10n.tr('house_seren_relax_idle'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textSecondary(context),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (sleep != null && sleep.isWindDownAudioPlaying)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.stop_circle_rounded,
-                      color: AppColors.error,
+                      ],
                     ),
-                    tooltip: l10n.tr('stop_audio'),
-                    onPressed: () => sleep.stopWindDownAudio(),
-                  )
-                else
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.textSecondary(context),
                   ),
-              ],
+                  if (sleep != null && sleep.isWindDownAudioPlaying)
+                    IconButton(
+                      constraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
+                      ),
+                      icon: const Icon(
+                        Icons.stop_circle_rounded,
+                        color: AppColors.error,
+                      ),
+                      tooltip: l10n.tr('stop_audio'),
+                      onPressed: () => sleep.stopWindDownAudio(),
+                    )
+                  else
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary(context),
+                    ),
+                ],
+              ),
             ),
           ),
           if (sleep != null && !sleep.isWindDownAudioPlaying) ...[
@@ -395,69 +402,105 @@ class SerenHouseScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
+                  child: InkWell(
+                    key: const Key('seren_quick_rain_btn'),
+                    onTap: () {
                       sleep.startWindDownAudio(
                         soundType: AmbientSoundType.rain,
                         durationMinutes: 30,
                       );
                     },
-                    icon: Icon(
-                      Icons.water_drop_rounded,
-                      size: 14,
-                      color: AppColors.adaptive(
-                        context,
-                        dark: const Color(0xFF38BDF8),
-                        light: const Color(0xFF0284C7),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
                       ),
-                    ),
-                    label: Text(
-                      l10n.tr('k_1_tap_30m_rain'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
+                      decoration: BoxDecoration(
+                        color: AppColors.sky.withValues(
+                          alpha: isDark ? 0.14 : 0.10,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary(context),
-                      side: BorderSide(color: AppColors.border(context)),
-                      visualDensity: VisualDensity.compact,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.water_drop_rounded,
+                            size: 15,
+                            color: AppColors.skyAdaptive(context),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              l10n.tr('k_1_tap_30m_rain'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary(context),
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
+                  child: InkWell(
+                    key: const Key('seren_quick_forest_btn'),
+                    onTap: () {
                       sleep.startWindDownAudio(
                         soundType: AmbientSoundType.forest,
                         durationMinutes: 30,
                       );
                     },
-                    icon: Icon(
-                      Icons.park_rounded,
-                      size: 14,
-                      color: AppColors.adaptive(
-                        context,
-                        dark: const Color(0xFF34D399),
-                        light: const Color(0xFF059669),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
                       ),
-                    ),
-                    label: Text(
-                      l10n.tr('k_1_tap_30m_forest'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
+                      decoration: BoxDecoration(
+                        color: AppColors.pippin.withValues(
+                          alpha: isDark ? 0.14 : 0.10,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary(context),
-                      side: BorderSide(color: AppColors.border(context)),
-                      visualDensity: VisualDensity.compact,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.park_rounded,
+                            size: 15,
+                            color: AppColors.pippinAdaptive(context),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              l10n.tr('k_1_tap_30m_forest'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary(context),
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -473,23 +516,24 @@ class SerenHouseScreen extends StatelessWidget {
     BuildContext context,
     AppLocalizations l10n,
   ) {
+    final isDark = AppColors.isDark(context);
+
     return InkWell(
       key: const Key('seren_tool_health_wearables'),
       onTap: () => HealthWellnessSheet.show(context),
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface(context),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border(context)),
-        ),
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.all(16),
+        decoration: birdHouseCardDecoration(context, radius: 18),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.14),
+                color: AppColors.success.withValues(
+                  alpha: isDark ? 0.16 : 0.11,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -527,23 +571,17 @@ class SerenHouseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            OutlinedButton.icon(
+            InkWell(
               key: const Key('seren_tool_wearables_btn'),
-              onPressed: () => WearableSyncSheet.show(context),
-              style: OutlinedButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                side: BorderSide(color: AppColors.border(context)),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-              ),
-              icon: const Icon(Icons.watch_rounded, size: 15),
-              label: Text(
-                l10n.tr('house_seren_wearable_btn'),
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
+              onTap: () => WearableSyncSheet.show(context),
+              borderRadius: BorderRadius.circular(999),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                child: Center(
+                  child: BirdStatusPill(
+                    label: l10n.tr('house_seren_wearable_btn'),
+                    dotColor: AppColors.success,
+                  ),
                 ),
               ),
             ),

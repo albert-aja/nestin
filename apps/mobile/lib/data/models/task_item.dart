@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import '../../core/l10n/app_localizations.dart';
 import 'alarm_category.dart';
-
+
+import '../../core/theme/app_colors.dart';
 enum TaskPriority {
   low,
   medium,
@@ -95,13 +96,13 @@ class TaskItem {
   Color get priorityColor {
     switch (priority) {
       case TaskPriority.urgent:
-        return const Color(0xFFEF4444);
+        return AppColors.error;
       case TaskPriority.high:
-        return const Color(0xFFF97316);
+        return AppColors.orange;
       case TaskPriority.medium:
-        return const Color(0xFF3B82F6);
+        return AppColors.scout;
       case TaskPriority.low:
-        return const Color(0xFF6B7280);
+        return AppColors.darkTextMuted;
     }
   }
 

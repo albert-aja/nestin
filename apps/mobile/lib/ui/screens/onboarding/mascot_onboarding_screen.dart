@@ -466,7 +466,7 @@ class _MascotOnboardingScreenState extends State<MascotOnboardingScreen> {
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkCardElevated
-                        : const Color(0xFF181A20),
+                        : AppColors.lightTextPrimary,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(

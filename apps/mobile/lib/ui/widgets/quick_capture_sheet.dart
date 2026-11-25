@@ -74,11 +74,11 @@ class QuickCaptureSheet extends StatefulWidget {
 }
 
 class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
-  static const Color _rooCrimson = Color(0xFFE04A3A);
-  static const Color _scoutBlue = Color(0xFF3B82F6);
-  static const Color _serenLavender = Color(0xFF8B5CF6);
-  static const Color _twillAmber = Color(0xFFF59E0B);
-  static const Color _echoTawny = Color(0xFFD97706);
+  static const Color _rooCrimson = AppColors.roo;
+  static const Color _scoutBlue = AppColors.scout;
+  static const Color _serenLavender = AppColors.seren;
+  static const Color _twillAmber = AppColors.twill;
+  static const Color _echoTawny = AppColors.echo;
 
   late CaptureType _selectedType;
   final TextEditingController _titleController = TextEditingController();
@@ -92,6 +92,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   TimeOfDay? _manualDueTime;
   ParsedDateResult? _parsedNlp;
 
+  bool _showDetails = false;
   bool _showDateTimePicker = false;
   bool _showPriorityPicker = false;
   bool _showNotesField = false;
@@ -100,6 +101,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   bool _restoredDraft = false;
   bool _loggedWaterInline = false;
   bool _didSubmit = false;
+  double _previousViewInsetsBottom = 0.0;
 
   @override
   void initState() {
@@ -170,13 +172,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   Color _priorityColor(TaskPriority priority) {
     switch (priority) {
       case TaskPriority.urgent:
-        return const Color(0xFFEF4444);
+        return AppColors.error;
       case TaskPriority.high:
-        return const Color(0xFFF97316);
+        return AppColors.orange;
       case TaskPriority.medium:
-        return const Color(0xFF3B82F6);
+        return AppColors.scout;
       case TaskPriority.low:
-        return const Color(0xFF6B7280);
+        return AppColors.darkTextMuted;
     }
   }
 
@@ -360,7 +362,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         duration: const Duration(seconds: 2),
         backgroundColor: AppColors.adaptive(
           context,
-          dark: const Color(0xFF23252E),
+          dark: AppColors.darkSurfaceSubtle,
           light: AppColors.lightTextPrimary,
         ),
       ),
@@ -401,15 +403,36 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     final l10n = context.l10n;
     final isDark = AppColors.isDark(context);
     final viewInsetsBottom = MediaQuery.viewInsetsOf(context).bottom;
-    final collapseLowerZones = _isInputFocused || viewInsetsBottom > 0;
+    if (_previousViewInsetsBottom > 0 && viewInsetsBottom == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_titleFocusNode.hasFocus || _notesFocusNode.hasFocus) {
+          FocusManager.instance.primaryFocus?.unfocus();
+        }
+      });
+    }
+    _previousViewInsetsBottom = viewInsetsBottom;
+
+    // Drive collapse/expand strictly from actual keyboard visibility
+    final collapseLowerZones = viewInsetsBottom > 0;
     final disableAnimations =
         MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final animDuration = disableAnimations
         ? Duration.zero
         : const Duration(milliseconds: 200);
     final activeAccent = _accentForType(_selectedType);
+    final hasText = _titleController.text.trim().isNotEmpty;
     final hasCustomDateTime =
         _manualDueDate != null || _manualDueTime != null || _parsedNlp != null;
+    final showMetadataChips = _showDetails ||
+        _isInputFocused ||
+        hasText ||
+        hasCustomDateTime ||
+        _priority != TaskPriority.medium ||
+        _showNotesField ||
+        _showDateTimePicker ||
+        _showPriorityPicker ||
+        _showCategoryPicker;
 
     HydrationProvider? hydration;
     try {
@@ -492,12 +515,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                                 ),
                               ),
                               const SizedBox(width: 5),
-                              Text(
-                                l10n.tr('qc_draft_restored'),
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary(context),
+                              Flexible(
+                                child: Text(
+                                  l10n.tr('qc_draft_restored'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary(context),
+                                  ),
                                 ),
                               ),
                             ],
@@ -514,6 +541,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                     },
                     style: TextButton.styleFrom(
                       minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                     child: Text(
                       l10n.tr('qc_hide_keyboard'),
@@ -629,80 +657,105 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
 
             const SizedBox(height: 4),
 
-            // Compact Borderless Icon Chips (Date/Time, Priority, Category, Notes, Place)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  if (_selectedType == CaptureType.task ||
-                      _selectedType == CaptureType.reminder)
-                    _buildOptionalPillChip(
-                      key: const Key('qc_toggle_datetime_chip'),
-                      icon: Icons.schedule_rounded,
-                      accentColor: activeAccent,
-                      label: _dateTimeChipLabel(l10n),
-                      isActive: _showDateTimePicker || hasCustomDateTime,
-                      tabular: true,
-                      onTap: () => setState(() {
-                        _showDateTimePicker = !_showDateTimePicker;
-                        if (_showDateTimePicker) {
-                          _showPriorityPicker = false;
-                          _showCategoryPicker = false;
-                        }
-                      }),
-                    ),
-                  if (_selectedType == CaptureType.task)
-                    _buildOptionalPillChip(
-                      key: const Key('qc_toggle_priority_chip'),
-                      icon: Icons.flag_rounded,
-                      accentColor: _priorityColor(_priority),
-                      label: _priorityLabel(l10n, _priority),
-                      isActive:
-                          _showPriorityPicker || _priority != TaskPriority.medium,
-                      onTap: () => setState(() {
-                        _showPriorityPicker = !_showPriorityPicker;
-                        if (_showPriorityPicker) {
-                          _showDateTimePicker = false;
-                          _showCategoryPicker = false;
-                        }
-                      }),
-                    ),
-                  _buildOptionalPillChip(
-                    key: const Key('qc_toggle_category_chip'),
-                    icon: _category.icon,
-                    accentColor: _category.color,
-                    label: l10n.categoryName(_category.type),
-                    isActive: _showCategoryPicker,
-                    onTap: () => setState(() {
-                      _showCategoryPicker = !_showCategoryPicker;
-                      if (_showCategoryPicker) {
-                        _showDateTimePicker = false;
-                        _showPriorityPicker = false;
-                      }
-                    }),
-                  ),
-                  _buildOptionalPillChip(
-                    key: const Key('qc_toggle_notes_chip'),
-                    icon: Icons.notes_rounded,
-                    accentColor: activeAccent,
-                    label: l10n.tr('qc_add_notes_chip'),
-                    isActive: _showNotesField,
-                    onTap: () =>
-                        setState(() => _showNotesField = !_showNotesField),
-                  ),
-                  if (_selectedType == CaptureType.reminder)
-                    _buildOptionalPillChip(
-                      key: const Key('qc_geofence_chip'),
-                      icon: Icons.location_on_rounded,
-                      accentColor: _scoutBlue,
-                      label: l10n.tr('qc_geofence_btn'),
-                      isActive: false,
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        showLocationReminderEditorDialog(context);
-                      },
-                    ),
-                ],
+            // Progressive Disclosure: subtle "+ Details" pill until focused/typing/expanded
+            AnimatedSize(
+              duration: animDuration,
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topLeft,
+              child: AnimatedOpacity(
+                duration: animDuration,
+                curve: Curves.easeOutCubic,
+                opacity: 1.0,
+                child: showMetadataChips
+                    ? SingleChildScrollView(
+                        key: const Key('qc_metadata_chips_row'),
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (_selectedType == CaptureType.task ||
+                                _selectedType == CaptureType.reminder)
+                              _buildOptionalPillChip(
+                                key: const Key('qc_toggle_datetime_chip'),
+                                icon: Icons.schedule_rounded,
+                                accentColor: activeAccent,
+                                label: _dateTimeChipLabel(l10n),
+                                isActive:
+                                    _showDateTimePicker || hasCustomDateTime,
+                                tabular: true,
+                                onTap: () => setState(() {
+                                  _showDateTimePicker = !_showDateTimePicker;
+                                  if (_showDateTimePicker) {
+                                    _showPriorityPicker = false;
+                                    _showCategoryPicker = false;
+                                  }
+                                }),
+                              ),
+                            if (_selectedType == CaptureType.task)
+                              _buildOptionalPillChip(
+                                key: const Key('qc_toggle_priority_chip'),
+                                icon: Icons.flag_rounded,
+                                accentColor: _priorityColor(_priority),
+                                label: _priorityLabel(l10n, _priority),
+                                isActive: _showPriorityPicker ||
+                                    _priority != TaskPriority.medium,
+                                onTap: () => setState(() {
+                                  _showPriorityPicker = !_showPriorityPicker;
+                                  if (_showPriorityPicker) {
+                                    _showDateTimePicker = false;
+                                    _showCategoryPicker = false;
+                                  }
+                                }),
+                              ),
+                            _buildOptionalPillChip(
+                              key: const Key('qc_toggle_category_chip'),
+                              icon: _category.icon,
+                              accentColor: _category.color,
+                              label: l10n.categoryName(_category.type),
+                              isActive: _showCategoryPicker,
+                              onTap: () => setState(() {
+                                _showCategoryPicker = !_showCategoryPicker;
+                                if (_showCategoryPicker) {
+                                  _showDateTimePicker = false;
+                                  _showPriorityPicker = false;
+                                }
+                              }),
+                            ),
+                            _buildOptionalPillChip(
+                              key: const Key('qc_toggle_notes_chip'),
+                              icon: Icons.notes_rounded,
+                              accentColor: activeAccent,
+                              label: l10n.tr('qc_add_notes_chip'),
+                              isActive: _showNotesField,
+                              onTap: () => setState(
+                                () => _showNotesField = !_showNotesField,
+                              ),
+                            ),
+                            if (_selectedType == CaptureType.reminder)
+                              _buildOptionalPillChip(
+                                key: const Key('qc_geofence_chip'),
+                                icon: Icons.location_on_rounded,
+                                accentColor: _scoutBlue,
+                                label: l10n.tr('qc_geofence_btn'),
+                                isActive: false,
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  showLocationReminderEditorDialog(context);
+                                },
+                              ),
+                          ],
+                        ),
+                      )
+                    : Align(
+                        alignment: Alignment.centerLeft,
+                        child: _buildOptionalPillChip(
+                          key: const Key('qc_toggle_details_chip'),
+                          icon: Icons.add_rounded,
+                          accentColor: activeAccent,
+                          label: l10n.tr('qc_details_chip'),
+                          isActive: false,
+                          onTap: () => setState(() => _showDetails = true),
+                        ),
+                      ),
               ),
             ),
 
@@ -843,207 +896,208 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
               ),
             ],
 
-            const SizedBox(height: 8),
-
-            // Primary Bird-Tinted Save Button (min 48dp height)
-            ElevatedButton(
-              key: const Key('qc_save_btn'),
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: activeAccent,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(48),
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: Text(
-                l10n.tr('qc_save_btn'),
-                style: const TextStyle(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+            // Primary Bird-Tinted Save Button — expands smoothly only once text is entered
+            AnimatedSize(
+              duration: animDuration,
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: AnimatedOpacity(
+                duration: animDuration,
+                curve: Curves.easeOutCubic,
+                opacity: hasText ? 1.0 : 0.0,
+                child: hasText
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: ElevatedButton(
+                          key: const Key('qc_save_btn'),
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: activeAccent,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(48),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            l10n.tr('qc_save_btn'),
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
             ),
 
             // =================================================================
-            // ZONES 2 & 3: Smoothly collapse when text field / keyboard active
+            // ZONES 2 & 3: Smoothly collapse/reappear in lockstep with keyboard
             // =================================================================
             AnimatedSize(
               duration: animDuration,
               curve: Curves.easeOutCubic,
               alignment: Alignment.topCenter,
-              child: collapseLowerZones
-                  ? const SizedBox.shrink(key: Key('qc_zones_collapsed'))
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 16),
-                        Divider(
-                          height: 1,
-                          color: AppColors.border(context).withValues(alpha: 0.6),
-                        ),
-                        const SizedBox(height: 14),
+              child: AnimatedOpacity(
+                duration: animDuration,
+                curve: Curves.easeOutCubic,
+                opacity: collapseLowerZones ? 0.0 : 1.0,
+                child: collapseLowerZones
+                    ? const SizedBox.shrink(key: Key('qc_zones_collapsed'))
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 10),
+                          Divider(
+                            height: 1,
+                            color: AppColors.border(context)
+                                .withValues(alpha: 0.55),
+                          ),
+                          const SizedBox(height: 10),
 
-                        // ZONE 2: High-Frequency 4-Column Quick Actions (borderless tonal tiles)
-                        Row(
-                          key: const Key('qc_zone_quick_actions'),
-                          children: [
-                            Expanded(
-                              child: _QuickActionIconTile(
-                                tileKey: const Key('qc_action_money'),
-                                icon: Icons.account_balance_wallet_rounded,
-                                color: _twillAmber,
-                                label: l10n.tr('qc_action_money'),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  showMoneyTransactionSheet(context);
-                                },
+                          // ZONE 2: Light Borderless 4-Column Quick Action Strip (48dp+ tap targets)
+                          Row(
+                            key: const Key('qc_zone_quick_actions'),
+                            children: [
+                              Expanded(
+                                child: _QuickActionIconTile(
+                                  tileKey: const Key('qc_action_money'),
+                                  icon: Icons.account_balance_wallet_rounded,
+                                  color: _twillAmber,
+                                  label: l10n.tr('qc_action_money'),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    showMoneyTransactionSheet(context);
+                                  },
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _QuickActionIconTile(
-                                tileKey: const Key('qc_action_alarm'),
-                                icon: Icons.add_alarm_rounded,
-                                color: _rooCrimson,
-                                label: l10n.tr('qc_action_alarm'),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => const AlarmEditScreen(),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: _QuickActionIconTile(
+                                  tileKey: const Key('qc_action_alarm'),
+                                  icon: Icons.add_alarm_rounded,
+                                  color: _rooCrimson,
+                                  label: l10n.tr('qc_action_alarm'),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => const AlarmEditScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: _QuickActionIconTile(
+                                  tileKey: const Key('qc_action_before_you_go'),
+                                  icon: Icons.door_front_door_outlined,
+                                  color: _scoutBlue,
+                                  label: l10n.tr('qc_action_before_you_go'),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    BeforeYouGoSheet.show(context);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: _QuickActionIconTile(
+                                  tileKey: const Key('qc_action_add_glass'),
+                                  icon: _loggedWaterInline
+                                      ? Icons.check_circle_rounded
+                                      : Icons.water_drop_rounded,
+                                  color: _loggedWaterInline
+                                      ? AppColors.success
+                                      : _serenLavender,
+                                  label: _loggedWaterInline && hydration != null
+                                      ? l10n.tr('qc_water_logged_inline', {
+                                          'glasses': hydration.glassesConsumed,
+                                          'goal': hydration.dailyGoalGlasses,
+                                        })
+                                      : l10n.tr('qc_action_add_glass'),
+                                  tabular: _loggedWaterInline,
+                                  onTap: _logOneGlassInline,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // ZONE 3: Slim Single-Row Calm Anchor Lavender Pill
+                          InkWell(
+                            key: const Key('qc_mental_aid_chip'),
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const MentalWellnessScreen(),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(999),
+                            child: Container(
+                              key: const Key('qc_zone_calm_anchor'),
+                              constraints: const BoxConstraints(minHeight: 48),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _serenLavender.withValues(
+                                  alpha: isDark ? 0.15 : 0.11,
+                                ),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color: _serenLavender.withValues(
+                                        alpha: isDark ? 0.24 : 0.16,
+                                      ),
+                                      shape: BoxShape.circle,
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _QuickActionIconTile(
-                                tileKey: const Key('qc_action_before_you_go'),
-                                icon: Icons.door_front_door_outlined,
-                                color: _scoutBlue,
-                                label: l10n.tr('qc_action_before_you_go'),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  BeforeYouGoSheet.show(context);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _QuickActionIconTile(
-                                tileKey: const Key('qc_action_add_glass'),
-                                icon: _loggedWaterInline
-                                    ? Icons.check_circle_rounded
-                                    : Icons.water_drop_rounded,
-                                color: _loggedWaterInline
-                                    ? AppColors.success
-                                    : _serenLavender,
-                                label: _loggedWaterInline && hydration != null
-                                    ? l10n.tr('qc_water_logged_inline', {
-                                        'glasses': hydration.glassesConsumed,
-                                        'goal': hydration.dailyGoalGlasses,
-                                      })
-                                    : l10n.tr('qc_action_add_glass'),
-                                tabular: _loggedWaterInline,
-                                onTap: _logOneGlassInline,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // ZONE 3: Calm Anchor — Full-Width Borderless Soft Lavender Pill
-                        InkWell(
-                          key: const Key('qc_mental_aid_chip'),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const MentalWellnessScreen(),
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(999),
-                          child: Container(
-                            key: const Key('qc_zone_calm_anchor'),
-                            constraints: const BoxConstraints(minHeight: 56),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _serenLavender.withValues(
-                                alpha: isDark ? 0.16 : 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: _serenLavender.withValues(
-                                      alpha: isDark ? 0.24 : 0.16,
+                                    child: const Icon(
+                                      Icons.spa_rounded,
+                                      color: _serenLavender,
+                                      size: 16,
                                     ),
-                                    shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
-                                    Icons.spa_rounded,
-                                    color: _serenLavender,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      l10n.tr('qc_calm_anchor_title'),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textPrimary(context),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
                                     size: 18,
+                                    color: AppColors.textSecondary(context),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        l10n.tr('qc_calm_anchor_title'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.textPrimary(context),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      Text(
-                                        l10n.tr('qc_calm_anchor_subtitle'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color:
-                                              AppColors.textSecondary(context),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 18,
-                                  color: AppColors.textSecondary(context),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+              ),
             ),
           ],
         ),
@@ -1209,23 +1263,20 @@ class _QuickActionIconTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        constraints: const BoxConstraints(minWidth: 48, minHeight: 74),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.elevatedSurface(context),
-          borderRadius: BorderRadius.circular(16),
-        ),
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 68),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: isDark ? 0.18 : 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 18, color: color),
+              child: Icon(icon, size: 19, color: color),
             ),
             const SizedBox(height: 6),
             Text(
@@ -1234,7 +1285,7 @@ class _QuickActionIconTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary(context),
                 fontFeatures:

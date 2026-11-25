@@ -8,11 +8,11 @@ import '../../../data/models/note_item.dart';
 import '../../../data/models/alarm_category.dart';
 import '../../../domain/notes/markdown_checklist_helper.dart';
 import '../../../providers/note_provider.dart';
-import '../../widgets/category_badge.dart';
 import '../../widgets/markdown_content_view.dart';
 import '../../widgets/swipe_action_card.dart';
 import '../../widgets/linked_entities_section.dart';
 import '../../../data/models/entity_link.dart';
+import '../nest/bird_house_shared.dart';
 
 class NotesListScreen extends StatefulWidget {
   const NotesListScreen({super.key});
@@ -89,7 +89,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                 color: AppColors.adaptive(
                                   context,
                                   dark: AppColors.accent,
-                                  light: const Color(0xFFB45309),
+                                  light: AppColors.twillDark,
                                 ),
                                 size: 20),
                           ),
@@ -216,7 +216,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                           color: AppColors.adaptive(
                             context,
                             dark: AppColors.accent,
-                            light: const Color(0xFFB45309),
+                            light: AppColors.twillDark,
                           ),
                           size: 20),
                       filled: true,
@@ -465,8 +465,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
       builder: (context) {
         final emerald = AppColors.adaptive(
           context,
-          dark: const Color(0xFF10B981),
-          light: const Color(0xFF047857),
+          dark: AppColors.pippin,
+          light: AppColors.pippinDark,
         );
         final neutralTint = AppColors.textSecondary(context);
         final neutralFg = AppColors.textPrimary(context);
@@ -713,28 +713,38 @@ class _NotesListScreenState extends State<NotesListScreen> {
                             ? _deleteNoteWithUndo(context, noteProvider, note)
                             : _toggleArchiveWithUndo(
                                 context, noteProvider, note),
-                        child: Card(
-                          child: InkWell(
-                            onTap: () => _showNoteEditor(existing: note),
+                        child: Container(
+                          key: ValueKey('note_card_${note.id}'),
+                          decoration: birdHouseCardDecoration(
+                            context,
+                            radius: 16,
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
                             borderRadius: BorderRadius.circular(16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Wrap(
-                                          spacing: 6,
-                                          runSpacing: 4,
-                                          crossAxisAlignment:
-                                              WrapCrossAlignment.center,
-                                          children: [
-                                            CategoryBadge(
-                                              category: note.category,
-                                              compact: true,
-                                            ),
+                            child: InkWell(
+                              onTap: () => _showNoteEditor(existing: note),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Wrap(
+                                            spacing: 6,
+                                            runSpacing: 4,
+                                            crossAxisAlignment:
+                                                WrapCrossAlignment.center,
+                                            children: [
+                                              BirdStatusPill(
+                                                label: l10n.categoryName(
+                                                  note.category.type,
+                                                ),
+                                                dotColor: note.category.color,
+                                              ),
                                             if (hasMarkdown)
                                               Container(
                                                 padding:
@@ -742,7 +752,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                                         horizontal: 6,
                                                         vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF8B5CF6)
+                                                  color: AppColors.seren
                                                       .withValues(alpha: 0.18),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
@@ -752,7 +762,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                                   style: TextStyle(
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w800,
-                                                    color: Color(0xFFA78BFA),
+                                                    color: AppColors.serenLight,
                                                   ),
                                                 ),
                                               ),
@@ -774,7 +784,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                                 ? AppColors.adaptive(
                                                     context,
                                                     dark: AppColors.accent,
-                                                    light: const Color(0xFFB45309),
+                                                    light: AppColors.twillDark,
                                                   )
                                                 : AppColors.textSecondary(
                                                     context),
@@ -791,7 +801,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                             color: AppColors.adaptive(
                                               context,
                                               dark: AppColors.success,
-                                              light: const Color(0xFF047857),
+                                              light: AppColors.pippinDark,
                                             ),
                                           ),
                                           onPressed: () =>
@@ -834,9 +844,10 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                           lineIndex,
                                         );
                                       },
-                                    ),
+                                      ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
                             ),
                           ),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/alarm.dart';
+import '../../../data/services/widget_sync_service.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/seren_relaxation_provider.dart';
 import '../../../providers/settings_provider.dart';
@@ -30,6 +31,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
   @override
   void initState() {
     super.initState();
+    WidgetSyncService.instance.setAlarmLockScreenMode(true);
     _selectedHandoffMode = widget.alarm.serenAwakeningHandoff;
     _pulseController = AnimationController(
       vsync: this,
@@ -47,6 +49,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
 
   @override
   void dispose() {
+    WidgetSyncService.instance.setAlarmLockScreenMode(false);
     _pulseController.dispose();
     _clockTimer.cancel();
     super.dispose();
@@ -56,6 +59,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
     BuildContext context,
     AlarmProvider alarmProvider,
   ) async {
+    unawaited(WidgetSyncService.instance.setAlarmLockScreenMode(false));
     SerenRelaxationProvider? serenProvider;
     try {
       serenProvider = Provider.of<SerenRelaxationProvider>(
@@ -68,6 +72,11 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
       serenRelaxationProvider: serenProvider,
       overrideHandoffMode: _selectedHandoffMode,
     );
+  }
+
+  void _performSnooze(AlarmProvider alarmProvider) {
+    WidgetSyncService.instance.setAlarmLockScreenMode(false);
+    alarmProvider.snoozeAlarm(widget.alarm.id);
   }
 
   void _openChallenge(BuildContext context, AlarmProvider alarmProvider,
@@ -84,9 +93,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
           _performDismiss(context, alarmProvider);
         },
         onSnooze: widget.alarm.snoozeCount < widget.alarm.maxSnoozeCount
-            ? () {
-                alarmProvider.snoozeAlarm(widget.alarm.id);
-              }
+            ? () => _performSnooze(alarmProvider)
             : null,
       ),
     );
@@ -108,7 +115,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
     final dateString = DateFormat('EEEE, MMMM d').format(_now);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1014),
+      backgroundColor: AppColors.bedsideBg,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -129,7 +136,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF8E929E),
+                  color: AppColors.darkTextSecondary,
                 ),
               ),
               const Spacer(),
@@ -252,7 +259,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                       border: Border.all(
                         color: _selectedHandoffMode !=
                                 SerenAwakeningHandoffMode.none
-                            ? const Color(0xFF10B981).withValues(alpha: 0.5)
+                            ? AppColors.pippin.withValues(alpha: 0.5)
                             : Colors.white12,
                       ),
                     ),
@@ -375,9 +382,7 @@ class _ActiveAlarmScreenState extends State<ActiveAlarmScreen>
                 height: 52,
                 child: OutlinedButton.icon(
                   onPressed: canSnooze
-                      ? () {
-                          alarmProvider.snoozeAlarm(widget.alarm.id);
-                        }
+                      ? () => _performSnooze(alarmProvider)
                       : null,
                   icon: const Icon(Icons.snooze_rounded, size: 20),
                   label: Text(

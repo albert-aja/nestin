@@ -32,7 +32,7 @@ class InterestExplorerHeroCard extends StatelessWidget {
     final hasResult =
         latestResult != null && latestResult!.topMatches.isNotEmpty;
 
-    const accent = Color(0xFF10B981);
+    const accent = AppColors.pippin;
     final buttonLabel = hasDraft
         ? l10n.tr('exp_continue_draft')
         : (hasResult
@@ -46,7 +46,7 @@ class InterestExplorerHeroCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             accent.withValues(alpha: 0.14),
-            const Color(0xFF0EA5E9).withValues(alpha: 0.10),
+            AppColors.skyMid.withValues(alpha: 0.10),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -93,8 +93,8 @@ class InterestExplorerHeroCard extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: AppColors.adaptive(
                                 context,
-                                dark: const Color(0xFF34D399),
-                                light: const Color(0xFF047857),
+                                dark: AppColors.pippinLight,
+                                light: AppColors.pippinDark,
                               ),
                             ),
                           ),
@@ -252,7 +252,7 @@ class _InterestExplorerResultCardState
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.16),
+                  color: AppColors.pippin.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -262,8 +262,8 @@ class _InterestExplorerResultCardState
                     fontWeight: FontWeight.w800,
                     color: AppColors.adaptive(
                       context,
-                      dark: const Color(0xFF34D399),
-                      light: const Color(0xFF047857),
+                      dark: AppColors.pippinLight,
+                      light: AppColors.pippinDark,
                     ),
                   ),
                 ),
@@ -420,7 +420,7 @@ class _InterestExplorerResultCardState
                   }
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: AppColors.pippin,
                   foregroundColor: Colors.black,
                 ),
                 icon: const Icon(Icons.auto_awesome_rounded, size: 17),
@@ -599,12 +599,12 @@ class _InterestExplorerWizardSheetState
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: selected
-                          ? const Color(0xFF10B981).withValues(alpha: 0.14)
+                          ? AppColors.pippin.withValues(alpha: 0.14)
                           : AppColors.cardSurface(context),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: selected
-                            ? const Color(0xFF10B981)
+                            ? AppColors.pippin
                             : AppColors.border(context),
                         width: selected ? 1.6 : 1,
                       ),
@@ -627,7 +627,7 @@ class _InterestExplorerWizardSheetState
                         if (selected)
                           const Icon(
                             Icons.check_circle_rounded,
-                            color: Color(0xFF10B981),
+                            color: AppColors.pippin,
                             size: 20,
                           ),
                       ],

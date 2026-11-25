@@ -18,8 +18,8 @@ class ReadingProgressCard extends StatelessWidget {
     this.isCompact = false,
   });
 
-  static const Color _pippinEmerald = Color(0xFF10B981);
-  static const Color _pippinGold = Color(0xFFF59E0B);
+  static const Color _pippinEmerald = AppColors.pippin;
+  static const Color _pippinGold = AppColors.twill;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +90,7 @@ class ReadingProgressCard extends StatelessWidget {
                                     color: AppColors.adaptive(
                                       context,
                                       dark: _pippinEmerald,
-                                      light: const Color(0xFF047857),
+                                      light: AppColors.pippinDark,
                                     ),
                                   ),
                                 ),

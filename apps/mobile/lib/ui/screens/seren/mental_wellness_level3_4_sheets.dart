@@ -11,8 +11,8 @@ import '../../../providers/settings_provider.dart';
 import '../journal/timeline_screen.dart';
 import 'mental_wellness_level2_sheets.dart';
 
-const Color _kSerenPurple = Color(0xFF8B5CF6);
-const Color _kCrisisRose = Color(0xFFE11D48);
+const Color _kSerenPurple = AppColors.seren;
+const Color _kCrisisRose = AppColors.rose;
 
 void _showL34Toast(BuildContext context, String msg) {
   if (!context.mounted) return;
@@ -21,7 +21,7 @@ void _showL34Toast(BuildContext context, String msg) {
       content: Text(msg, style: const TextStyle(color: Colors.white)),
       backgroundColor: AppColors.adaptive(
         context,
-        dark: const Color(0xFF23252E),
+        dark: AppColors.darkSurfaceSubtle,
         light: AppColors.lightTextPrimary,
       ),
       duration: const Duration(seconds: 2),

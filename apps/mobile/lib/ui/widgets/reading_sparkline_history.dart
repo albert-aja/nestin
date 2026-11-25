@@ -6,9 +6,9 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/reading_goal_data.dart';
 import '../../providers/reading_provider.dart';
 
-const Color _pippinEmerald = Color(0xFF10B981);
-const Color _pippinGold = Color(0xFFF59E0B);
-const Color _pippinSky = Color(0xFF38BDF8);
+const Color _pippinEmerald = AppColors.pippin;
+const Color _pippinGold = AppColors.twill;
+const Color _pippinSky = AppColors.sky;
 
 /// Reusable streak pill badge displayed across Pippin reading surfaces.
 class ReadingStreakBadge extends StatelessWidget {
@@ -29,7 +29,7 @@ class ReadingStreakBadge extends StatelessWidget {
         ? AppColors.adaptive(
             context,
             dark: _pippinGold,
-            light: const Color(0xFFB45309),
+            light: AppColors.twillDark,
           )
         : AppColors.textSecondary(context);
     final bgColor = hasStreak
@@ -112,12 +112,12 @@ class _ReadingSparklineHistoryState extends State<ReadingSparklineHistory> {
         final emeraldInk = AppColors.adaptive(
           context,
           dark: _pippinEmerald,
-          light: const Color(0xFF047857),
+          light: AppColors.pippinDark,
         );
         final skyInk = AppColors.adaptive(
           context,
           dark: _pippinSky,
-          light: const Color(0xFF0284C7),
+          light: AppColors.skyDark,
         );
 
         final todayKey = ReadingGoalData.dateKey(

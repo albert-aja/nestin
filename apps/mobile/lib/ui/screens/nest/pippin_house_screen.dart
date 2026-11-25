@@ -14,7 +14,7 @@ import 'bird_house_shared.dart';
 
 /// Pippin's House — Reading, Hobbies, Bucket List, Inspiration & Discover (`#10B981`).
 class PippinHouseScreen extends StatelessWidget {
-  static const Color pippinColor = Color(0xFF10B981);
+  static const Color pippinColor = AppColors.pippin;
 
   const PippinHouseScreen({super.key});
 
@@ -36,9 +36,6 @@ class PippinHouseScreen extends StatelessWidget {
         context,
         title: l10n.tr('house_pippin_title'),
         subtitle: l10n.tr('nest_pippin_subtitle'),
-        spriteAsset: 'assets/mascots/sprites/pippin/discover.png',
-        accentColor: pippinColor,
-        fallbackIcon: Icons.explore_outlined,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -77,7 +74,7 @@ class PippinHouseScreen extends StatelessWidget {
                   'badges': hobby?.totalBadgesUnlocked ?? 0,
                 }),
                 icon: Icons.palette_rounded,
-                accentColor: const Color(0xFF0EA5E9),
+                accentColor: AppColors.skyMid,
                 onTap: () => HobbyPracticeSheet.show(context),
               ),
               BirdToolTile(
@@ -88,7 +85,7 @@ class PippinHouseScreen extends StatelessWidget {
                   'total': bucket?.totalCount ?? 0,
                 }),
                 icon: Icons.flag_rounded,
-                accentColor: const Color(0xFFF59E0B),
+                accentColor: AppColors.twill,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const BucketListScreen(),
@@ -100,7 +97,7 @@ class PippinHouseScreen extends StatelessWidget {
                 title: l10n.tr('house_pippin_inspiration_title'),
                 subtitle: l10n.tr('house_pippin_inspiration_sub'),
                 icon: Icons.format_quote_rounded,
-                accentColor: const Color(0xFF8B5CF6),
+                accentColor: AppColors.seren,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const InspirationScreen(),
@@ -124,13 +121,6 @@ class PippinHouseScreen extends StatelessWidget {
     required dynamic activeBook,
     required dynamic topHobby,
   }) {
-    final isDark = AppColors.isDark(context);
-    final ink = AppColors.adaptive(
-      context,
-      dark: const Color(0xFF34D399),
-      light: const Color(0xFF047857),
-    );
-
     final hasBook = activeBook != null;
     final hasHobby = topHobby != null;
 
@@ -144,19 +134,12 @@ class PippinHouseScreen extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(22),
       child: Container(
+        key: const Key('pippin_house_hero_card'),
         padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isDark
-                ? const [Color(0xFF142923), Color(0xFF1A1B20)]
-                : const [Color(0xFFECFDF5), Color(0xFFF0FDF4)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: pippinColor.withValues(alpha: isDark ? 0.38 : 0.28),
-          ),
+        decoration: birdHouseCardDecoration(
+          context,
+          heroTintColor: pippinColor,
+          radius: 22,
         ),
         child: Row(
           children: [
@@ -164,27 +147,14 @@ class PippinHouseScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: pippinColor.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      hasBook
-                          ? l10n.tr('house_pippin_hero_reading')
-                          : l10n.tr('house_pippin_hero_hobby'),
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        color: ink,
-                      ),
-                    ),
+                  BirdStatusPill(
+                    pillKey: const Key('pippin_hero_status_pill'),
+                    label: hasBook
+                        ? l10n.tr('house_pippin_hero_reading')
+                        : l10n.tr('house_pippin_hero_hobby'),
+                    dotColor: pippinColor,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   if (hasBook) ...[
                     Text(
                       activeBook.title as String,
@@ -206,6 +176,7 @@ class PippinHouseScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -242,6 +213,7 @@ class PippinHouseScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary(context),
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -271,18 +243,11 @@ class PippinHouseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            SizedBox(
-              width: 74,
-              height: 74,
-              child: Image.asset(
-                'assets/mascots/sprites/pippin/reading.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const Icon(
-                  Icons.menu_book_rounded,
-                  size: 46,
-                  color: pippinColor,
-                ),
-              ),
+            const BirdHeroSpriteHalo(
+              assetPath: 'assets/mascots/sprites/pippin/reading.png',
+              accentColor: pippinColor,
+              fallbackIcon: Icons.menu_book_rounded,
+              size: 80,
             ),
           ],
         ),
@@ -301,27 +266,20 @@ class PippinHouseScreen extends StatelessWidget {
       ),
       borderRadius: BorderRadius.circular(18),
       child: Container(
+        key: const Key('pippin_tool_discover_card'),
+        constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFF0EA5E9).withValues(alpha: isDark ? 0.16 : 0.10),
-              pippinColor.withValues(alpha: isDark ? 0.16 : 0.10),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: pippinColor.withValues(alpha: 0.36),
-          ),
+        decoration: birdHouseCardDecoration(
+          context,
+          heroTintColor: pippinColor,
+          radius: 18,
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: pippinColor.withValues(alpha: 0.18),
+                color: pippinColor.withValues(alpha: isDark ? 0.16 : 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(

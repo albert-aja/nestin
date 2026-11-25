@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +7,10 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/daily_wallpaper_config.dart';
 import '../../../providers/inspiration_provider.dart';
+import '../../../providers/settings_provider.dart';
+import '../../screens/nest/bird_house_shared.dart';
+import '../../screens/settings/wallpaper_studio_screen.dart';
+import '../../screens/splash/seasonal_loading_theme.dart';
 import 'lock_screen_wallpaper_canvas.dart';
 
 /// Opt-in 24dp bottom sheet for Nestin's Daily Affirmation Lock-Screen Wallpaper.
@@ -151,8 +157,14 @@ class _DailyWallpaperSheetState extends State<DailyWallpaperSheet> {
     final isDark = AppColors.isDark(context);
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final provider = context.watch<InspirationProvider>();
+    final settings = tryWatchProvider<SettingsProvider>(context);
     final config = provider.dailyWallpaperConfig;
     final isAndroid = provider.isDailyWallpaperAndroid;
+    final backdrop = DailyWallpaperBackdrop.resolve(
+      customWallpaperId: config.customWallpaperId,
+      customPhotoPath: settings?.customSplashPhotoPath,
+      installedPackPaths: settings?.installedRemoteSplashPackPaths,
+    );
 
     final previewQuote = provider.selectQuoteForDailyWallpaper(
       date: DateTime.now(),
@@ -283,6 +295,10 @@ class _DailyWallpaperSheetState extends State<DailyWallpaperSheet> {
                                           isDark: isDark,
                                           showMascotSprite:
                                               config.showMascotSprite,
+                                          customWallpaperAsset:
+                                              backdrop.assetPath,
+                                          customWallpaperFilePath:
+                                              backdrop.filePath,
                                         ),
                                       ),
                                       AnimatedOpacity(
@@ -441,6 +457,16 @@ class _DailyWallpaperSheetState extends State<DailyWallpaperSheet> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Wallpaper Background Picker (Everyday, Seasonal, Packs & Personal Photo)
+                    _buildWallpaperBackdropPicker(
+                      context,
+                      provider: provider,
+                      settings: settings,
+                      config: config,
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 16),
+
                     // Quote Source Filter
                     _sectionLabel(context, l10n.tr('daily_wp_source_section')),
                     const SizedBox(height: 8),
@@ -588,6 +614,212 @@ class _DailyWallpaperSheetState extends State<DailyWallpaperSheet> {
     );
   }
 
+  Widget _buildWallpaperBackdropPicker(
+    BuildContext context, {
+    required InspirationProvider provider,
+    required SettingsProvider? settings,
+    required DailyWallpaperConfig config,
+    required AppLocalizations l10n,
+  }) {
+    final curatedOptions = <_BackdropOption>[
+      _BackdropOption(
+        id: null,
+        label: l10n.tr('daily_wp_backdrop_default'),
+      ),
+      if (settings != null &&
+          settings.hasCustomSplashPhoto &&
+          settings.customSplashPhotoPath != null)
+        _BackdropOption(
+          id: DailyWallpaperConfig.personalPhotoWallpaperId,
+          label: l10n.tr('daily_wp_backdrop_personal_photo'),
+          filePath: settings.customSplashPhotoPath,
+        ),
+      // Everyday (Non-Seasonal) built-in wallpapers
+      for (final theme in SeasonalSplashTheme.values.where((t) => t.isEveryday))
+        _BackdropOption(
+          id: 'theme:${theme.name}',
+          label: l10n.tr(theme.labelKey),
+          assetPath: SeasonalSplashResolver.specFor(theme).wallpaperAsset,
+        ),
+      // Curated downloadable Everyday & Seasonal packs (installed first)
+      for (final pack in [
+        ...RemoteHolidayWallpaperCatalog.packs.where(
+          (p) => settings?.isRemoteSplashPackInstalled(p.slug) ?? false,
+        ),
+        ...RemoteHolidayWallpaperCatalog.packs.where(
+          (p) => !(settings?.isRemoteSplashPackInstalled(p.slug) ?? false),
+        ),
+      ])
+        _BackdropOption(
+          id: 'pack:${pack.slug}',
+          label: l10n.tr(pack.titleKey),
+          assetPath: pack.bundledPreviewAsset,
+          filePath: settings?.installedRemoteSplashPackPaths[pack.slug],
+        ),
+      // Key Seasonal built-in wallpapers
+      for (final theme in const [
+        SeasonalSplashTheme.springBloom,
+        SeasonalSplashTheme.autumnHarvest,
+        SeasonalSplashTheme.cozyLantern,
+        SeasonalSplashTheme.christmas,
+      ])
+        _BackdropOption(
+          id: 'theme:${theme.name}',
+          label: l10n.tr(theme.labelKey),
+          assetPath: SeasonalSplashResolver.specFor(theme).wallpaperAsset,
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _sectionLabel(
+                context,
+                l10n.tr('daily_wp_backdrop_section'),
+              ),
+            ),
+            if (settings != null)
+              TextButton(
+                key: const Key('daily_wp_browse_all_btn'),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const WallpaperStudioScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  l10n.tr('daily_wp_backdrop_browse_more'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 112,
+          child: ListView.separated(
+            key: const Key('daily_wp_backdrop_list'),
+            scrollDirection: Axis.horizontal,
+            itemCount: curatedOptions.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final opt = curatedOptions[index];
+              final selected = config.customWallpaperId == opt.id;
+              return GestureDetector(
+                key: Key('daily_wp_backdrop_opt_${opt.id ?? 'default'}'),
+                onTap: () => _updateConfig(
+                  provider,
+                  opt.id == null
+                      ? config.copyWith(clearCustomWallpaperId: true)
+                      : config.copyWith(customWallpaperId: opt.id),
+                ),
+                child: SizedBox(
+                  width: 72,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.border(context),
+                            width: selected ? 2.2 : 1.0,
+                          ),
+                          color: AppColors.elevatedSurface(context),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (opt.filePath != null &&
+                                  File(opt.filePath!).existsSync())
+                                Image.file(
+                                  File(opt.filePath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) =>
+                                      _defaultBackdropThumb(context),
+                                )
+                              else if (opt.assetPath != null)
+                                Image.asset(
+                                  opt.assetPath!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) =>
+                                      _defaultBackdropThumb(context),
+                                )
+                              else
+                                _defaultBackdropThumb(context),
+                              if (selected)
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check_rounded,
+                                      size: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        opt.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight:
+                              selected ? FontWeight.w800 : FontWeight.w600,
+                          color: selected
+                              ? AppColors.textPrimary(context)
+                              : AppColors.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _defaultBackdropThumb(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.auto_awesome_rounded,
+        size: 22,
+        color: AppColors.textSecondary(context),
+      ),
+    );
+  }
+
   Widget _sectionLabel(BuildContext context, String text) {
     return Text(
       text,
@@ -599,4 +831,18 @@ class _DailyWallpaperSheetState extends State<DailyWallpaperSheet> {
       ),
     );
   }
+}
+
+class _BackdropOption {
+  final String? id;
+  final String label;
+  final String? assetPath;
+  final String? filePath;
+
+  const _BackdropOption({
+    required this.id,
+    required this.label,
+    this.assetPath,
+    this.filePath,
+  });
 }

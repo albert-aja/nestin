@@ -7,6 +7,7 @@ import '../data/models/memory_item.dart';
 import '../data/models/throwback_item.dart';
 import '../data/services/storage_service.dart';
 
+import '../core/theme/app_colors.dart';
 class TimelineFeedItem {
   final String id;
   final String title;
@@ -126,7 +127,7 @@ class JournalProvider extends ChangeNotifier {
           date: j.date,
           typeTag: '${j.mood.emoji} ${j.mood.label}',
           icon: Icons.book_outlined,
-          color: const Color(0xFFFF9E1B),
+          color: AppColors.accent,
         ),
       );
     }
@@ -140,7 +141,7 @@ class JournalProvider extends ChangeNotifier {
           date: m.date,
           typeTag: m.isMilestone ? '⭐ Milestone' : 'Memory',
           icon: Icons.auto_awesome_rounded,
-          color: const Color(0xFFE04A3A),
+          color: AppColors.roo,
         ),
       );
     }

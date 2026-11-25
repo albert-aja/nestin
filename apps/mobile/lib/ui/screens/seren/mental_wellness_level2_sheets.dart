@@ -11,8 +11,8 @@ import '../../../data/models/seren_relaxation_models.dart';
 import '../../../providers/break_the_cycle_provider.dart';
 import '../../../providers/journal_provider.dart';
 
-const Color _kSerenPurple = Color(0xFF8B5CF6);
-const Color _kSerenLavender = Color(0xFFA78BFA);
+const Color _kSerenPurple = AppColors.seren;
+const Color _kSerenLavender = AppColors.serenLight;
 const MethodChannel _kWidgetsChannel = MethodChannel('com.nestin.app/widgets');
 
 void _showL2Toast(BuildContext context, String msg) {
@@ -22,7 +22,7 @@ void _showL2Toast(BuildContext context, String msg) {
       content: Text(msg, style: const TextStyle(color: Colors.white)),
       backgroundColor: AppColors.adaptive(
         context,
-        dark: const Color(0xFF23252E),
+        dark: AppColors.darkSurfaceSubtle,
         light: AppColors.lightTextPrimary,
       ),
       duration: const Duration(seconds: 2),

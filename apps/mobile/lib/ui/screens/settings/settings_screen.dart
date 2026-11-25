@@ -6,8 +6,6 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_preferences.dart';
 import '../../../data/models/challenge_profile.dart';
-import '../../../data/services/backend_gateway_service.dart';
-import '../../../data/services/storage_service.dart';
 import '../../../data/services/widget_sync_service.dart';
 import '../../../providers/alarm_provider.dart';
 import '../../../providers/before_you_go_provider.dart';
@@ -44,355 +42,108 @@ import '../discipline/digital_discipline_screen.dart';
 import '../scout/phone_modes_screen.dart';
 import '../automation/automation_hub_screen.dart';
 import 'permission_center_screen.dart';
+import 'wallpaper_studio_screen.dart';
 import '../onboarding/mascot_onboarding_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  Widget _buildSplashPersonalPhotoAndPacksSection(
+  Widget _buildWallpaperStudioEntryTile(
     BuildContext context,
     SettingsProvider provider,
     AppLocalizations l10n,
   ) {
-    final customPath = provider.customSplashPhotoPath;
-    final hasCustom = provider.hasCustomSplashPhoto;
-    final packs = provider.remoteSplashPacks;
+    final prefs = provider.preferences;
+    final activeSpec = SeasonalSplashResolver.resolve(
+      override: prefs.seasonalSplashOverride,
+      customPhotoPath: prefs.customSplashPhotoPath,
+      remotePackSlug: prefs.activeRemoteSplashPackSlug,
+      installedRemotePackPaths: prefs.installedRemoteSplashPackPaths,
+    );
+    final activeLabel = provider.hasCustomSplashPhoto
+        ? l10n.tr('splash_custom_photo_card_title')
+        : (prefs.activeRemoteSplashPackSlug != null &&
+                RemoteHolidayWallpaperCatalog.bySlug(
+                      prefs.activeRemoteSplashPackSlug,
+                    ) !=
+                    null
+            ? l10n.tr(
+                RemoteHolidayWallpaperCatalog.bySlug(
+                  prefs.activeRemoteSplashPackSlug,
+                )!
+                    .titleKey,
+              )
+            : (prefs.seasonalSplashOverride == null
+                ? l10n.tr('splash_season_opt_auto')
+                : l10n.tr(prefs.seasonalSplashOverride!.labelKey)));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 1. Personal Local Photo Picker Card
-        Container(
-          key: const Key('settings_splash_personal_photo_card'),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.elevatedSurface(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: hasCustom
-                  ? AppColors.accent.withValues(alpha: 0.55)
-                  : AppColors.border(context),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (hasCustom &&
-                      customPath != null &&
-                      File(customPath).existsSync())
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(customPath),
-                        width: 44,
-                        height: 44,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.photo_library_rounded,
-                          color: AppColors.accent,
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.accent.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.add_photo_alternate_rounded,
-                        color: AppColors.accent,
-                        size: 20,
-                      ),
-                    ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.tr('splash_custom_photo_card_title'),
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary(context),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          hasCustom
-                              ? l10n.tr('splash_custom_photo_active_desc')
-                              : l10n.tr('splash_custom_photo_card_desc'),
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  OutlinedButton.icon(
-                    key: const Key('settings_splash_pick_photo_btn'),
-                    onPressed: () async {
-                      await provider.pickAndSetCustomSplashPhoto();
-                    },
-                    icon: const Icon(Icons.photo_library_outlined, size: 16),
-                    label: Text(
-                      l10n.tr('splash_custom_photo_pick_btn'),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  if (hasCustom)
-                    TextButton.icon(
-                      key: const Key('settings_splash_clear_photo_btn'),
-                      onPressed: () async {
-                        await provider.clearCustomSplashPhoto();
-                      },
-                      icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                      label: Text(
-                        l10n.tr('splash_custom_photo_clear_btn'),
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
+    final customPath = activeSpec.customWallpaperFilePath;
+    Widget thumb;
+    if (customPath != null &&
+        customPath.isNotEmpty &&
+        File(customPath).existsSync()) {
+      thumb = Image.file(
+        File(customPath),
+        width: 44,
+        height: 44,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const Icon(Icons.wallpaper_rounded),
+      );
+    } else if (activeSpec.wallpaperAsset != null) {
+      thumb = Image.asset(
+        activeSpec.wallpaperAsset!,
+        width: 44,
+        height: 44,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const Icon(Icons.wallpaper_rounded),
+      );
+    } else {
+      thumb = Container(
+        width: 44,
+        height: 44,
+        color: activeSpec.accentColor.withValues(alpha: 0.16),
+        child: Icon(Icons.wallpaper_rounded, color: activeSpec.accentColor),
+      );
+    }
+
+    return ListTile(
+      key: const Key('settings_seasonal_splash_tile'),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(width: 44, height: 44, child: thumb),
+      ),
+      title: Text(
+        l10n.tr('wp_studio_title'),
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary(context),
         ),
-        const SizedBox(height: 12),
-
-        // 2. Curated Holiday & Seasonal Wallpaper Packs (Media Backend Catalog)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.tr('splash_remote_packs_section_title'),
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                  Text(
-                    l10n.tr('splash_remote_packs_section_desc'),
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: AppColors.textSecondary(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              key: const Key('settings_splash_refresh_catalog_btn'),
-              tooltip: l10n.tr('splash_remote_packs_refresh_btn'),
-              onPressed: () async {
-                BackendGatewayService? gateway;
-                try {
-                  final storage = context.read<StorageService>();
-                  gateway = BackendGatewayService(storage.prefs);
-                } catch (_) {}
-                await provider.refreshRemoteSplashCatalog(gateway: gateway);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        l10n.tr('splash_remote_packs_synced_toast'),
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.cloud_sync_outlined, size: 19),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ...packs.map((pack) {
-          final isInstalled = provider.isRemoteSplashPackInstalled(pack.slug);
-          final isDownloading =
-              provider.isRemoteSplashPackDownloading(pack.slug);
-          final isActive =
-              !hasCustom && provider.activeRemoteSplashPackSlug == pack.slug;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              key: Key('settings_splash_pack_card_${pack.slug}'),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.elevatedSurface(context),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isActive
-                      ? pack.accentColor.withValues(alpha: 0.75)
-                      : AppColors.border(context),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          pack.bundledPreviewAsset,
-                          width: 44,
-                          height: 44,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
-                            width: 44,
-                            height: 44,
-                            color: pack.accentColor.withValues(alpha: 0.2),
-                            child: Icon(
-                              Icons.wallpaper_rounded,
-                              color: pack.accentColor,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.tr(pack.titleKey),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary(context),
-                              ),
-                            ),
-                            Text(
-                              '${l10n.tr(pack.badgeKey)} • ${pack.formattedSizeKb}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (isActive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: pack.accentColor.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            l10n.tr('splash_remote_pack_active_badge'),
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: pack.accentColor,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (isDownloading)
-                    LinearProgressIndicator(
-                      value: provider.remoteSplashPackDownloadProgress(
-                        pack.slug,
-                      ),
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        if (!isInstalled)
-                          OutlinedButton.icon(
-                            key: Key(
-                              'settings_splash_pack_download_${pack.slug}',
-                            ),
-                            onPressed: () async {
-                              await provider.installRemoteSplashPack(
-                                pack.slug,
-                                activateOnInstall: true,
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.download_for_offline_outlined,
-                              size: 16,
-                            ),
-                            label: Text(
-                              l10n.tr('splash_remote_pack_download_btn'),
-                              style: const TextStyle(fontSize: 11.5),
-                            ),
-                          )
-                        else ...[
-                          if (!isActive)
-                            FilledButton.tonalIcon(
-                              key: Key(
-                                'settings_splash_pack_use_${pack.slug}',
-                              ),
-                              onPressed: () async {
-                                if (hasCustom) {
-                                  await provider.clearCustomSplashPhoto();
-                                }
-                                await provider.setActiveRemoteSplashPackSlug(
-                                  pack.slug,
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.check_circle_outline_rounded,
-                                size: 15,
-                              ),
-                              label: Text(
-                                l10n.tr('splash_remote_pack_use_btn'),
-                                style: const TextStyle(fontSize: 11.5),
-                              ),
-                            ),
-                          TextButton.icon(
-                            key: Key(
-                              'settings_splash_pack_remove_${pack.slug}',
-                            ),
-                            onPressed: () async {
-                              await provider.removeRemoteSplashPack(pack.slug);
-                            },
-                            icon: const Icon(
-                              Icons.delete_outline_rounded,
-                              size: 15,
-                            ),
-                            label: Text(
-                              l10n.tr('splash_remote_pack_remove_btn'),
-                              style: const TextStyle(fontSize: 11.5),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          );
+      ),
+      subtitle: Text(
+        l10n.tr('wp_studio_settings_entry_desc', {
+          'active': activeLabel,
+          'count': provider.installedRemoteSplashPackSlugs.length,
         }),
-      ],
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 12.5,
+          color: AppColors.textSecondary(context),
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: AppColors.textSecondary(context),
+      ),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const WallpaperStudioScreen(),
+          ),
+        );
+      },
     );
   }
 
@@ -690,7 +441,7 @@ class SettingsScreen extends StatelessWidget {
                                     ? AppColors.adaptive(
                                         context,
                                         dark: AppColors.accent,
-                                        light: const Color(0xFFC26A00),
+                                        light: AppColors.twillDeep,
                                       )
                                     : AppColors.textSecondary(context),
                               ),
@@ -920,154 +671,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1),
-                Padding(
-                  key: const Key('settings_seasonal_splash_tile'),
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Icon(
-                              Icons.auto_awesome_rounded,
-                              color: AppColors.textSecondary(context),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.tr('splash_season_setting_title'),
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary(context),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  prefs.activeRemoteSplashPackSlug != null &&
-                                          RemoteHolidayWallpaperCatalog.bySlug(
-                                                prefs.activeRemoteSplashPackSlug,
-                                              ) !=
-                                              null
-                                      ? l10n.tr(
-                                          RemoteHolidayWallpaperCatalog.bySlug(
-                                            prefs.activeRemoteSplashPackSlug,
-                                          )!.titleKey,
-                                        )
-                                      : (prefs.seasonalSplashOverride == null
-                                            ? l10n.tr(
-                                                'splash_season_setting_auto_desc',
-                                              )
-                                            : l10n.tr(
-                                                prefs
-                                                    .seasonalSplashOverride!
-                                                    .labelKey,
-                                              )),
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: AppColors.textSecondary(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.elevatedSurface(context),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.border(context),
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              key: const Key(
-                                'settings_seasonal_splash_dropdown',
-                              ),
-                              value:
-                                  prefs.activeRemoteSplashPackSlug != null &&
-                                          provider.isRemoteSplashPackInstalled(
-                                            prefs.activeRemoteSplashPackSlug!,
-                                          )
-                                      ? 'pack:${prefs.activeRemoteSplashPackSlug}'
-                                      : (prefs.seasonalSplashOverride?.name ??
-                                            'auto'),
-                              isExpanded: true,
-                              dropdownColor: AppColors.cardSurface(context),
-                              items: [
-                                DropdownMenuItem<String>(
-                                  value: 'auto',
-                                  child: Text(
-                                    l10n.tr('splash_season_opt_auto'),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                ...SeasonalSplashTheme.values.map((theme) {
-                                  return DropdownMenuItem<String>(
-                                    value: theme.name,
-                                    child: Text(
-                                      l10n.tr(theme.labelKey),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }),
-                                ...provider.remoteSplashPacks
-                                    .where(
-                                      (pack) => provider
-                                          .isRemoteSplashPackInstalled(
-                                            pack.slug,
-                                          ),
-                                    )
-                                    .map((pack) {
-                                      return DropdownMenuItem<String>(
-                                        value: 'pack:${pack.slug}',
-                                        child: Text(
-                                          '✦ ${l10n.tr(pack.titleKey)}',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      );
-                                    }),
-                              ],
-                              onChanged: (val) {
-                                if (val == null) return;
-                                if (val.startsWith('pack:')) {
-                                  final slug = val.substring('pack:'.length);
-                                  provider.setActiveRemoteSplashPackSlug(slug);
-                                } else {
-                                  provider.setSeasonalSplashOverride(
-                                    SeasonalSplashThemeExt.fromNameOrNull(val),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildSplashPersonalPhotoAndPacksSection(
-                        context,
-                        provider,
-                        l10n,
-                      ),
-                    ],
-                  ),
-                ),
+                _buildWallpaperStudioEntryTile(context, provider, l10n),
                 const Divider(height: 1),
                 Padding(
                   key: const Key('settings_treehouse_phase_tile'),
@@ -1256,14 +860,14 @@ class SettingsScreen extends StatelessWidget {
                                 assetPath:
                                     'assets/mascots/sprites/roo/alarm.png',
                                 label: l10n.tr('alarms_roo'),
-                                accent: const Color(0xFFE04A3A),
+                                accent: AppColors.roo,
                               ),
                               _widgetMascotPreviewChip(
                                 context,
                                 assetPath:
                                     'assets/mascots/sprites/roo/momentum.png',
                                 label: l10n.tr('habits_roo'),
-                                accent: const Color(0xFF10B981),
+                                accent: AppColors.pippin,
                               ),
                             ],
                           ),
@@ -1276,14 +880,14 @@ class SettingsScreen extends StatelessWidget {
                                 assetPath:
                                     'assets/mascots/sprites/seren/hydrate.png',
                                 label: l10n.tr('hydration_seren'),
-                                accent: const Color(0xFF38BDF8),
+                                accent: AppColors.sky,
                               ),
                               _widgetMascotPreviewChip(
                                 context,
                                 assetPath:
                                     'assets/mascots/sprites/scout/captured.png',
                                 label: l10n.tr('capture_flock'),
-                                accent: const Color(0xFF3B82F6),
+                                accent: AppColors.scout,
                               ),
                             ],
                           ),
@@ -1491,7 +1095,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.isDiaryLockEnabled,
-                    activeThumbColor: AppColors.accent,
                     onChanged: (val) async {
                       if (val && !provider.hasPin) {
                         await SecurityPinGateSheet.verifyOrPrompt(context);
@@ -1530,7 +1133,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.isBiometricEnabled,
-                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => provider.toggleBiometric(val),
                   ),
                   const Divider(height: 16),
@@ -1659,12 +1261,12 @@ class SettingsScreen extends StatelessWidget {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                        color: AppColors.pippin.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
                         Icons.history_toggle_off_rounded,
-                        color: Color(0xFF10B981),
+                        color: AppColors.pippin,
                         size: 20,
                       ),
                     ),
@@ -1683,7 +1285,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.showThrowbacks,
-                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => provider.toggleThrowbacks(val),
                   ),
                   const Divider(height: 16),
@@ -1692,12 +1293,12 @@ class SettingsScreen extends StatelessWidget {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.18),
+                        color: AppColors.twill.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
                         Icons.lightbulb_outline_rounded,
-                        color: Color(0xFFF59E0B),
+                        color: AppColors.twill,
                         size: 20,
                       ),
                     ),
@@ -1716,7 +1317,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     value: provider.showJournalPrompts,
-                    activeThumbColor: AppColors.accent,
                     onChanged: (val) => provider.toggleJournalPrompts(val),
                   ),
                 ],
@@ -1787,12 +1387,12 @@ class SettingsScreen extends StatelessWidget {
                         secondary: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3A86FF).withValues(alpha: 0.18),
+                            color: AppColors.electricBlue.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.sync_rounded,
-                            color: Color(0xFF3A86FF),
+                            color: AppColors.electricBlue,
                             size: 20,
                           ),
                         ),
@@ -1811,7 +1411,6 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                         value: config.autoSyncOnLaunch,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => wearable.updateConfig(
                           config.copyWith(autoSyncOnLaunch: val),
                         ),
@@ -1848,12 +1447,12 @@ class SettingsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: isProt
                                 ? AppColors.success.withValues(alpha: 0.12)
-                                : const Color(0xFFE04A3A).withValues(alpha: 0.12),
+                                : AppColors.roo.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isProt
                                   ? AppColors.success.withValues(alpha: 0.3)
-                                  : const Color(0xFFE04A3A).withValues(alpha: 0.3),
+                                  : AppColors.roo.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(
@@ -1864,7 +1463,7 @@ class SettingsScreen extends StatelessWidget {
                                     : Icons.warning_amber_rounded,
                                 color: isProt
                                     ? AppColors.success
-                                    : const Color(0xFFE04A3A),
+                                    : AppColors.roo,
                                 size: 22,
                               ),
                               const SizedBox(width: 12),
@@ -1888,7 +1487,7 @@ class SettingsScreen extends StatelessWidget {
                                         fontSize: 11,
                                         color: isProt
                                             ? AppColors.success
-                                            : const Color(0xFFE04A3A),
+                                            : AppColors.roo,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -1911,14 +1510,14 @@ class SettingsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: oem.isKeepAliveActive
                                 ? AppColors.success.withValues(alpha: 0.18)
-                                : const Color(0xFF3A86FF).withValues(alpha: 0.18),
+                                : AppColors.electricBlue.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             Icons.security_rounded,
                             color: oem.isKeepAliveActive
                                 ? AppColors.success
-                                : const Color(0xFF3A86FF),
+                                : AppColors.electricBlue,
                             size: 20,
                           ),
                         ),
@@ -1937,7 +1536,6 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                         value: oem.config.keepAliveEnabledByUser,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => oem.toggleKeepAliveService(val),
                       ),
                       if (oem.quickSettingsTileStatus.supported) ...[
@@ -2076,7 +1674,7 @@ class SettingsScreen extends StatelessWidget {
                                     color: geo.permissionState
                                             .isReadyForBackground
                                         ? AppColors.success
-                                        : const Color(0xFF3B82F6),
+                                        : AppColors.scout,
                                   ),
                                 ),
                               ),

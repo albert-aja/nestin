@@ -9,9 +9,9 @@ import 'location_reminders_sheet.dart';
 class LocationRemindersCard extends StatelessWidget {
   const LocationRemindersCard({super.key});
 
-  static const Color _scoutBlue = Color(0xFF3B82F6);
-  static const Color _emerald = Color(0xFF10B981);
-  static const Color _amber = Color(0xFFF59E0B);
+  static const Color _scoutBlue = AppColors.scout;
+  static const Color _emerald = AppColors.pippin;
+  static const Color _amber = AppColors.twill;
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +105,7 @@ class LocationRemindersCard extends StatelessWidget {
                                       ? AppColors.adaptive(
                                           context,
                                           dark: _amber,
-                                          light: const Color(0xFFB45309),
+                                          light: AppColors.twillDark,
                                         )
                                       : AppColors.textSecondary(context)),
                               fontWeight: FontWeight.w600,

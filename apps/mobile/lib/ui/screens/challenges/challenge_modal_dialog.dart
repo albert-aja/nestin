@@ -22,7 +22,7 @@ class ChallengeModalDialog extends StatelessWidget {
     final accentInk = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),

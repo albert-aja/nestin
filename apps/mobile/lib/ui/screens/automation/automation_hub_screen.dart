@@ -180,7 +180,6 @@ class AutomationHubScreen extends StatelessWidget {
                         ),
                         Switch(
                           value: rule.isEnabled,
-                          activeThumbColor: AppColors.accent,
                           onChanged: (val) =>
                               automation.toggleRule(rule.id, val),
                         ),

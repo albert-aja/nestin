@@ -33,6 +33,8 @@ import '../../widgets/mascot_milestone_stamp_overlay.dart';
 import '../../widgets/nestin_wordmark.dart';
 import '../../widgets/oem_warning_banner.dart';
 import '../alarms/alarm_edit_screen.dart';
+import '../alarms/alarms_list_screen.dart';
+import '../nest/roo_house_screen.dart';
 import '../automation/automation_hub_screen.dart';
 import '../nest/bird_house_shared.dart';
 import '../nest/treehouse_painters.dart';
@@ -68,9 +70,9 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
-  static const Color _serenLavender = Color(0xFF8B5CF6);
-  static const Color _echoTawny = Color(0xFFD97706);
-  static const Color _scoutBlue = Color(0xFF3B82F6);
+  static const Color _serenLavender = AppColors.seren;
+  static const Color _echoTawny = AppColors.echo;
+  static const Color _scoutBlue = AppColors.scout;
 
   static const List<String> _focusedSectionKeys = [
     DashboardConfig.sectionNextAlarm,
@@ -631,7 +633,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     final gradientColors = switch (phase) {
       TreehouseDayPhase.dawn => isDark
           ? const [Color(0xFF28202B), Color(0xFF1A1B24)]
-          : const [Color(0xFFFFEFE6), Color(0xFFF3ECF8)],
+          : const [AppColors.peachSoft, Color(0xFFF3ECF8)],
       TreehouseDayPhase.day => isDark
           ? const [Color(0xFF1A2431), Color(0xFF171A23)]
           : const [Color(0xFFE7F4FD), Color(0xFFF4F8FC)],
@@ -1142,7 +1144,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 const Spacer(),
                 InkWell(
                   key: const Key('dashboard_alarm_open_btn'),
-                  onTap: () => widget.onNavigateTab(1, 0),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AlarmsListScreen(),
+                    ),
+                  ),
                   borderRadius: BorderRadius.circular(999),
                   child: ConstrainedBox(
                     constraints:
@@ -1254,7 +1260,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             const Spacer(),
             InkWell(
               key: const Key('dashboard_agenda_view_all_btn'),
-              onTap: () => widget.onNavigateTab(1),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const RooHouseScreen(),
+                ),
+              ),
               borderRadius: BorderRadius.circular(12),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
@@ -2038,7 +2048,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         final accentInk = AppColors.adaptive(
           ctx,
           dark: AppColors.accent,
-          light: const Color(0xFFB45309),
+          light: AppColors.twillDark,
         );
         return AlertDialog(
           backgroundColor: AppColors.cardSurface(ctx),
@@ -2351,8 +2361,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                   height: 48,
                                   child: Switch.adaptive(
                                     value: meta['isEnabled'] as bool,
-                                    activeThumbColor: Colors.white,
-                                    activeTrackColor: AppColors.primary,
                                     onChanged: (val) {
                                       HapticFeedback.lightImpact();
                                       (meta['toggle'] as Function(bool))(val);

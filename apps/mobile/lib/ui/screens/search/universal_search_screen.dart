@@ -395,13 +395,13 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       const SizedBox(height: 16),
                     ],
                     if (matchingReading.isNotEmpty) ...[
-                      _buildHeader(l10n.tr('reading_list'), matchingReading.length, const Color(0xFF10B981)),
+                      _buildHeader(l10n.tr('reading_list'), matchingReading.length, AppColors.pippin),
                       ...matchingReading.map((b) => _buildResultTile(
                             title: b.title,
                             subtitle:
                                 '${b.author.isNotEmpty ? "${b.author} • " : ""}${b.formattedProgress}',
                             icon: Icons.menu_book_rounded,
-                            color: const Color(0xFF10B981),
+                            color: AppColors.pippin,
                           )),
                       const SizedBox(height: 16),
                     ],
@@ -409,7 +409,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       _buildHeader(
                         l10n.tr('bucket_list_places'),
                         matchingBucketItems.length,
-                        const Color(0xFF10B981),
+                        AppColors.pippin,
                       ),
                       ...matchingBucketItems.map((b) {
                         final livePlace =
@@ -447,7 +447,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       _buildHeader(
                         l10n.tr('location_reminders'),
                         matchingLocationReminders.length,
-                        const Color(0xFF3B82F6),
+                        AppColors.scout,
                       ),
                       ...matchingLocationReminders.map((r) {
                         final placeName =
@@ -458,7 +458,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                           subtitle:
                               '${r.triggerType.emoji} ${r.triggerType.shortLabel} $placeName',
                           icon: Icons.location_on_rounded,
-                          color: const Color(0xFF3B82F6),
+                          color: AppColors.scout,
                         );
                       }),
                       const SizedBox(height: 16),
@@ -468,14 +468,14 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       _buildHeader(
                         l10n.tr('money_wallets_accounts'),
                         matchingMoneyAccounts.length,
-                        const Color(0xFFF59E0B),
+                        AppColors.twill,
                       ),
                       ...matchingMoneyAccounts.map((a) => _buildResultTile(
                             title: a.name,
                             subtitle:
                                 '${a.type.label} • ${moneyProvider!.formatAmount(a.currentBalanceMinor)}',
                             icon: Icons.account_balance_wallet_rounded,
-                            color: const Color(0xFFF59E0B),
+                            color: AppColors.twill,
                           )),
                       const SizedBox(height: 16),
                     ],
@@ -484,7 +484,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       _buildHeader(
                         l10n.tr('money_transactions_2'),
                         matchingMoneyTxs.length,
-                        const Color(0xFFF59E0B),
+                        AppColors.twill,
                       ),
                       ...matchingMoneyTxs.map((t) {
                         final MoneyTransaction tx = t as MoneyTransaction;
@@ -506,7 +506,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       _buildHeader(
                         l10n.tr('beforeyougo_trips'),
                         matchingDepartureEvents.length,
-                        const Color(0xFF3B82F6),
+                        AppColors.scout,
                       ),
                       ...matchingDepartureEvents.map((ev) {
                         final preset =
@@ -516,7 +516,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                           subtitle:
                               '${ev.recurrenceSummary} • ${ev.formattedDepartureTime} • ${ev.leadLabel}${preset != null ? " • ${preset.name}" : ""}',
                           icon: Icons.departure_board_rounded,
-                          color: const Color(0xFF3B82F6),
+                          color: AppColors.scout,
                         );
                       }),
                       const SizedBox(height: 16),
@@ -526,7 +526,7 @@ class _UniversalSearchScreenState extends State<UniversalSearchScreen> {
                       _buildHeader(
                         l10n.tr('beforeyougo_checklists'),
                         matchingDeparturePresets.length,
-                        const Color(0xFF3B82F6),
+                        AppColors.scout,
                       ),
                       ...matchingDeparturePresets.map((p) => _buildResultTile(
                             title: l10n.tr('checklist_3', {'p_name': p.name}),

@@ -81,14 +81,14 @@ class _RemindersListScreenState extends State<RemindersListScreen> {
                     color: AppColors.cardSurface(context),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                      color: AppColors.scout.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.explore_rounded,
-                        color: Color(0xFF3B82F6),
+                        color: AppColors.scout,
                         size: 20,
                       ),
                       const SizedBox(width: 10),

@@ -242,7 +242,7 @@ class WishlistScreen extends StatelessWidget {
                                           color: AppColors.adaptive(
                                             context,
                                             dark: AppColors.accent,
-                                            light: const Color(0xFFC26A00),
+                                            light: AppColors.twillDeep,
                                           ),
                                         ),
                                       ),

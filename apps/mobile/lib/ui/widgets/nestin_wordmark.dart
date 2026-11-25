@@ -42,7 +42,7 @@ class NestinWordmark extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.7,
+          letterSpacing: 0.4,
           height: 1.0,
           fontFamilyFallback: const [
             'Nunito',

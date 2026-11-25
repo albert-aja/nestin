@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/theme/app_colors.dart';
 class JournalPrompt {
   final String id;
   final String category;
@@ -21,49 +22,49 @@ class JournalPrompt {
       category: 'Morning Intention',
       prompt: 'What was the highlight of your morning or your main intention today?',
       icon: Icons.wb_sunny_rounded,
-      color: Color(0xFFF59E0B),
+      color: AppColors.twill,
     ),
     JournalPrompt(
       id: 'p2',
       category: 'Daily Gratitude',
       prompt: 'Who made a positive difference in your day, and how did it feel?',
       icon: Icons.favorite_rounded,
-      color: Color(0xFFEF4444),
+      color: AppColors.error,
     ),
     JournalPrompt(
       id: 'p3',
       category: 'Small Comforts',
       prompt: 'What is a small everyday comfort you appreciated or often take for granted?',
       icon: Icons.coffee_rounded,
-      color: Color(0xFF10B981),
+      color: AppColors.pippin,
     ),
     JournalPrompt(
       id: 'p4',
       category: 'Growth & Resilience',
       prompt: 'What challenge did you navigate with patience or wisdom today?',
       icon: Icons.psychology_rounded,
-      color: Color(0xFF3B82F6),
+      color: AppColors.scout,
     ),
     JournalPrompt(
       id: 'p5',
       category: 'Mindful Moment',
       prompt: 'What is one thing that brought your mind peace or made you smile today?',
       icon: Icons.spa_rounded,
-      color: Color(0xFF8B5CF6),
+      color: AppColors.seren,
     ),
     JournalPrompt(
       id: 'p6',
       category: 'Evening Unwind',
       prompt: 'What is one thing or worry you are ready to let go of tonight before sleep?',
       icon: Icons.nightlight_round,
-      color: Color(0xFF6366F1),
+      color: AppColors.indigo,
     ),
     JournalPrompt(
       id: 'p7',
       category: 'Self Discovery',
       prompt: 'What is a valuable lesson or reminder you experienced about yourself today?',
       icon: Icons.auto_awesome_rounded,
-      color: Color(0xFFEC4899),
+      color: AppColors.pink,
     ),
   ];
 }
@@ -100,7 +101,7 @@ class GuidedReflectionTemplate {
       ],
       tag: 'RoseThornBud',
       icon: Icons.local_florist_rounded,
-      color: Color(0xFFEC4899),
+      color: AppColors.pink,
     ),
     GuidedReflectionTemplate(
       id: 'three_good_things',
@@ -113,7 +114,7 @@ class GuidedReflectionTemplate {
       ],
       tag: '3GoodThings',
       icon: Icons.auto_awesome_rounded,
-      color: Color(0xFF10B981),
+      color: AppColors.pippin,
     ),
     GuidedReflectionTemplate(
       id: 'anxiety_unload',
@@ -126,7 +127,7 @@ class GuidedReflectionTemplate {
       ],
       tag: 'AnxietyUnload',
       icon: Icons.air_rounded,
-      color: Color(0xFF8B5CF6),
+      color: AppColors.seren,
     ),
     GuidedReflectionTemplate(
       id: 'weekly_wins',
@@ -139,7 +140,7 @@ class GuidedReflectionTemplate {
       ],
       tag: 'WeeklyWins',
       icon: Icons.emoji_events_outlined,
-      color: Color(0xFFF59E0B),
+      color: AppColors.twill,
     ),
   ];
 

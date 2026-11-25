@@ -358,25 +358,25 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             children: [
                               _miniMetric(
                                 icon: Icons.bedtime_rounded,
-                                color: const Color(0xFF8338EC),
+                                color: AppColors.electricPurple,
                                 label: 'Sleep',
                                 value: record.sleepDurationFormatted,
                               ),
                               _miniMetric(
                                 icon: Icons.directions_walk_rounded,
-                                color: const Color(0xFF10B981),
+                                color: AppColors.pippin,
                                 label: l10n.tr('steps'),
                                 value: '${record.stepCount ?? 0}',
                               ),
                               _miniMetric(
                                 icon: Icons.water_drop_rounded,
-                                color: const Color(0xFF3A86FF),
+                                color: AppColors.electricBlue,
                                 label: l10n.tr('hydration'),
                                 value: '${record.waterIntakeMl ?? 0}ml',
                               ),
                               _miniMetric(
                                 icon: Icons.favorite_rounded,
-                                color: const Color(0xFFEF4444),
+                                color: AppColors.error,
                                 label: l10n.tr('resting_hr'),
                                 value: '${record.restingHeartRate ?? 0} bpm',
                               ),
@@ -425,7 +425,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: sleepWellness.isEnabled
-                                ? const Color(0xFF8B5CF6).withValues(alpha: 0.45)
+                                ? AppColors.seren.withValues(alpha: 0.45)
                                 : AppColors.border(context),
                           ),
                         ),
@@ -436,13 +436,13 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Icon(Icons.nightlight_round,
-                                    color: Color(0xFF8B5CF6), size: 22),
+                                    color: AppColors.seren, size: 22),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: sleepWellness.isEnabled
-                                        ? const Color(0xFF8B5CF6).withValues(alpha: 0.15)
+                                        ? AppColors.seren.withValues(alpha: 0.15)
                                         : AppColors.trackSurface(context),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
@@ -454,7 +454,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
                                       color: sleepWellness.isEnabled
-                                          ? const Color(0xFF8B5CF6)
+                                          ? AppColors.seren
                                           : AppColors.textSecondary(context),
                                     ),
                                   ),
@@ -497,7 +497,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: hydration.isGoalMet
-                              ? const Color(0xFF10B981).withValues(alpha: 0.5)
+                              ? AppColors.pippin.withValues(alpha: 0.5)
                               : AppColors.border(context),
                         ),
                       ),
@@ -510,14 +510,14 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               Row(
                                 children: [
                                   const Icon(Icons.water_drop_rounded,
-                                      color: Color(0xFF8B5CF6), size: 22),
+                                      color: AppColors.seren, size: 22),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${hydration.currentMilliliters}ml',
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
-                                      color: Color(0xFF8B5CF6),
+                                      color: AppColors.seren,
                                     ),
                                   ),
                                 ],
@@ -536,7 +536,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                         : Icons.notifications_off_outlined,
                                     size: 14,
                                     color: hydration.remindersEnabled
-                                        ? const Color(0xFF8B5CF6)
+                                        ? AppColors.seren
                                         : AppColors.textSecondary(context),
                                   ),
                                 ),
@@ -590,7 +590,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                       }
                                     },
                                     child: const Icon(Icons.add_circle_rounded,
-                                        color: Color(0xFF8B5CF6), size: 20),
+                                        color: AppColors.seren, size: 20),
                                   ),
                                 ],
                               ),
@@ -605,8 +605,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                               backgroundColor: AppColors.trackSurface(context),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 hydration.isGoalMet
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFF8B5CF6),
+                                    ? AppColors.pippin
+                                    : AppColors.seren,
                               ),
                               minHeight: 5,
                             ),
@@ -626,7 +626,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF10B981),
+                                    color: AppColors.pippin,
                                   ),
                                 ),
                             ],
@@ -652,7 +652,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
               side: BorderSide(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
+                color: AppColors.seren.withValues(alpha: 0.45),
               ),
             ),
             child: ListTile(
@@ -671,12 +671,12 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                  color: AppColors.seren.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.spa_rounded,
-                  color: Color(0xFF8B5CF6),
+                  color: AppColors.seren,
                 ),
               ),
               title: Text(
@@ -705,7 +705,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
               side: BorderSide(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                color: AppColors.seren.withValues(alpha: 0.4),
               ),
             ),
             child: ListTile(
@@ -724,12 +724,12 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                  color: AppColors.seren.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.surround_sound_rounded,
-                  color: Color(0xFF8B5CF6),
+                  color: AppColors.seren,
                 ),
               ),
               title: Text(
@@ -771,9 +771,9 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: hasWarnings
-                          ? const Color(0xFFF59E0B).withValues(alpha: 0.5)
+                          ? AppColors.twill.withValues(alpha: 0.5)
                           : (totalCount > 0 && takenCount == totalCount
-                              ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                              ? AppColors.pippin.withValues(alpha: 0.4)
                               : AppColors.border(context)),
                     ),
                   ),
@@ -782,15 +782,15 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                          color: AppColors.seren.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.medication_rounded,
                           color: AppColors.adaptive(
                             context,
-                            dark: const Color(0xFFA78BFA),
-                            light: const Color(0xFF7C3AED),
+                            dark: AppColors.serenLight,
+                            light: AppColors.serenDeep,
                           ),
                           size: 24,
                         ),
@@ -815,7 +815,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.18),
+                                      color: AppColors.twill.withValues(alpha: 0.18),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(
@@ -825,8 +825,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.adaptive(
                                           context,
-                                          dark: const Color(0xFFF59E0B),
-                                          light: const Color(0xFFB45309),
+                                          dark: AppColors.twill,
+                                          light: AppColors.twillDark,
                                         ),
                                       ),
                                     ),
@@ -846,14 +846,14 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                 color: hasWarnings
                                     ? AppColors.adaptive(
                                         context,
-                                        dark: const Color(0xFFF59E0B),
-                                        light: const Color(0xFFB45309),
+                                        dark: AppColors.twill,
+                                        light: AppColors.twillDark,
                                       )
                                     : (totalCount > 0 && takenCount == totalCount
                                         ? AppColors.adaptive(
                                             context,
-                                            dark: const Color(0xFF10B981),
-                                            light: const Color(0xFF047857),
+                                            dark: AppColors.pippin,
+                                            light: AppColors.pippinDark,
                                           )
                                         : AppColors.textSecondary(context)),
                               ),
@@ -884,19 +884,19 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.cardSurface(context),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF8B5CF6)),
+                    border: Border.all(color: AppColors.seren),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                          color: AppColors.seren.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           sleepWellness.activeAmbientSound.icon,
-                          color: const Color(0xFF8B5CF6),
+                          color: AppColors.seren,
                           size: 18,
                         ),
                       ),
@@ -922,7 +922,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 5, vertical: 1),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                                      color: AppColors.pippin.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(l10n.tr('active'),
@@ -931,8 +931,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.adaptive(
                                               context,
-                                              dark: const Color(0xFF10B981),
-                                              light: const Color(0xFF047857),
+                                              dark: AppColors.pippin,
+                                              light: AppColors.pippinDark,
                                             ))),
                                   ),
                                 ],
@@ -948,7 +948,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.stop_circle_rounded,
-                            color: Color(0xFFEF4444)),
+                            color: AppColors.error),
                         tooltip: l10n.tr('stop_audio'),
                         onPressed: () => sleepWellness.stopWindDownAudio(),
                       ),
@@ -982,8 +982,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             size: 15,
                             color: AppColors.adaptive(
                               context,
-                              dark: const Color(0xFF38BDF8),
-                              light: const Color(0xFF0284C7),
+                              dark: AppColors.sky,
+                              light: AppColors.skyDark,
                             )),
                         label: Text(
                             l10n.tr('k_1_tap_30m_rain'),
@@ -1020,8 +1020,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                             size: 15,
                             color: AppColors.adaptive(
                               context,
-                              dark: const Color(0xFF34D399),
-                              light: const Color(0xFF059669),
+                              dark: AppColors.pippinLight,
+                              light: AppColors.pippinDeep,
                             )),
                         label: Text(
                             l10n.tr('k_1_tap_30m_forest'),
@@ -1075,7 +1075,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                     color: AppColors.cardSurface(context),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                      color: AppColors.pippin.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Column(
@@ -1086,7 +1086,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                              color: AppColors.pippin.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Text('🎯',
@@ -1112,7 +1112,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF10B981)
+                                        color: AppColors.pippin
                                             .withValues(alpha: 0.18),
                                         borderRadius:
                                             BorderRadius.circular(6),
@@ -1124,8 +1124,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.adaptive(
                                             context,
-                                            dark: const Color(0xFF10B981),
-                                            light: const Color(0xFF047857),
+                                            dark: AppColors.pippin,
+                                            light: AppColors.pippinDark,
                                           ),
                                         ),
                                       ),
@@ -1182,8 +1182,8 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.adaptive(
                                             context,
-                                            dark: const Color(0xFF10B981),
-                                            light: const Color(0xFF047857),
+                                            dark: AppColors.pippin,
+                                            light: AppColors.pippinDark,
                                           ),
                                         ),
                                       ),
@@ -1197,7 +1197,7 @@ class _ExploreHubScreenState extends State<ExploreHubScreen> {
                                       backgroundColor: AppColors.trackSurface(context),
                                       valueColor:
                                           const AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF10B981),
+                                        AppColors.pippin,
                                       ),
                                       minHeight: 5,
                                     ),

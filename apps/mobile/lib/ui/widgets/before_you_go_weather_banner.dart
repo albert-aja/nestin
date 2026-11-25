@@ -10,11 +10,15 @@ import '../../providers/before_you_go_provider.dart';
 class BeforeYouGoWeatherBanner extends StatelessWidget {
   final BeforeYouGoProvider provider;
   final bool compact;
+  final bool borderless;
+  final Color? stripTintColor;
 
   const BeforeYouGoWeatherBanner({
     super.key,
     required this.provider,
     this.compact = false,
+    this.borderless = false,
+    this.stripTintColor,
   });
 
   @override
@@ -37,19 +41,26 @@ class BeforeYouGoWeatherBanner extends StatelessWidget {
 
     final visual = resolveWeatherVisual(context, weather);
     final tint = visual.color;
+    final isDark = AppColors.isDark(context);
+    final effectiveStripTint = stripTintColor ?? tint;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(compact ? 10 : 12),
-      decoration: BoxDecoration(
-        color: AppColors.recessedSurface(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: suggestions.isNotEmpty
-              ? tint.withValues(alpha: 0.36)
-              : AppColors.border(context),
-        ),
-      ),
+      decoration: borderless
+          ? BoxDecoration(
+              color: effectiveStripTint.withValues(alpha: isDark ? 0.10 : 0.08),
+              borderRadius: BorderRadius.circular(14),
+            )
+          : BoxDecoration(
+              color: AppColors.recessedSurface(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: suggestions.isNotEmpty
+                    ? tint.withValues(alpha: 0.36)
+                    : AppColors.border(context),
+              ),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -136,6 +147,7 @@ class BeforeYouGoWeatherBanner extends StatelessWidget {
                       suggestion: suggestion,
                       langCode: langCode,
                       tint: tint,
+                      borderless: borderless,
                       onAdd: () => _handleAddSingle(
                         context,
                         preset,
@@ -293,8 +305,8 @@ class BeforeYouGoWeatherBanner extends StatelessWidget {
         icon: Icons.thunderstorm_rounded,
         color: AppColors.adaptive(
           context,
-          dark: const Color(0xFF38BDF8),
-          light: const Color(0xFF0369A1),
+          dark: AppColors.sky,
+          light: AppColors.skyDeep,
         ),
       );
     }
@@ -303,8 +315,8 @@ class BeforeYouGoWeatherBanner extends StatelessWidget {
         icon: Icons.umbrella_rounded,
         color: AppColors.adaptive(
           context,
-          dark: const Color(0xFF60A5FA),
-          light: const Color(0xFF1D4ED8),
+          dark: AppColors.scoutLight,
+          light: AppColors.scoutDark,
         ),
       );
     }
@@ -313,8 +325,8 @@ class BeforeYouGoWeatherBanner extends StatelessWidget {
         icon: weather.isCold ? Icons.ac_unit_rounded : Icons.air_rounded,
         color: AppColors.adaptive(
           context,
-          dark: const Color(0xFF38BDF8),
-          light: const Color(0xFF0284C7),
+          dark: AppColors.sky,
+          light: AppColors.skyDark,
         ),
       );
     }
@@ -323,7 +335,7 @@ class BeforeYouGoWeatherBanner extends StatelessWidget {
       color: AppColors.adaptive(
         context,
         dark: AppColors.accent,
-        light: const Color(0xFFB45309),
+        light: AppColors.twillDark,
       ),
     );
   }
@@ -333,6 +345,7 @@ class _SuggestionActionChip extends StatelessWidget {
   final WeatherSuggestedItem suggestion;
   final String langCode;
   final Color tint;
+  final bool borderless;
   final VoidCallback onAdd;
   final VoidCallback onDismiss;
 
@@ -340,6 +353,7 @@ class _SuggestionActionChip extends StatelessWidget {
     required this.suggestion,
     required this.langCode,
     required this.tint,
+    this.borderless = false,
     required this.onAdd,
     required this.onDismiss,
   });
@@ -347,12 +361,18 @@ class _SuggestionActionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = suggestion.localizedLabel(langCode);
+    final isDark = AppColors.isDark(context);
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: tint.withValues(alpha: 0.4)),
-      ),
+      decoration: borderless
+          ? BoxDecoration(
+              color: tint.withValues(alpha: isDark ? 0.18 : 0.12),
+              borderRadius: BorderRadius.circular(999),
+            )
+          : BoxDecoration(
+              color: AppColors.cardSurface(context),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: tint.withValues(alpha: 0.4)),
+            ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

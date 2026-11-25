@@ -219,7 +219,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [const Color(0xFF1F2128), const Color(0xFF16171C)]
-                        : [Colors.white, const Color(0xFFF1F3F5)],
+                        : [Colors.white, AppColors.darkTextPrimary],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
@@ -233,7 +233,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                       'Tap to change time',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF8E929E) : const Color(0xFF6C757D),
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.catOther,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -311,11 +311,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             ),
             const SizedBox(height: 10),
             Material(
-              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              color: isDark ? AppColors.darkCard : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: isDark ? const Color(0xFF2C2F3A) : const Color(0xFFE9ECEF),
+                  color: isDark ? AppColors.darkBorderStrong : const Color(0xFFE9ECEF),
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -374,11 +374,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             ),
             const SizedBox(height: 10),
             Material(
-              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              color: isDark ? AppColors.darkCard : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: isDark ? const Color(0xFF2C2F3A) : const Color(0xFFE9ECEF),
+                  color: isDark ? AppColors.darkBorderStrong : const Color(0xFFE9ECEF),
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -411,10 +411,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF23252E) : const Color(0xFFF1F3F5),
+                            color: isDark ? AppColors.darkSurfaceSubtle : AppColors.darkTextPrimary,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF333744) : const Color(0xFFE2E5EA),
+                              color: isDark ? const Color(0xFF333744) : AppColors.lightSwitchTrack,
                             ),
                           ),
                           child: Row(
@@ -467,7 +467,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                                                   ? AppColors.adaptive(
                                                       context,
                                                       dark: AppColors.accent,
-                                                      light: const Color(0xFFB45309),
+                                                      light: AppColors.twillDark,
                                                     )
                                                   : AppColors.textSecondary(context),
                                             ),
@@ -524,12 +524,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     title: const Text('Gradual Volume Ramp'),
                     subtitle: Text('Gently rises over $_gradualDuration seconds'),
                     value: _gradualVolume,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: AppColors.rooCrimson,
                     contentPadding: EdgeInsets.zero,
                     onChanged: (val) => setState(() => _gradualVolume = val),
                   ),
                   SwitchListTile(
                     title: const Text('Vibration'),
                     value: _vibration,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: AppColors.rooCrimson,
                     contentPadding: EdgeInsets.zero,
                     onChanged: (val) => setState(() => _vibration = val),
                   ),
@@ -546,11 +550,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             ),
             const SizedBox(height: 10),
             Material(
-              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              color: isDark ? AppColors.darkCard : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: isDark ? const Color(0xFF2C2F3A) : const Color(0xFFE9ECEF),
+                  color: isDark ? AppColors.darkBorderStrong : const Color(0xFFE9ECEF),
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -602,6 +606,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     key: const Key('alarm_shrinking_snooze_switch'),
                     contentPadding: EdgeInsets.zero,
                     value: _shrinkingSnoozeEnabled,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: AppColors.rooCrimson,
                     onChanged: (val) {
                       setState(() => _shrinkingSnoozeEnabled = val);
                     },
@@ -635,7 +641,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
             // Wake-Up Challenge Section & Inheritance Engine
             Material(
-              color: isDark ? const Color(0xFF1A1B20) : Colors.white,
+              color: isDark ? AppColors.darkCard : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
@@ -668,7 +674,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     'Requires solving mental tasks before alarm can be dismissed.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? const Color(0xFF8E929E) : const Color(0xFF6C757D),
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.catOther,
                     ),
                   ),
                   const Divider(height: 24),
@@ -709,6 +715,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     SwitchListTile(
                       title: const Text('Enable Challenge'),
                       value: _challengeEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: AppColors.rooCrimson,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) => setState(() => _challengeEnabled = val),
                     ),
@@ -776,6 +784,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                       SwitchListTile(
                         title: const Text('Allow Snooze during Challenge'),
                         value: _allowSnoozeDuringChallenge,
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: AppColors.rooCrimson,
                         contentPadding: EdgeInsets.zero,
                         onChanged: (val) =>
                             setState(() => _allowSnoozeDuringChallenge = val),

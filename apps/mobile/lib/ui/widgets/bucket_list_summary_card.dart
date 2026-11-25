@@ -11,7 +11,7 @@ import '../screens/explore/bucket_list_screen.dart';
 class BucketListSummaryCard extends StatelessWidget {
   const BucketListSummaryCard({super.key});
 
-  static const Color _pippinEmerald = Color(0xFF10B981);
+  static const Color _pippinEmerald = AppColors.pippin;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +107,7 @@ class BucketListSummaryCard extends StatelessWidget {
                                 color: AppColors.adaptive(
                                   context,
                                   dark: _pippinEmerald,
-                                  light: const Color(0xFF047857),
+                                  light: AppColors.pippinDark,
                                 ),
                               ),
                             ),

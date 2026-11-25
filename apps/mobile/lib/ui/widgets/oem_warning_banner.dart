@@ -23,13 +23,13 @@ class OemWarningBanner extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFE04A3A).withValues(alpha: 0.18),
-                const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                AppColors.roo.withValues(alpha: 0.18),
+                AppColors.twill.withValues(alpha: 0.12),
               ],
             ),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: const Color(0xFFE04A3A).withValues(alpha: 0.35),
+              color: AppColors.roo.withValues(alpha: 0.35),
             ),
           ),
           child: Row(
@@ -37,12 +37,12 @@ class OemWarningBanner extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE04A3A).withValues(alpha: 0.2),
+                  color: AppColors.roo.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.shield_outlined,
-                  color: Color(0xFFE04A3A),
+                  color: AppColors.roo,
                   size: 20,
                 ),
               ),
@@ -67,7 +67,7 @@ class OemWarningBanner extends StatelessWidget {
                         color: AppColors.adaptive(
                           context,
                           dark: const Color(0xFFB0B4C3),
-                          light: const Color(0xFF4B5563),
+                          light: AppColors.slate600,
                         ),
                       ),
                     ),
@@ -78,12 +78,12 @@ class OemWarningBanner extends StatelessWidget {
               TextButton(
                 onPressed: () => OemHardeningSheet.show(context),
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFE04A3A)
+                  backgroundColor: AppColors.roo
                       .withValues(alpha: AppColors.isDark(context) ? 0.22 : 0.16),
                   foregroundColor: AppColors.adaptive(
                     context,
                     dark: Colors.white,
-                    light: const Color(0xFFB91C1C),
+                    light: AppColors.errorDeep,
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

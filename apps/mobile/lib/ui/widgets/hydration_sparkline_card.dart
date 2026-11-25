@@ -41,11 +41,11 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
 
         Color badgeColor;
         if (daysMet >= 5) {
-          badgeColor = const Color(0xFF10B981); // Emerald
+          badgeColor = AppColors.pippin; // Emerald
         } else if (daysMet >= 3) {
-          badgeColor = const Color(0xFF38BDF8); // Cyan
+          badgeColor = AppColors.sky; // Cyan
         } else {
-          badgeColor = const Color(0xFFF59E0B); // Amber
+          badgeColor = AppColors.twill; // Amber
         }
 
         return Container(
@@ -55,7 +55,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: hydration.isGoalMet
-                  ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                  ? AppColors.pippin.withValues(alpha: 0.4)
                   : AppColors.border(context),
               width: 1.2,
             ),
@@ -70,15 +70,15 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0284C7).withValues(alpha: 0.18),
+                      color: AppColors.skyDark.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.water_drop_rounded,
                       color: AppColors.adaptive(
                         context,
-                        dark: const Color(0xFF38BDF8),
-                        light: const Color(0xFF0284C7),
+                        dark: AppColors.sky,
+                        light: AppColors.skyDark,
                       ),
                       size: 20,
                     ),
@@ -125,11 +125,11 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                         color: AppColors.adaptive(
                           context,
                           dark: badgeColor,
-                          light: badgeColor == const Color(0xFF10B981)
-                              ? const Color(0xFF047857)
-                              : (badgeColor == const Color(0xFFF59E0B)
-                                  ? const Color(0xFFB45309)
-                                  : const Color(0xFF0369A1)),
+                          light: badgeColor == AppColors.pippin
+                              ? AppColors.pippinDark
+                              : (badgeColor == AppColors.twill
+                                  ? AppColors.twillDark
+                                  : AppColors.skyDeep),
                         ),
                       ),
                     ),
@@ -144,8 +144,8 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                       color: hydration.remindersEnabled
                           ? AppColors.adaptive(
                               context,
-                              dark: const Color(0xFF38BDF8),
-                              light: const Color(0xFF0284C7),
+                              dark: AppColors.sky,
+                              light: AppColors.skyDark,
                             )
                           : AppColors.textSecondary(context),
                     ),
@@ -166,7 +166,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                       value: '${hydration.currentMilliliters}ml',
                       subtitle:
                           '${hydration.glassesConsumed}/$dailyGoal glasses',
-                      color: const Color(0xFF38BDF8),
+                      color: AppColors.sky,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -175,7 +175,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                       label: 'Weekly Average',
                       value: '${avgMl}ml',
                       subtitle: 'daily intake',
-                      color: const Color(0xFF818CF8),
+                      color: AppColors.indigoLight,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -277,11 +277,11 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                                 : Icons.local_drink_rounded,
                             size: 16,
                             color: hydration.isGoalMet
-                                ? const Color(0xFF10B981)
+                                ? AppColors.pippin
                                 : AppColors.adaptive(
                                     context,
-                                    dark: const Color(0xFF38BDF8),
-                                    light: const Color(0xFF0284C7),
+                                    dark: AppColors.sky,
+                                    light: AppColors.skyDark,
                                   ),
                           ),
                           const SizedBox(width: 6),
@@ -295,8 +295,8 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                               color: hydration.isGoalMet
                                   ? AppColors.adaptive(
                                       context,
-                                      dark: const Color(0xFF10B981),
-                                      light: const Color(0xFF047857),
+                                      dark: AppColors.pippin,
+                                      light: AppColors.pippinDark,
                                     )
                                   : AppColors.textPrimary(context),
                             ),
@@ -332,7 +332,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0284C7),
+                      backgroundColor: AppColors.skyDark,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 12),
@@ -429,7 +429,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                 Container(
                   width: 12,
                   height: 2,
-                  color: const Color(0xFF0284C7).withValues(alpha: 0.8),
+                  color: AppColors.skyDark.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -439,8 +439,8 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                     fontWeight: FontWeight.w600,
                     color: AppColors.adaptive(
                       context,
-                      dark: const Color(0xFF38BDF8),
-                      light: const Color(0xFF0284C7),
+                      dark: AppColors.sky,
+                      light: AppColors.skyDark,
                     ),
                   ),
                 ),
@@ -470,9 +470,9 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
 
               Color barColor;
               if (isMet) {
-                barColor = const Color(0xFF10B981); // Emerald target reached
+                barColor = AppColors.pippin; // Emerald target reached
               } else if (glasses > 0) {
-                barColor = const Color(0xFF38BDF8); // Active blue/cyan intake
+                barColor = AppColors.sky; // Active blue/cyan intake
               } else {
                 barColor = AppColors.trackSurface(context); // Zero intake
               }
@@ -526,14 +526,14 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                                   )
                                 : (isSelected
                                     ? Border.all(
-                                        color: const Color(0xFF38BDF8),
+                                        color: AppColors.sky,
                                         width: 1.2,
                                       )
                                     : null),
                             boxShadow: isMet
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFF10B981)
+                                      color: AppColors.pippin
                                           .withValues(alpha: 0.25),
                                       blurRadius: 6,
                                       offset: const Offset(0, 2),
@@ -550,7 +550,7 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                               horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
                             color: isToday
-                                ? const Color(0xFF38BDF8)
+                                ? AppColors.sky
                                     .withValues(alpha: 0.2)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(4),
@@ -564,8 +564,8 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                               color: isToday
                                   ? AppColors.adaptive(
                                       context,
-                                      dark: const Color(0xFF38BDF8),
-                                      light: const Color(0xFF0284C7),
+                                      dark: AppColors.sky,
+                                      light: AppColors.skyDark,
                                     )
                                   : AppColors.textSecondary(context),
                             ),
@@ -610,13 +610,13 @@ class _HydrationSparklineCardState extends State<HydrationSparklineCard> {
                     color: glassesList[_selectedBarIndex!] >= dailyGoal
                         ? AppColors.adaptive(
                             context,
-                            dark: const Color(0xFF10B981),
-                            light: const Color(0xFF047857),
+                            dark: AppColors.pippin,
+                            light: AppColors.pippinDark,
                           )
                         : AppColors.adaptive(
                             context,
-                            dark: const Color(0xFF38BDF8),
-                            light: const Color(0xFF0284C7),
+                            dark: AppColors.sky,
+                            light: AppColors.skyDark,
                           ),
                   ),
                 ),

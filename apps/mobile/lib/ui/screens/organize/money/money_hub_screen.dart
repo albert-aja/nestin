@@ -120,7 +120,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
                 color: AppColors.adaptive(
                   context,
                   dark: kTwillAmber,
-                  light: const Color(0xFFB45309),
+                  light: AppColors.twillDark,
                 ),
                 size: 42,
               ),
@@ -283,7 +283,7 @@ class _MoneyHubScreenState extends State<MoneyHubScreen> {
                 color: AppColors.adaptive(
                   context,
                   dark: kTwillAmber,
-                  light: const Color(0xFFB45309),
+                  light: AppColors.twillDark,
                 ),
               ),
             ),
@@ -363,7 +363,7 @@ class _MoneyOverviewView extends StatelessWidget {
     final amberInk = AppColors.adaptive(
       context,
       dark: kTwillAmber,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return ListView(
@@ -408,8 +408,8 @@ class _MoneyOverviewView extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isDark
-                  ? const [Color(0xFF231F18), Color(0xFF1A1B20)]
-                  : const [Color(0xFFFFFBEB), Color(0xFFFFF7ED)],
+                  ? const [Color(0xFF231F18), AppColors.darkCard]
+                  : const [AppColors.twillSoft, Color(0xFFFFF7ED)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

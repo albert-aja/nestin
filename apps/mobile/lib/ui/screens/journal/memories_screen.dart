@@ -154,8 +154,8 @@ class MemoriesScreen extends StatelessWidget {
                               fontSize: 13,
                               color: AppColors.adaptive(
                                 context,
-                                dark: const Color(0xFFD1D5DB),
-                                light: const Color(0xFF4B5563),
+                                dark: AppColors.gray300,
+                                light: AppColors.slate600,
                               ),
                             ),
                           ),
@@ -182,8 +182,8 @@ class MemoriesScreen extends StatelessWidget {
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.adaptive(
                                       context,
-                                      dark: const Color(0xFFFBBF24),
-                                      light: const Color(0xFF92400E),
+                                      dark: AppColors.twillLight,
+                                      light: AppColors.echoDark,
                                     ),
                                   ),
                                 ),

@@ -25,7 +25,7 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
         final accent = AppColors.adaptive(
           ctx,
           dark: AppColors.accent,
-          light: const Color(0xFFB45309),
+          light: AppColors.twillDark,
         );
         final loveAccent = AppColors.adaptive(
           ctx,
@@ -35,7 +35,7 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
         return AlertDialog(
           backgroundColor: AppColors.adaptive(
             ctx,
-            dark: const Color(0xFF16171D),
+            dark: AppColors.darkSheet,
             light: Colors.white,
           ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -104,8 +104,8 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
                     fontSize: 13,
                     color: AppColors.adaptive(
                       ctx,
-                      dark: const Color(0xFFD1D5DB),
-                      light: const Color(0xFF374151),
+                      dark: AppColors.gray300,
+                      light: AppColors.slate700,
                     ),
                     height: 1.5,
                   ),
@@ -182,7 +182,7 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
     final accent = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
     final loveAccent = AppColors.adaptive(
       context,
@@ -198,7 +198,7 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
               ? const [
                   Color(0xFF261D15),
                   Color(0xFF1E1B18),
-                  Color(0xFF16171D),
+                  AppColors.darkSheet,
                 ]
               : const [
                   Color(0xFFFFF7ED),
@@ -267,8 +267,8 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
                       fontWeight: FontWeight.w700,
                       color: AppColors.adaptive(
                         context,
-                        dark: const Color(0xFFE5E7EB),
-                        light: const Color(0xFF92400E),
+                        dark: AppColors.gray200,
+                        light: AppColors.echoDark,
                       ),
                     ),
                   ),
@@ -390,8 +390,8 @@ class _ThrowbackSectionState extends State<ThrowbackSection> {
                         fontSize: 12,
                         color: AppColors.adaptive(
                           context,
-                          dark: const Color(0xFFD1D5DB),
-                          light: const Color(0xFF374151),
+                          dark: AppColors.gray300,
+                          light: AppColors.slate700,
                         ),
                         height: 1.4,
                       ),

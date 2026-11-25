@@ -20,7 +20,7 @@ import 'bird_house_shared.dart';
 
 /// Scout's House — Everyday Assistance, BeforeYouGo, Weather & Device Utilities (`#3B82F6`).
 class ScoutHouseScreen extends StatefulWidget {
-  static const Color scoutColor = Color(0xFF3B82F6);
+  static const Color scoutColor = AppColors.scout;
 
   const ScoutHouseScreen({super.key});
 
@@ -259,9 +259,6 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
         context,
         title: l10n.tr('house_scout_title'),
         subtitle: l10n.tr('nest_scout_subtitle'),
-        spriteAsset: 'assets/mascots/sprites/scout/briefing.png',
-        accentColor: ScoutHouseScreen.scoutColor,
-        fallbackIcon: Icons.explore_rounded,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -294,7 +291,7 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
                     ? l10n.tr('mode_active_label', {'name': activeModeName})
                     : l10n.tr('house_scout_modes_sub'),
                 icon: Icons.shield_moon_rounded,
-                accentColor: const Color(0xFF0EA5E9),
+                accentColor: AppColors.skyMid,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const PhoneModesScreen(),
@@ -336,7 +333,6 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
     AppLocalizations l10n,
     BeforeYouGoProvider? bygProvider,
   ) {
-    final isDark = AppColors.isDark(context);
     final weather = bygProvider?.currentWeather ?? _weatherInfo;
     final preset = bygProvider?.activePreset;
     final visual = weather != null
@@ -344,20 +340,12 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
         : null;
 
     return Container(
+      key: const Key('scout_house_hero_card'),
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? const [Color(0xFF172233), Color(0xFF1A1B20)]
-              : const [Color(0xFFEFF6FF), Color(0xFFF8FAFC)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: ScoutHouseScreen.scoutColor
-              .withValues(alpha: isDark ? 0.38 : 0.28),
-        ),
+      decoration: birdHouseCardDecoration(
+        context,
+        heroTintColor: ScoutHouseScreen.scoutColor,
+        radius: 22,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,19 +356,12 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      l10n.tr('house_scout_hero_title'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.adaptive(
-                          context,
-                          dark: const Color(0xFF93C5FD),
-                          light: const Color(0xFF1D4ED8),
-                        ),
-                      ),
+                    BirdStatusPill(
+                      pillKey: const Key('scout_hero_label_pill'),
+                      label: l10n.tr('house_scout_hero_title'),
+                      dotColor: visual?.color ?? ScoutHouseScreen.scoutColor,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     if (weather != null)
                       Wrap(
                         spacing: 8,
@@ -395,6 +376,9 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
                               color: AppColors.textPrimary(context),
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                           Text(
@@ -423,24 +407,22 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
-                width: 72,
-                height: 72,
-                child: Image.asset(
-                  'assets/mascots/sprites/scout/before_you_go.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => Icon(
-                    Icons.door_front_door_outlined,
-                    size: 44,
-                    color: ScoutHouseScreen.scoutColor,
-                  ),
-                ),
+              const BirdHeroSpriteHalo(
+                assetPath: 'assets/mascots/sprites/scout/before_you_go.png',
+                accentColor: ScoutHouseScreen.scoutColor,
+                fallbackIcon: Icons.door_front_door_outlined,
+                size: 80,
               ),
             ],
           ),
           if (bygProvider != null) ...[
-            const SizedBox(height: 10),
-            BeforeYouGoWeatherBanner(provider: bygProvider, compact: true),
+            const SizedBox(height: 12),
+            BeforeYouGoWeatherBanner(
+              provider: bygProvider,
+              compact: true,
+              borderless: true,
+              stripTintColor: ScoutHouseScreen.scoutColor,
+            ),
           ],
           const SizedBox(height: 12),
           Row(
@@ -455,21 +437,31 @@ class _ScoutHouseScreenState extends State<ScoutHouseScreen> {
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary(context),
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
+              const SizedBox(width: 8),
               FilledButton.icon(
+                key: const Key('scout_hero_open_checklist_btn'),
                 onPressed: () => BeforeYouGoSheet.show(context),
                 style: FilledButton.styleFrom(
                   backgroundColor: ScoutHouseScreen.scoutColor,
                   foregroundColor: Colors.white,
-                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
                 icon: const Icon(Icons.checklist_rtl_rounded, size: 16),
                 label: Text(
                   l10n.tr('house_scout_open_checklist'),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

@@ -98,11 +98,11 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                        color: AppColors.seren.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.nightlight_round,
-                          color: Color(0xFF8B5CF6), size: 24),
+                          color: AppColors.seren, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -146,7 +146,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: sleepWellness.isEnabled
-                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.5)
+                          ? AppColors.seren.withValues(alpha: 0.5)
                           : AppColors.border(context),
                     ),
                   ),
@@ -181,7 +181,6 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                           ),
                           Switch.adaptive(
                             value: sleepWellness.isEnabled,
-                            activeThumbColor: const Color(0xFF8B5CF6),
                             onChanged: (val) {
                               sleepWellness.toggleEnabled(
                                 val,
@@ -205,7 +204,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                               Row(
                                 children: [
                                   const Icon(Icons.notifications_active_rounded,
-                                      color: Color(0xFF8B5CF6), size: 16),
+                                      color: AppColors.seren, size: 16),
                                   const SizedBox(width: 8),
                                   Text(
                                     l10n.tr('alert_at', {'alertHourStr': alertHourStr, 'alertMinStr': alertMinStr}),
@@ -232,8 +231,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                     Icons.bedtime_rounded,
                                     color: AppColors.adaptive(
                                       context,
-                                      dark: const Color(0xFF10B981),
-                                      light: const Color(0xFF047857),
+                                      dark: AppColors.pippin,
+                                      light: AppColors.pippinDark,
                                     ),
                                     size: 16,
                                   ),
@@ -284,7 +283,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ),
                               ),
                               selected: sleepWellness.syncWithNextAlarm,
-                              selectedColor: const Color(0xFF8B5CF6),
+                              selectedColor: AppColors.seren,
                               backgroundColor: AppColors.trackSurface(context),
                               onSelected: (selected) {
                                 sleepWellness.updateConfig(
@@ -306,7 +305,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ),
                               ),
                               selected: !sleepWellness.syncWithNextAlarm,
-                              selectedColor: const Color(0xFF8B5CF6),
+                              selectedColor: AppColors.seren,
                               backgroundColor: AppColors.trackSurface(context),
                               onSelected: (selected) {
                                 sleepWellness.updateConfig(
@@ -350,7 +349,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                     ),
                                   ),
                                   selected: isSel,
-                                  selectedColor: const Color(0xFF8B5CF6),
+                                  selectedColor: AppColors.seren,
                                   backgroundColor: AppColors.trackSurface(context),
                                   onSelected: (_) {
                                     sleepWellness.updateConfig(
@@ -378,7 +377,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: sleepWellness.isWindDownAudioPlaying
-                          ? const Color(0xFF8B5CF6)
+                          ? AppColors.seren
                           : AppColors.border(context),
                     ),
                   ),
@@ -390,12 +389,12 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6)
+                              color: AppColors.seren
                                   .withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(Icons.headphones_rounded,
-                                color: Color(0xFF8B5CF6), size: 20),
+                                color: AppColors.seren, size: 20),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -418,7 +417,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF10B981)
+                                          color: AppColors.pippin
                                               .withValues(alpha: 0.2),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
@@ -429,8 +428,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.adaptive(
                                               context,
-                                              dark: const Color(0xFF10B981),
-                                              light: const Color(0xFF047857),
+                                              dark: AppColors.pippin,
+                                              light: AppColors.pippinDark,
                                             ),
                                           ),
                                         ),
@@ -463,13 +462,13 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                 decoration: BoxDecoration(
                                   color: sleepWellness.activeAmbientSound == AmbientSoundType.rain
-                                      ? const Color(0xFF8B5CF6)
+                                      ? AppColors.seren
                                           .withValues(alpha: 0.18)
                                       : AppColors.trackSurface(context),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: sleepWellness.activeAmbientSound == AmbientSoundType.rain
-                                        ? const Color(0xFF8B5CF6)
+                                        ? AppColors.seren
                                         : Colors.transparent,
                                   ),
                                 ),
@@ -481,8 +480,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                       size: 16,
                                       color: AppColors.adaptive(
                                         context,
-                                        dark: const Color(0xFF38BDF8),
-                                        light: const Color(0xFF0284C7),
+                                        dark: AppColors.sky,
+                                        light: AppColors.skyDark,
                                       ),
                                     ),
                                     const SizedBox(width: 6),
@@ -510,13 +509,13 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                 decoration: BoxDecoration(
                                   color: sleepWellness.activeAmbientSound == AmbientSoundType.forest
-                                      ? const Color(0xFF8B5CF6)
+                                      ? AppColors.seren
                                           .withValues(alpha: 0.18)
                                       : AppColors.trackSurface(context),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: sleepWellness.activeAmbientSound == AmbientSoundType.forest
-                                        ? const Color(0xFF8B5CF6)
+                                        ? AppColors.seren
                                         : Colors.transparent,
                                   ),
                                 ),
@@ -528,8 +527,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                       size: 16,
                                       color: AppColors.adaptive(
                                         context,
-                                        dark: const Color(0xFF34D399),
-                                        light: const Color(0xFF047857),
+                                        dark: AppColors.pippinLight,
+                                        light: AppColors.pippinDark,
                                       ),
                                     ),
                                     const SizedBox(width: 6),
@@ -560,7 +559,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                             value: sleepWellness.audioProgress,
                             minHeight: 5,
                             backgroundColor: AppColors.trackSurface(context),
-                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.seren),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -572,11 +571,11 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 data: SliderTheme.of(context).copyWith(
                                   trackHeight: 3,
                                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                  activeTrackColor: const Color(0xFF8B5CF6),
+                                  activeTrackColor: AppColors.seren,
                                   inactiveTrackColor: AppColors.trackSurface(context),
                                   thumbColor: AppColors.isDark(context)
                                       ? Colors.white
-                                      : const Color(0xFF8B5CF6),
+                                      : AppColors.seren,
                                 ),
                                 child: Slider(
                                   value: sleepWellness.ambientVolume,
@@ -615,8 +614,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: sleepWellness.isWindDownAudioPlaying
-                                ? const Color(0xFFEF4444)
-                                : const Color(0xFF8B5CF6),
+                                ? AppColors.error
+                                : AppColors.seren,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -733,12 +732,12 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: opt.isRecommended
-                            ? const Color(0xFF8B5CF6).withValues(alpha: 0.12)
+                            ? AppColors.seren.withValues(alpha: 0.12)
                             : AppColors.elevatedSurface(context),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: opt.isRecommended
-                              ? const Color(0xFF8B5CF6).withValues(alpha: 0.4)
+                              ? AppColors.seren.withValues(alpha: 0.4)
                               : AppColors.border(context),
                         ),
                       ),
@@ -749,7 +748,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ? Icons.stars_rounded
                                 : Icons.bedtime_outlined,
                             color: opt.isRecommended
-                                ? const Color(0xFF8B5CF6)
+                                ? AppColors.seren
                                 : AppColors.textSecondary(context),
                             size: 20,
                           ),
@@ -780,7 +779,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF8B5CF6)
+                                color: AppColors.seren
                                     .withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -791,8 +790,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.adaptive(
                                     context,
-                                    dark: const Color(0xFF8B5CF6),
-                                    light: const Color(0xFF6D28D9),
+                                    dark: AppColors.seren,
+                                    light: AppColors.serenDark,
                                   ),
                                 ),
                               ),
@@ -810,12 +809,12 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: opt.isRecommended
-                            ? const Color(0xFF8B5CF6).withValues(alpha: 0.12)
+                            ? AppColors.seren.withValues(alpha: 0.12)
                             : AppColors.elevatedSurface(context),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: opt.isRecommended
-                              ? const Color(0xFF8B5CF6).withValues(alpha: 0.4)
+                              ? AppColors.seren.withValues(alpha: 0.4)
                               : AppColors.border(context),
                         ),
                       ),
@@ -826,7 +825,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                 ? Icons.alarm_on_rounded
                                 : Icons.alarm_outlined,
                             color: opt.isRecommended
-                                ? const Color(0xFF8B5CF6)
+                                ? AppColors.seren
                                 : AppColors.textSecondary(context),
                             size: 20,
                           ),
@@ -857,7 +856,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF8B5CF6)
+                                color: AppColors.seren
                                     .withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -868,8 +867,8 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.adaptive(
                                     context,
-                                    dark: const Color(0xFF8B5CF6),
-                                    light: const Color(0xFF6D28D9),
+                                    dark: AppColors.seren,
+                                    light: AppColors.serenDark,
                                   ),
                                 ),
                               ),
@@ -887,18 +886,18 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                     Expanded(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF8B5CF6)),
+                          side: const BorderSide(color: AppColors.seren),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         icon: const Icon(Icons.notifications_active_rounded,
-                            color: Color(0xFF8B5CF6), size: 18),
+                            color: AppColors.seren, size: 18),
                         label: Text(
                           l10n.tr('test_wind_down_nudge'),
                           style: const TextStyle(
-                              color: Color(0xFF8B5CF6), fontSize: 13),
+                              color: AppColors.seren, fontSize: 13),
                         ),
                         onPressed: () async {
                           await sleepWellness.testSendAlertNow(
@@ -920,7 +919,7 @@ class _SleepCycleSheetState extends State<SleepCycleSheet> {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B5CF6),
+                          backgroundColor: AppColors.seren,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

@@ -82,6 +82,8 @@ enum DailyWallpaperSource {
 /// Persisted configuration for Nestin's opt-in Daily Affirmation Lock-Screen Wallpaper.
 @immutable
 class DailyWallpaperConfig {
+  static const String personalPhotoWallpaperId = 'personal_photo';
+
   final bool enabled;
   final DailyWallpaperTemplate template;
   final DailyWallpaperTarget target;
@@ -90,6 +92,14 @@ class DailyWallpaperConfig {
   final int refreshMinute;
   final bool showMascotSprite;
   final String? lastAppliedDate;
+
+  /// Optional Nestin wallpaper backdrop ID applied behind the lock-screen
+  /// affirmation:
+  /// - `null`: Template default backdrop
+  /// - `'theme:<SeasonalSplashTheme.name>'`: Built-in Everyday or Seasonal art
+  /// - `'pack:<slug>'`: Downloadable Everyday or Seasonal wallpaper pack
+  /// - `'personal_photo'`: User's imported Personal Photo wallpaper
+  final String? customWallpaperId;
 
   const DailyWallpaperConfig({
     this.enabled = false,
@@ -100,7 +110,11 @@ class DailyWallpaperConfig {
     this.refreshMinute = 0,
     this.showMascotSprite = true,
     this.lastAppliedDate,
+    this.customWallpaperId,
   });
+
+  bool get hasCustomWallpaper =>
+      customWallpaperId != null && customWallpaperId!.trim().isNotEmpty;
 
   String get formattedRefreshTime {
     final h = refreshHour.clamp(0, 23).toString().padLeft(2, '0');
@@ -118,6 +132,8 @@ class DailyWallpaperConfig {
     bool? showMascotSprite,
     String? lastAppliedDate,
     bool clearLastAppliedDate = false,
+    String? customWallpaperId,
+    bool clearCustomWallpaperId = false,
   }) {
     return DailyWallpaperConfig(
       enabled: enabled ?? this.enabled,
@@ -130,6 +146,9 @@ class DailyWallpaperConfig {
       lastAppliedDate: clearLastAppliedDate
           ? null
           : (lastAppliedDate ?? this.lastAppliedDate),
+      customWallpaperId: clearCustomWallpaperId
+          ? null
+          : (customWallpaperId ?? this.customWallpaperId),
     );
   }
 
@@ -142,9 +161,11 @@ class DailyWallpaperConfig {
         'refreshMinute': refreshMinute,
         'showMascotSprite': showMascotSprite,
         'lastAppliedDate': lastAppliedDate,
+        'customWallpaperId': customWallpaperId,
       };
 
   factory DailyWallpaperConfig.fromJson(Map<String, dynamic> json) {
+    final rawCustomWp = (json['customWallpaperId'] as String?)?.trim();
     return DailyWallpaperConfig(
       enabled: json['enabled'] as bool? ?? false,
       template: DailyWallpaperTemplate.fromJsonKey(json['template'] as String?),
@@ -156,6 +177,8 @@ class DailyWallpaperConfig {
           ((json['refreshMinute'] as num?)?.toInt() ?? 0).clamp(0, 59),
       showMascotSprite: json['showMascotSprite'] as bool? ?? true,
       lastAppliedDate: json['lastAppliedDate'] as String?,
+      customWallpaperId:
+          (rawCustomWp == null || rawCustomWp.isEmpty) ? null : rawCustomWp,
     );
   }
 
@@ -170,7 +193,8 @@ class DailyWallpaperConfig {
         other.refreshHour == refreshHour &&
         other.refreshMinute == refreshMinute &&
         other.showMascotSprite == showMascotSprite &&
-        other.lastAppliedDate == lastAppliedDate;
+        other.lastAppliedDate == lastAppliedDate &&
+        other.customWallpaperId == customWallpaperId;
   }
 
   @override
@@ -183,5 +207,6 @@ class DailyWallpaperConfig {
         refreshMinute,
         showMascotSprite,
         lastAppliedDate,
+        customWallpaperId,
       );
 }

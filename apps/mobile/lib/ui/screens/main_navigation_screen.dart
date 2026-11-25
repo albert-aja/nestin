@@ -45,6 +45,9 @@ import 'nest/roo_house_screen.dart';
 import 'nest/scout_house_screen.dart';
 import 'nest/seren_house_screen.dart';
 import 'nest/twill_house_screen.dart';
+import 'organize/collections_list_screen.dart';
+import 'organize/money/money_hub_screen.dart';
+import 'organize/wishlist_screen.dart';
 import 'reminders/reminders_list_screen.dart';
 import 'scout/phone_modes_screen.dart';
 import 'search/universal_search_screen.dart';
@@ -288,10 +291,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         return;
       case 2:
         _selectDockTab(1);
+        if (subTab == 3) {
+          MoneyHubScreen.push(context);
+          return;
+        }
+        final target = switch (subTab) {
+          1 => BirdToolPageScaffold(
+              title: l10n.tr('house_twill_lists_title'),
+              child: const CollectionsListScreen(),
+            ),
+          2 => BirdToolPageScaffold(
+              title: l10n.tr('tab_wishlist'),
+              child: const WishlistScreen(),
+            ),
+          _ => const TwillHouseScreen(),
+        };
         Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => TwillHouseScreen(initialTabIndex: subTab ?? 0),
-          ),
+          MaterialPageRoute<void>(builder: (_) => target),
         );
         return;
       case 3:
@@ -397,11 +413,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       );
     } else if (uri.host == 'money') {
       _selectDockTab(1);
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const TwillHouseScreen(initialTabIndex: 3),
-        ),
-      );
+      MoneyHubScreen.push(context);
     } else if (uri.host == 'quick_capture') {
       final type = uri.queryParameters['type'];
       CaptureType? captureType;

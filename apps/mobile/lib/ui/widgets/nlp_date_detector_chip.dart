@@ -21,7 +21,7 @@ class NlpDateDetectorChip extends StatelessWidget {
     final accent = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(

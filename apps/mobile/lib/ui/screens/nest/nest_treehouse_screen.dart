@@ -803,26 +803,26 @@ class _NestTreehouseScreenState extends State<NestTreehouseScreen>
       TreehouseDayPhase.dawn => (
           isDark
               ? const [Color(0xFF28202B), Color(0xFF1A1B24)]
-              : const [Color(0xFFFFEFE6), Color(0xFFF3ECF8)],
-          isDark ? const Color(0xFFFDBA74) : const Color(0xFFD97706),
+              : const [AppColors.peachSoft, Color(0xFFF3ECF8)],
+          isDark ? const Color(0xFFFDBA74) : AppColors.echo,
         ),
       TreehouseDayPhase.day => (
           isDark
               ? const [Color(0xFF1A2431), Color(0xFF171A23)]
               : const [Color(0xFFE7F4FD), Color(0xFFF4F8FC)],
-          isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+          isDark ? AppColors.scoutLight : const Color(0xFF2563EB),
         ),
       TreehouseDayPhase.sunset => (
           isDark
               ? const [Color(0xFF2B201E), Color(0xFF1D1A26)]
               : const [Color(0xFFFFF0E2), Color(0xFFFCE8EC)],
-          isDark ? const Color(0xFFFB923C) : const Color(0xFFEA580C),
+          isDark ? AppColors.orangeLight : AppColors.orangeDark,
         ),
       TreehouseDayPhase.night => (
           isDark
               ? const [Color(0xFF1A1E2E), Color(0xFF141620)]
               : const [Color(0xFFEAEEF8), Color(0xFFF2EFFA)],
-          isDark ? const Color(0xFFA78BFA) : const Color(0xFF6D28D9),
+          isDark ? AppColors.serenLight : AppColors.serenDark,
         ),
     };
 

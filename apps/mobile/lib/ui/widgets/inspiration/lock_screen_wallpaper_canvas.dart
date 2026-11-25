@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
@@ -8,6 +9,67 @@ import '../../../data/models/daily_wallpaper_config.dart';
 import '../../screens/splash/seasonal_loading_theme.dart';
 import '../../screens/splash/seasonal_wallpaper_painter.dart';
 import 'mascot_helper.dart';
+
+/// Resolved image source for a custom Lock-Screen Daily Affirmation backdrop.
+class DailyWallpaperBackdrop {
+  final String? assetPath;
+  final String? filePath;
+
+  const DailyWallpaperBackdrop({
+    this.assetPath,
+    this.filePath,
+  });
+
+  bool get hasBackdrop =>
+      (filePath != null && filePath!.trim().isNotEmpty) ||
+      (assetPath != null && assetPath!.trim().isNotEmpty);
+
+  /// Resolves a [DailyWallpaperConfig.customWallpaperId] (`theme:<name>`,
+  /// `pack:<slug>`, or `personal_photo`) to a concrete local file or asset.
+  static DailyWallpaperBackdrop resolve({
+    required String? customWallpaperId,
+    String? customPhotoPath,
+    Map<String, String>? installedPackPaths,
+  }) {
+    final id = customWallpaperId?.trim();
+    if (id == null || id.isEmpty) {
+      return const DailyWallpaperBackdrop();
+    }
+    if (id == DailyWallpaperConfig.personalPhotoWallpaperId) {
+      final path = customPhotoPath?.trim();
+      if (path != null && path.isNotEmpty) {
+        return DailyWallpaperBackdrop(filePath: path);
+      }
+      return const DailyWallpaperBackdrop();
+    }
+    if (id.startsWith('theme:')) {
+      final themeName = id.substring('theme:'.length);
+      final theme = SeasonalSplashThemeExt.fromNameOrNull(themeName);
+      if (theme != null) {
+        final spec = SeasonalSplashResolver.specFor(theme);
+        return DailyWallpaperBackdrop(assetPath: spec.wallpaperAsset);
+      }
+      return const DailyWallpaperBackdrop();
+    }
+    if (id.startsWith('pack:')) {
+      final slug = id.substring('pack:'.length);
+      final pack = RemoteHolidayWallpaperCatalog.bySlug(slug);
+      final cachedPath = installedPackPaths?[slug]?.trim();
+      if (pack != null) {
+        return DailyWallpaperBackdrop(
+          assetPath: pack.bundledPreviewAsset,
+          filePath: (cachedPath != null && cachedPath.isNotEmpty)
+              ? cachedPath
+              : null,
+        );
+      }
+      if (cachedPath != null && cachedPath.isNotEmpty) {
+        return DailyWallpaperBackdrop(filePath: cachedPath);
+      }
+    }
+    return const DailyWallpaperBackdrop();
+  }
+}
 
 /// Strict 9:16 lock-screen wallpaper canvas used for both live preview inside
 /// `DailyWallpaperSheet` and off-screen 7-day rolling PNG pre-rendering.
@@ -35,6 +97,8 @@ class LockScreenWallpaperCanvas extends StatelessWidget {
   final DateTime? referenceDate;
   final String? badgeLabelOverride;
   final AppLocalizations? l10nOverride;
+  final String? customWallpaperAsset;
+  final String? customWallpaperFilePath;
 
   const LockScreenWallpaperCanvas({
     super.key,
@@ -47,7 +111,15 @@ class LockScreenWallpaperCanvas extends StatelessWidget {
     this.referenceDate,
     this.badgeLabelOverride,
     this.l10nOverride,
+    this.customWallpaperAsset,
+    this.customWallpaperFilePath,
   });
+
+  bool get _hasCustomWallpaper =>
+      (customWallpaperFilePath != null &&
+          customWallpaperFilePath!.trim().isNotEmpty) ||
+      (customWallpaperAsset != null &&
+          customWallpaperAsset!.trim().isNotEmpty);
 
   /// Computes a calm, balanced base font size from ~26sp down to ~19sp so longer
   /// English or Bahasa Indonesia affirmations fit comfortably inside the 38%
@@ -90,14 +162,18 @@ class LockScreenWallpaperCanvas extends StatelessWidget {
     final date = referenceDate ?? DateTime.now();
     final seasonalSpec = SeasonalSplashResolver.resolve(now: date);
 
-    final Color textColor = switch (template) {
-      DailyWallpaperTemplate.sanctuaryMinimal =>
-        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-      DailyWallpaperTemplate.seasonalAtmosphere =>
-        isDark ? const Color(0xFFF8FAFC) : const Color(0xFF181A20),
-      DailyWallpaperTemplate.treehouseGlassCard =>
-        isDark ? const Color(0xFFF8FAFC) : const Color(0xFF181A20),
-    };
+    final bool useCustomPhotoBackdrop = _hasCustomWallpaper;
+    final Color textColor = useCustomPhotoBackdrop &&
+            template != DailyWallpaperTemplate.treehouseGlassCard
+        ? Colors.white
+        : switch (template) {
+            DailyWallpaperTemplate.sanctuaryMinimal =>
+              isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+            DailyWallpaperTemplate.seasonalAtmosphere =>
+              isDark ? AppColors.slate50 : AppColors.lightTextPrimary,
+            DailyWallpaperTemplate.treehouseGlassCard =>
+              isDark ? AppColors.slate50 : AppColors.lightTextPrimary,
+          };
 
     final Color secondaryTextColor = textColor.withValues(alpha: 0.72);
     final trackedLabel = _resolveTrackedLabel(l10n, mascot);
@@ -140,7 +216,7 @@ class LockScreenWallpaperCanvas extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          (isDark ? Colors.black : const Color(0xFF0F172A))
+                          (isDark ? Colors.black : AppColors.slate900)
                               .withValues(
                             alpha: template ==
                                     DailyWallpaperTemplate.sanctuaryMinimal
@@ -206,12 +282,94 @@ class LockScreenWallpaperCanvas extends StatelessWidget {
     );
   }
 
+  Widget _buildCustomPhotoLayer({required double blurSigma}) {
+    final filePath = customWallpaperFilePath?.trim();
+    final assetPath = customWallpaperAsset?.trim();
+
+    Widget buildFallbackGradient() => DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? const [Color(0xFF141824), Color(0xFF22283A)]
+                  : const [Color(0xFFE7EEF6), Color(0xFFF6EFE6)],
+            ),
+          ),
+        );
+
+    Widget buildAssetImage() {
+      if (assetPath != null && assetPath.isNotEmpty) {
+        return Image.asset(
+          assetPath,
+          key: const ValueKey('lock_screen_custom_asset_image'),
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => buildFallbackGradient(),
+        );
+      }
+      return buildFallbackGradient();
+    }
+
+    Widget imageWidget;
+    if (filePath != null && filePath.isNotEmpty && File(filePath).existsSync()) {
+      imageWidget = Image.file(
+        File(filePath),
+        key: const ValueKey('lock_screen_custom_file_image'),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => buildAssetImage(),
+      );
+    } else {
+      imageWidget = buildAssetImage();
+    }
+
+    if (blurSigma > 0) {
+      return ImageFiltered(
+        imageFilter: ui.ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+        child: Transform.scale(scale: 1.06, child: imageWidget),
+      );
+    }
+    return imageWidget;
+  }
+
   Widget _buildBackground({
     required double width,
     required double height,
     required Color accentColor,
     required SeasonalLoadingSpec seasonalSpec,
   }) {
+    if (_hasCustomWallpaper) {
+      final isGlass = template == DailyWallpaperTemplate.treehouseGlassCard;
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: isDark ? AppColors.darkBg : AppColors.lightBg),
+          _buildCustomPhotoLayer(blurSigma: isGlass ? 8.0 : 0.0),
+          if (isGlass)
+            ColoredBox(
+              color: (isDark ? Colors.black : Colors.white)
+                  .withValues(alpha: isDark ? 0.24 : 0.14),
+            )
+          else
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.0, 0.28, 0.50, 0.72, 1.0],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.34),
+                    Colors.black.withValues(alpha: 0.22),
+                    Colors.black.withValues(alpha: 0.54),
+                    Colors.black.withValues(alpha: 0.28),
+                    Colors.black.withValues(alpha: 0.38),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
     switch (template) {
       case DailyWallpaperTemplate.sanctuaryMinimal:
         final baseBg = isDark ? AppColors.darkBg : AppColors.lightBg;

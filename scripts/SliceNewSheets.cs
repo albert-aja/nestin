@@ -1041,6 +1041,48 @@ public class SliceNewSheets
                 SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_mental_wellness_3.jpg",
                 OutputDir = @"apps\mobile\assets\mascots\sprites\_mixed",
                 PoseNames = new[] { "flock_healthy_living_compass", "echo_seren_encrypted_vault_key", "seren_launcher_moment_badge", "seren_mindful_doorway_hourglass", "seren_strict_sanctuary_gate", "duo_seren_scout_shield_ready" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "roo_treehouse",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\roo_treehouse_room.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\roo",
+                PoseNames = new[] { "walk_1", "walk_2", "blink", "sleep", "activity", "greet" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "scout_treehouse",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\scout_treehouse_room.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\scout",
+                PoseNames = new[] { "walk_1", "walk_2", "blink", "sleep", "activity", "greet" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "seren_treehouse",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\seren_treehouse_room.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\seren",
+                PoseNames = new[] { "walk_1", "walk_2", "blink", "sleep", "activity", "greet" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "pippin_treehouse",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\pippin_treehouse_room.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\pippin",
+                PoseNames = new[] { "walk_1", "walk_2", "blink", "sleep", "activity", "greet" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "twill_treehouse",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\twill_treehouse_room.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\twill",
+                PoseNames = new[] { "walk_1", "walk_2", "blink", "sleep", "activity", "greet" }
+            },
+            new SheetConfig
+            {
+                SheetKey = "echo_treehouse",
+                SourcePath = @"apps\mobile\source_art\mascots\sheets\echo_treehouse_room.jpg",
+                OutputDir = @"apps\mobile\assets\mascots\sprites\echo",
+                PoseNames = new[] { "walk_1", "walk_2", "blink", "sleep", "activity", "greet" }
             }
         };
 

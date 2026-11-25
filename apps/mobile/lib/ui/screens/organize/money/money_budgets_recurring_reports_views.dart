@@ -28,7 +28,7 @@ class MoneyBudgetsView extends StatelessWidget {
     final amberInk = AppColors.adaptive(
       context,
       dark: kTwillAmber,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return ListView(
@@ -298,7 +298,7 @@ class MoneyRecurringView extends StatelessWidget {
     final amberInk = AppColors.adaptive(
       context,
       dark: kTwillAmber,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return ListView(
@@ -427,7 +427,6 @@ class MoneyRecurringView extends StatelessWidget {
                         ),
                         Switch(
                           value: r.isActive,
-                          activeThumbColor: kTwillAmber,
                           onChanged: (v) =>
                               provider.setRecurringActive(r.id, v),
                         ),
@@ -786,7 +785,7 @@ class _MoneyReportsViewState extends State<MoneyReportsView> {
                       color: AppColors.adaptive(
                         context,
                         dark: kTwillAmber,
-                        light: const Color(0xFFB45309),
+                        light: AppColors.twillDark,
                       ),
                     ),
                   ),

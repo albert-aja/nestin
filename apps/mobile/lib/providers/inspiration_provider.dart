@@ -8,6 +8,7 @@ import '../data/services/inspiration_service.dart';
 import '../data/services/notification_service.dart';
 import '../data/services/quote_card_export_service.dart';
 import '../data/services/storage_service.dart';
+import '../ui/widgets/inspiration/lock_screen_wallpaper_canvas.dart';
 
 class InspirationProvider extends ChangeNotifier {
   final InspirationService _service;
@@ -508,6 +509,12 @@ class InspirationProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final locale = l10n.isIndonesian ? 'id' : 'en';
+      final userPrefs = _storage?.loadPreferences();
+      final backdrop = DailyWallpaperBackdrop.resolve(
+        customWallpaperId: config.customWallpaperId,
+        customPhotoPath: userPrefs?.customSplashPhotoPath,
+        installedPackPaths: userPrefs?.installedRemoteSplashPackPaths,
+      );
       await _dailyWallpaperService.preRenderRollingCache(
         config: config,
         quoteForDate: (date, offset) => selectQuoteForDailyWallpaper(
@@ -518,6 +525,8 @@ class InspirationProvider extends ChangeNotifier {
         ),
         isDark: isDark,
         l10n: l10n,
+        customWallpaperAsset: backdrop.assetPath,
+        customWallpaperFilePath: backdrop.filePath,
       );
       await _dailyWallpaperService.scheduleDailyWallpaper(config);
     } catch (_) {

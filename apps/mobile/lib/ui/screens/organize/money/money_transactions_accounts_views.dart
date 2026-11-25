@@ -675,7 +675,7 @@ class _MoneyAccountsViewState extends State<MoneyAccountsView> {
                     color: AppColors.adaptive(
                       context,
                       dark: kTwillAmber,
-                      light: const Color(0xFFB45309),
+                      light: AppColors.twillDark,
                     ),
                   ),
                   const SizedBox(height: 10),

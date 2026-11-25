@@ -35,8 +35,8 @@ class ReadingTrackerSheet extends StatefulWidget {
 
 class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
     with SingleTickerProviderStateMixin {
-  static const Color _pippinEmerald = Color(0xFF10B981);
-  static const Color _pippinGold = Color(0xFFF59E0B);
+  static const Color _pippinEmerald = AppColors.pippin;
+  static const Color _pippinGold = AppColors.twill;
 
   late TabController _tabController;
   bool _showSparklineDrawer = false;
@@ -126,7 +126,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
             final emeraldText = AppColors.adaptive(
               ctx,
               dark: _pippinEmerald,
-              light: const Color(0xFF047857),
+              light: AppColors.pippinDark,
             );
 
             return AlertDialog(
@@ -525,12 +525,12 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
     final emeraldText = AppColors.adaptive(
       context,
       dark: _pippinEmerald,
-      light: const Color(0xFF047857),
+      light: AppColors.pippinDark,
     );
     final goldText = AppColors.adaptive(
       context,
       dark: _pippinGold,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -883,7 +883,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
     final goldText = AppColors.adaptive(
       context,
       dark: _pippinGold,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -1060,7 +1060,7 @@ class _ReadingTrackerSheetState extends State<ReadingTrackerSheet>
                       child: Text(
                           mL10n.tr('delete_book'),
                           style: const TextStyle(
-                              color: Color(0xFFEF4444), fontSize: 13)),
+                              color: AppColors.error, fontSize: 13)),
                     ),
                   ];
                 },

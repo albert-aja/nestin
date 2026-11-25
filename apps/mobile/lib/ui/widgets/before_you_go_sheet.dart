@@ -10,8 +10,8 @@ import '../../providers/before_you_go_provider.dart';
 import '../../providers/calendar_provider.dart';
 import 'before_you_go_weather_banner.dart';
 
-const Color kScoutBlue = Color(0xFF3B82F6);
-const Color kScoutAmber = Color(0xFFF59E0B);
+const Color kScoutBlue = AppColors.scout;
+const Color kScoutAmber = AppColors.twill;
 
 class BeforeYouGoSheet extends StatefulWidget {
   final String? initialPresetId;
@@ -823,7 +823,6 @@ class _BeforeYouGoSheetState extends State<BeforeYouGoSheet> {
                         ),
                         Switch(
                           value: ev.isEnabled,
-                          activeThumbColor: kScoutBlue,
                           onChanged: (_) =>
                               provider.toggleDepartureEventEnabled(ev.id),
                         ),

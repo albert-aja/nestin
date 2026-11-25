@@ -1,19 +1,20 @@
 import 'package:material_ui/material_ui.dart';
 import '../../core/l10n/app_localizations.dart';
-
+
+import '../../core/theme/app_colors.dart';
 enum MoneyAccountType {
-  cash('money_acct_cash', Icons.payments_rounded, Color(0xFF10B981)),
+  cash('money_acct_cash', Icons.payments_rounded, AppColors.pippin),
   bankAccount(
     'money_acct_bank',
     Icons.account_balance_rounded,
-    Color(0xFF3B82F6),
+    AppColors.scout,
   ),
   eWallet(
     'money_acct_ewallet',
     Icons.account_balance_wallet_rounded,
-    Color(0xFFF59E0B),
+    AppColors.twill,
   ),
-  other('money_acct_other', Icons.savings_rounded, Color(0xFF8B5CF6));
+  other('money_acct_other', Icons.savings_rounded, AppColors.seren);
 
   final String translationKey;
   final IconData defaultIcon;

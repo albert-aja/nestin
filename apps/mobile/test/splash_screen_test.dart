@@ -740,7 +740,20 @@ void main() {
       final fetchedPacks = await settings.refreshRemoteSplashCatalog(
         gateway: fakeGateway,
       );
-      expect(fetchedPacks.length, 4);
+      expect(fetchedPacks.length, 21);
+      expect(RemoteHolidayWallpaperCatalog.everydayPacks.length, 17);
+      expect(RemoteHolidayWallpaperCatalog.seasonalPacks.length, 4);
+
+      // Verify every downloadable pack asset exists on disk and pubspec registers everyday directory
+      final pubspecText = File('pubspec.yaml').readAsStringSync();
+      expect(pubspecText, contains('assets/mascots/wallpapers/everyday/'));
+      for (final pack in fetchedPacks) {
+        expect(
+          File(pack.bundledPreviewAsset).existsSync(),
+          isTrue,
+          reason: 'Missing preview asset for ${pack.slug}: ${pack.bundledPreviewAsset}',
+        );
+      }
       final winterPack = fetchedPacks.firstWhere(
         (p) => p.slug == 'winter-snow-cabin',
       );
@@ -836,7 +849,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
     });
 
-    testWidgets('SettingsScreen downloads, activates, and removes Remote Holiday Wallpaper Pack in EN and ID', (tester) async {
+    testWidgets('SettingsScreen navigates to dedicated WallpaperStudioScreen to preview, download, activate, and remove Everyday & Seasonal packs in EN and ID', (tester) async {
       SharedPreferences.setMockInitialValues({});
       await AppLocalizations.ensureDateFormatting();
       final storage = await StorageService.init();
@@ -872,64 +885,96 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final customPhotoCard = find.byKey(
-        const Key('settings_splash_personal_photo_card'),
+      // SettingsScreen stays clean with a single entry tile for Wallpapers
+      final wallpaperEntryTile = find.byKey(
+        const Key('settings_seasonal_splash_tile'),
       );
       await tester.scrollUntilVisible(
-        customPhotoCard,
+        wallpaperEntryTile,
         250,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      expect(find.text('Wallpapers & Loading Theme'), findsOneWidget);
 
+      // Navigate into dedicated WallpaperStudioScreen
+      await tester.tap(wallpaperEntryTile);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('wallpaper_studio_screen')), findsOneWidget);
       expect(find.text('Personal Photo Wallpaper'), findsOneWidget);
-      expect(find.text('Holiday & Seasonal Wallpaper Packs'), findsOneWidget);
 
-      final downloadBtn = find.byKey(
-        const Key('settings_splash_pack_download_cherry-blossom-picnic'),
+      // Filter to Everyday (Non-Seasonal) packs & verify Botanical Greenhouse is downloadable
+      await tester.tap(find.byKey(const Key('wp_studio_filter_everyday')));
+      await tester.pumpAndSettle();
+
+      final everydayPreviewBtn = find.byKey(
+        const Key('wp_studio_pack_preview_botanical-greenhouse'),
       );
       await tester.scrollUntilVisible(
-        downloadBtn,
+        everydayPreviewBtn,
         200,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
+      // Open live full-screen preview BEFORE downloading and switch Loading <-> Lock Screen tabs
+      await tester.tap(everydayPreviewBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(
+        find.byKey(const Key('wallpaper_live_preview_screen')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('wp_preview_download_use_btn')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('wp_preview_tab_lockscreen')));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('lock_screen_sanctuary_band')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('wp_preview_close_btn')));
+      await tester.pumpAndSettle();
+
+      // Download & activate Everyday non-seasonal pack
       await tester.runAsync(() async {
         await settings.installRemoteSplashPack(
-          'cherry-blossom-picnic',
+          'botanical-greenhouse',
           activateOnInstall: true,
         );
       });
       await tester.pumpAndSettle();
 
       expect(
-        settings.isRemoteSplashPackInstalled('cherry-blossom-picnic'),
+        settings.isRemoteSplashPackInstalled('botanical-greenhouse'),
         isTrue,
       );
-      expect(settings.activeRemoteSplashPackSlug, 'cherry-blossom-picnic');
+      expect(settings.activeRemoteSplashPackSlug, 'botanical-greenhouse');
       expect(
         find.byKey(
-          const Key('settings_splash_pack_remove_cherry-blossom-picnic'),
+          const Key('settings_splash_pack_remove_botanical-greenhouse'),
         ),
         findsOneWidget,
       );
 
-      // Switch to Bahasa Indonesia and verify localized pack labels
+      // Switch to Bahasa Indonesia and verify localized labels
       await settings.setLanguage(AppLanguage.id);
       await tester.pumpAndSettle();
 
-      expect(find.text('Wallpaper Foto Pribadi'), findsOneWidget);
-      expect(find.text('Paket Wallpaper Liburan & Musiman'), findsOneWidget);
-      expect(find.text('Piknik Padang Sakura'), findsWidgets);
+      expect(find.text('Wallpaper & Tema Pembuka'), findsOneWidget);
+      expect(find.text('Rumah Kaca Botani Cerah'), findsWidgets);
 
       await tester.runAsync(() async {
-        await settings.removeRemoteSplashPack('cherry-blossom-picnic');
+        await settings.removeRemoteSplashPack('botanical-greenhouse');
       });
       await tester.pumpAndSettle();
 
       expect(
-        settings.isRemoteSplashPackInstalled('cherry-blossom-picnic'),
+        settings.isRemoteSplashPackInstalled('botanical-greenhouse'),
         isFalse,
       );
       expect(settings.activeRemoteSplashPackSlug, isNull);

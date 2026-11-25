@@ -210,6 +210,7 @@ class NotificationService {
       title: title,
       body: body,
       notificationDetails: details,
+      payload: 'alarm_$id',
     );
   }
 
@@ -252,6 +253,7 @@ class NotificationService {
         body: body,
         scheduledDate: tzTime,
         notificationDetails: details,
+        payload: 'alarm_$id',
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     } catch (_) {

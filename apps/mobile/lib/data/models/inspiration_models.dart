@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/theme/app_colors.dart';
 enum InspirationSubmissionStatus {
   draft,
   pending,
@@ -495,8 +496,8 @@ class QuoteCardDesignConfig {
     required this.templateId,
     this.aspectRatio = QuoteCardAspectRatio.portrait4x5,
     this.useGradient = true,
-    this.gradientColors = const [Color(0xFF1F1627), Color(0xFF3A1D2E), Color(0xFFE04A3A)],
-    this.solidColor = const Color(0xFF1A1B20),
+    this.gradientColors = const [Color(0xFF1F1627), Color(0xFF3A1D2E), AppColors.roo],
+    this.solidColor = AppColors.darkCard,
     this.textColor = Colors.white,
     this.fontFamily = 'serif',
     this.textAlign = TextAlign.center,
@@ -635,7 +636,7 @@ class InspirationNotificationPreferences {
   }
 }
 
-Color _parseHexColor(String hex, {Color fallback = const Color(0xFF1F2937)}) {
+Color _parseHexColor(String hex, {Color fallback = AppColors.gray800}) {
   final clean = hex.trim().replaceFirst('#', '');
   if (clean.length == 6) {
     final value = int.tryParse('FF$clean', radix: 16);

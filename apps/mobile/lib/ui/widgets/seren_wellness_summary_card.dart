@@ -17,10 +17,10 @@ class SerenWellnessSummaryCard extends StatelessWidget {
     this.isCompact = false,
   });
 
-  static const Color _serenPurple = Color(0xFF8B5CF6);
-  static const Color _serenLight = Color(0xFFA78BFA);
-  static const Color _emerald = Color(0xFF10B981);
-  static const Color _skyBlue = Color(0xFF38BDF8);
+  static const Color _serenPurple = AppColors.seren;
+  static const Color _serenLight = AppColors.serenLight;
+  static const Color _emerald = AppColors.pippin;
+  static const Color _skyBlue = AppColors.sky;
 
   double _readHydrationFraction(BuildContext context) {
     try {
@@ -124,7 +124,7 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                               ? AppColors.adaptive(
                                   context,
                                   dark: _emerald,
-                                  light: const Color(0xFF047857),
+                                  light: AppColors.pippinDark,
                                 )
                               : AppColors.adaptive(
                                   context,
@@ -171,8 +171,8 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                       icon: Icons.bedtime_rounded,
                       accent: AppColors.adaptive(
                         context,
-                        dark: const Color(0xFF818CF8),
-                        light: const Color(0xFF4F46E5),
+                        dark: AppColors.indigoLight,
+                        light: AppColors.indigoDark,
                       ),
                       label: 'Last Sleep',
                       value: latestSleep?.formattedDuration ?? 'Log Sleep',
@@ -196,7 +196,7 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                       accent: AppColors.adaptive(
                         context,
                         dark: _skyBlue,
-                        light: const Color(0xFF0284C7),
+                        light: AppColors.skyDark,
                       ),
                       label: 'Vitals & Calm',
                       value: hrDisplay,
@@ -264,8 +264,8 @@ class SerenWellnessSummaryCard extends StatelessWidget {
                           size: 14,
                           color: AppColors.adaptive(
                             context,
-                            dark: const Color(0xFF818CF8),
-                            light: const Color(0xFF4F46E5),
+                            dark: AppColors.indigoLight,
+                            light: AppColors.indigoDark,
                           )),
                       label: const Text(
                         'Log Sleep',

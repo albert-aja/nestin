@@ -54,7 +54,7 @@ class MindfulAppPauseDialog extends StatefulWidget {
 }
 
 class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
-  static const Color _serenPurple = Color(0xFF8B5CF6);
+  static const Color _serenPurple = AppColors.seren;
   late int _secondsLeft;
   Timer? _countdownTimer;
 
@@ -181,7 +181,7 @@ class _MindfulAppPauseDialogState extends State<MindfulAppPauseDialog> {
                       fontWeight: FontWeight.w700,
                       color: AppColors.adaptive(
                         context,
-                        dark: const Color(0xFFA78BFA),
+                        dark: AppColors.serenLight,
                         light: _serenPurple,
                       ),
                     ),

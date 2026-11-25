@@ -9,7 +9,6 @@ import '../../../providers/reminder_provider.dart';
 import '../../../providers/routine_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../providers/task_provider.dart';
-import '../../widgets/category_badge.dart';
 import '../alarms/alarm_edit_screen.dart';
 import '../alarms/alarms_list_screen.dart';
 import '../discipline/digital_discipline_screen.dart';
@@ -52,9 +51,6 @@ class RooHouseScreen extends StatelessWidget {
         context,
         title: l10n.tr('house_roo_title'),
         subtitle: l10n.tr('nest_roo_subtitle'),
-        spriteAsset: 'assets/mascots/sprites/roo/welcome.png',
-        accentColor: rooColor,
-        fallbackIcon: Icons.alarm_on_rounded,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -67,7 +63,7 @@ class RooHouseScreen extends StatelessWidget {
             use24Hour: settingsProvider?.use24Hour ?? true,
             alarmProvider: alarmProvider,
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           BirdSectionLabel(
             text: l10n.tr('house_tools_section'),
             accentColor: rooColor,
@@ -97,7 +93,7 @@ class RooHouseScreen extends StatelessWidget {
                   {'tasks': todayTasksCount, 'routines': routinesCount},
                 ),
                 icon: Icons.checklist_rounded,
-                accentColor: const Color(0xFFEA580C),
+                accentColor: AppColors.orangeDark,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => BirdTwoTabPageScaffold(
@@ -151,7 +147,7 @@ class RooHouseScreen extends StatelessWidget {
                 title: l10n.tr('house_roo_timers_title'),
                 subtitle: l10n.tr('house_roo_timers_sub'),
                 icon: Icons.timer_outlined,
-                accentColor: const Color(0xFFF97316),
+                accentColor: AppColors.orange,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const TimersScreen(),
@@ -186,26 +182,14 @@ class RooHouseScreen extends StatelessWidget {
     required AlarmProvider? alarmProvider,
   }) {
     final isDark = AppColors.isDark(context);
-    final accentInk = AppColors.adaptive(
-      context,
-      dark: AppColors.rooCrimsonLight,
-      light: AppColors.rooCrimsonDark,
-    );
 
     return Container(
+      key: const Key('roo_house_hero_card'),
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? const [Color(0xFF281C1F), Color(0xFF1A1B20)]
-              : const [Color(0xFFFFF5F4), Color(0xFFFFF9F2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: rooColor.withValues(alpha: isDark ? 0.38 : 0.28),
-        ),
+      decoration: birdHouseCardDecoration(
+        context,
+        heroTintColor: rooColor,
+        radius: 22,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -216,32 +200,23 @@ class RooHouseScreen extends StatelessWidget {
               children: [
                 Wrap(
                   spacing: 6,
-                  runSpacing: 4,
+                  runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: rooColor.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        l10n.tr('house_roo_hero_label'),
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          color: accentInk,
-                        ),
-                      ),
+                    BirdStatusPill(
+                      pillKey: const Key('roo_hero_next_alarm_pill'),
+                      label: l10n.tr('house_roo_hero_label'),
+                      dotColor: rooColor,
                     ),
                     if (alarm != null)
-                      CategoryBadge(category: alarm.category, compact: true),
+                      BirdStatusPill(
+                        pillKey: const Key('roo_hero_category_pill'),
+                        label: l10n.categoryName(alarm.category.type),
+                        dotColor: alarm.category.color,
+                      ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 if (alarm != null) ...[
                   Text(
                     alarm.formattedTime(use24Hour: use24Hour),
@@ -250,6 +225,7 @@ class RooHouseScreen extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                       letterSpacing: -1.0,
                       color: AppColors.textPrimary(context),
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   Text(
@@ -260,6 +236,7 @@ class RooHouseScreen extends StatelessWidget {
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary(context),
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ] else ...[
@@ -283,9 +260,10 @@ class RooHouseScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
-                  runSpacing: 6,
+                  runSpacing: 8,
                   children: [
                     FilledButton.icon(
+                      key: const Key('roo_hero_add_alarm_btn'),
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const AlarmEditScreen(),
@@ -294,41 +272,53 @@ class RooHouseScreen extends StatelessWidget {
                       style: FilledButton.styleFrom(
                         backgroundColor: rooColor,
                         foregroundColor: Colors.white,
-                        visualDensity: VisualDensity.compact,
+                        minimumSize: const Size(48, 48),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                       icon: const Icon(Icons.add_alarm_rounded, size: 16),
                       label: Text(
                         l10n.tr('add_alarm'),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                     if (alarm != null && alarmProvider != null)
-                      OutlinedButton.icon(
+                      TextButton.icon(
+                        key: const Key('roo_hero_test_ring_btn'),
                         onPressed: () => alarmProvider.triggerAlarm(alarm),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: accentInk,
-                          side: BorderSide(
-                            color: rooColor.withValues(alpha: 0.4),
+                        style: TextButton.styleFrom(
+                          backgroundColor: rooColor.withValues(
+                            alpha: isDark ? 0.16 : 0.12,
                           ),
-                          visualDensity: VisualDensity.compact,
+                          foregroundColor: AppColors.textPrimary(context),
+                          minimumSize: const Size(48, 48),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
                           ),
                         ),
-                        icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                        icon: const Icon(
+                          Icons.play_arrow_rounded,
+                          size: 16,
+                          color: rooColor,
+                        ),
                         label: Text(
                           l10n.tr('test_ring'),
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: TextStyle(
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary(context),
                           ),
                         ),
                       ),
@@ -338,20 +328,13 @@ class RooHouseScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 78,
-            height: 78,
-            child: Image.asset(
-              alarm != null
-                  ? 'assets/mascots/sprites/roo/alarm.png'
-                  : 'assets/mascots/sprites/roo/quiet_day.png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => Icon(
-                Icons.alarm_rounded,
-                size: 48,
-                color: rooColor.withValues(alpha: 0.7),
-              ),
-            ),
+          BirdHeroSpriteHalo(
+            assetPath: alarm != null
+                ? 'assets/mascots/sprites/roo/alarm.png'
+                : 'assets/mascots/sprites/roo/quiet_day.png',
+            accentColor: rooColor,
+            fallbackIcon: Icons.alarm_rounded,
+            size: 84,
           ),
         ],
       ),

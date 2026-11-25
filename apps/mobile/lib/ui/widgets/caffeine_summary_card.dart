@@ -46,26 +46,26 @@ class CaffeineSummaryCard extends StatelessWidget {
       case CaffeineSleepImpact.clear:
         return AppColors.adaptive(
           context,
-          dark: const Color(0xFF34D399),
-          light: const Color(0xFF059669),
+          dark: AppColors.pippinLight,
+          light: AppColors.pippinDeep,
         );
       case CaffeineSleepImpact.mild:
         return AppColors.adaptive(
           context,
-          dark: const Color(0xFF2DD4BF),
-          light: const Color(0xFF0D9488),
+          dark: AppColors.tealLight,
+          light: AppColors.tealDark,
         );
       case CaffeineSleepImpact.moderate:
         return AppColors.adaptive(
           context,
-          dark: const Color(0xFFFBBF24),
-          light: const Color(0xFFD97706),
+          dark: AppColors.twillLight,
+          light: AppColors.echo,
         );
       case CaffeineSleepImpact.elevated:
         return AppColors.adaptive(
           context,
-          dark: const Color(0xFFF87171),
-          light: const Color(0xFFDC2626),
+          dark: AppColors.errorLight,
+          light: AppColors.errorDark,
         );
     }
   }
@@ -111,7 +111,7 @@ class CaffeineSummaryCard extends StatelessWidget {
       targetBedtime: targetBedtime,
     );
 
-    const accentAmber = Color(0xFFD97706);
+    const accentAmber = AppColors.echo;
 
     return Material(
       color: Colors.transparent,

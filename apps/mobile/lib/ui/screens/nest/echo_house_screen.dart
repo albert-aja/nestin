@@ -16,7 +16,7 @@ import 'bird_house_shared.dart';
 
 /// Echo's House — Mindful Diary, Mood, Gratitude Jar, Memories & Echo Labs (`#D97706`).
 class EchoHouseScreen extends StatelessWidget {
-  static const Color echoColor = Color(0xFFD97706);
+  static const Color echoColor = AppColors.echo;
 
   const EchoHouseScreen({super.key});
 
@@ -122,9 +122,6 @@ class EchoHouseScreen extends StatelessWidget {
         context,
         title: l10n.tr('house_echo_title'),
         subtitle: l10n.tr('nest_echo_subtitle'),
-        spriteAsset: 'assets/mascots/sprites/echo/reflect.png',
-        accentColor: echoColor,
-        fallbackIcon: Icons.auto_stories_rounded,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -182,7 +179,7 @@ class EchoHouseScreen extends StatelessWidget {
           const SizedBox(height: 18),
           BirdSectionLabel(
             text: l10n.tr('house_echo_labs_section'),
-            accentColor: const Color(0xFF6366F1),
+            accentColor: AppColors.indigo,
           ),
           BirdToolGrid(
             tiles: [
@@ -191,7 +188,7 @@ class EchoHouseScreen extends StatelessWidget {
                 title: l10n.tr('house_echo_arena_title'),
                 subtitle: l10n.tr('house_echo_arena_sub'),
                 icon: Icons.school_outlined,
-                accentColor: const Color(0xFF6366F1),
+                accentColor: AppColors.indigo,
                 onTap: () => _launchKnowledgeArena(context),
               ),
               BirdToolTile(
@@ -199,7 +196,7 @@ class EchoHouseScreen extends StatelessWidget {
                 title: l10n.tr('house_echo_brain_title'),
                 subtitle: l10n.tr('house_echo_brain_sub'),
                 icon: Icons.extension_outlined,
-                accentColor: const Color(0xFF8B5CF6),
+                accentColor: AppColors.seren,
                 onTap: () => _launchBrainPlayground(context),
               ),
             ],
@@ -225,26 +222,14 @@ class EchoHouseScreen extends StatelessWidget {
     required int pebbleCount,
   }) {
     final isDark = AppColors.isDark(context);
-    final amberInk = AppColors.adaptive(
-      context,
-      dark: const Color(0xFFFBBF24),
-      light: const Color(0xFF92400E),
-    );
 
     return Container(
+      key: const Key('echo_house_hero_card'),
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? const [Color(0xFF282015), Color(0xFF1A1B20)]
-              : const [Color(0xFFFFFBEB), Color(0xFFFEF3C7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: echoColor.withValues(alpha: isDark ? 0.38 : 0.28),
-        ),
+      decoration: birdHouseCardDecoration(
+        context,
+        heroTintColor: echoColor,
+        radius: 22,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,18 +266,11 @@ class EchoHouseScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
-                width: 72,
-                height: 72,
-                child: Image.asset(
-                  'assets/mascots/sprites/echo/grateful.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.auto_stories_rounded,
-                    size: 44,
-                    color: echoColor,
-                  ),
-                ),
+              const BirdHeroSpriteHalo(
+                assetPath: 'assets/mascots/sprites/echo/grateful.png',
+                accentColor: echoColor,
+                fallbackIcon: Icons.auto_stories_rounded,
+                size: 80,
               ),
             ],
           ),
@@ -302,35 +280,58 @@ class EchoHouseScreen extends StatelessWidget {
             runSpacing: 8,
             children: [
               FilledButton.icon(
+                key: const Key('echo_hero_open_diary_btn'),
                 onPressed: () => _openDiary(context, l10n),
                 style: FilledButton.styleFrom(
                   backgroundColor: echoColor,
                   foregroundColor: Colors.white,
-                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
                 icon: const Icon(Icons.edit_note_rounded, size: 17),
                 label: Text(
                   l10n.tr('house_echo_open_diary'),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              OutlinedButton.icon(
+              TextButton.icon(
                 key: const Key('echo_hero_gratitude_btn'),
                 onPressed: () => GratitudeJarSheet.show(context),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: amberInk,
-                  side: BorderSide(color: echoColor.withValues(alpha: 0.45)),
-                  visualDensity: VisualDensity.compact,
+                style: TextButton.styleFrom(
+                  backgroundColor: echoColor.withValues(
+                    alpha: isDark ? 0.16 : 0.12,
+                  ),
+                  foregroundColor: AppColors.textPrimary(context),
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
-                icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                icon: const Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 16,
+                  color: echoColor,
+                ),
                 label: Text(
                   l10n.tr('house_echo_gratitude_jar', {'count': pebbleCount}),
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: TextStyle(
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary(context),
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),

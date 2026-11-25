@@ -26,10 +26,10 @@ class _MemoryChallengeWidgetState extends State<MemoryChallengeWidget> {
   String _statusMessage = 'Memorize the pattern...';
 
   final List<Color> _padColors = const [
-    Color(0xFFFF9E1B), // Amber
-    Color(0xFFE04A3A), // Crimson
-    Color(0xFF10B981), // Emerald
-    Color(0xFF3B82F6), // Blue
+    AppColors.accent, // Amber
+    AppColors.roo, // Crimson
+    AppColors.pippin, // Emerald
+    AppColors.scout, // Blue
   ];
 
   @override
@@ -118,7 +118,7 @@ class _MemoryChallengeWidgetState extends State<MemoryChallengeWidget> {
                 ? AppColors.adaptive(
                     context,
                     dark: AppColors.accent,
-                    light: const Color(0xFFB45309),
+                    light: AppColors.twillDark,
                   )
                 : AppColors.textPrimary(context),
           ),

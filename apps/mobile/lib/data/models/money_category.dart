@@ -1,10 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import '../../core/l10n/app_localizations.dart';
 import 'money_account.dart';
-
+
+import '../../core/theme/app_colors.dart';
 enum MoneyCategoryType {
-  income('money_income', Color(0xFF10B981)),
-  expense('money_expense', Color(0xFFEF4444));
+  income('money_income', AppColors.pippin),
+  expense('money_expense', AppColors.error);
 
   final String translationKey;
   final Color semanticColor;
@@ -165,7 +166,7 @@ class MoneyCategory {
       iconCodePoint: (json['iconCodePoint'] as num?)?.toInt() ??
           Icons.category_rounded.codePoint,
       colorValue: (json['colorValue'] as num?)?.toInt() ??
-          const Color(0xFFF59E0B).toARGB32(),
+          AppColors.twill.toARGB32(),
       isDefault: json['isDefault'] as bool? ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
@@ -186,7 +187,7 @@ class MoneyCategory {
         name: 'Salary',
         type: MoneyCategoryType.income,
         iconCodePoint: Icons.work_rounded.codePoint,
-        colorValue: const Color(0xFF10B981).toARGB32(),
+        colorValue: AppColors.pippin.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -197,7 +198,7 @@ class MoneyCategory {
         name: 'Business Income',
         type: MoneyCategoryType.income,
         iconCodePoint: Icons.storefront_rounded.codePoint,
-        colorValue: const Color(0xFF06B6D4).toARGB32(),
+        colorValue: AppColors.cyan.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -208,7 +209,7 @@ class MoneyCategory {
         name: 'Freelance',
         type: MoneyCategoryType.income,
         iconCodePoint: Icons.laptop_mac_rounded.codePoint,
-        colorValue: const Color(0xFF3B82F6).toARGB32(),
+        colorValue: AppColors.scout.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -219,7 +220,7 @@ class MoneyCategory {
         name: 'Investment Returns',
         type: MoneyCategoryType.income,
         iconCodePoint: Icons.trending_up_rounded.codePoint,
-        colorValue: const Color(0xFF8B5CF6).toARGB32(),
+        colorValue: AppColors.seren.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -230,7 +231,7 @@ class MoneyCategory {
         name: 'Gifts',
         type: MoneyCategoryType.income,
         iconCodePoint: Icons.card_giftcard_rounded.codePoint,
-        colorValue: const Color(0xFFEC4899).toARGB32(),
+        colorValue: AppColors.pink.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -241,7 +242,7 @@ class MoneyCategory {
         name: 'Other Income',
         type: MoneyCategoryType.income,
         iconCodePoint: Icons.attach_money_rounded.codePoint,
-        colorValue: const Color(0xFF14B8A6).toARGB32(),
+        colorValue: AppColors.teal.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -254,7 +255,7 @@ class MoneyCategory {
         name: 'Food & Drinks',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.restaurant_rounded.codePoint,
-        colorValue: const Color(0xFFF59E0B).toARGB32(),
+        colorValue: AppColors.twill.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -265,7 +266,7 @@ class MoneyCategory {
         name: 'Transportation',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.directions_car_rounded.codePoint,
-        colorValue: const Color(0xFF3B82F6).toARGB32(),
+        colorValue: AppColors.scout.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -276,7 +277,7 @@ class MoneyCategory {
         name: 'Shopping',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.shopping_bag_rounded.codePoint,
-        colorValue: const Color(0xFFEC4899).toARGB32(),
+        colorValue: AppColors.pink.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -287,7 +288,7 @@ class MoneyCategory {
         name: 'Housing',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.home_rounded.codePoint,
-        colorValue: const Color(0xFF8B5CF6).toARGB32(),
+        colorValue: AppColors.seren.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -298,7 +299,7 @@ class MoneyCategory {
         name: 'Utilities',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.bolt_rounded.codePoint,
-        colorValue: const Color(0xFF06B6D4).toARGB32(),
+        colorValue: AppColors.cyan.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -309,7 +310,7 @@ class MoneyCategory {
         name: 'Health',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.favorite_rounded.codePoint,
-        colorValue: const Color(0xFFEF4444).toARGB32(),
+        colorValue: AppColors.error.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -320,7 +321,7 @@ class MoneyCategory {
         name: 'Entertainment',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.movie_rounded.codePoint,
-        colorValue: const Color(0xFFA855F7).toARGB32(),
+        colorValue: AppColors.purple.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -331,7 +332,7 @@ class MoneyCategory {
         name: 'Education',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.school_rounded.codePoint,
-        colorValue: const Color(0xFF0EA5E9).toARGB32(),
+        colorValue: AppColors.skyMid.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -342,7 +343,7 @@ class MoneyCategory {
         name: 'Family',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.family_restroom_rounded.codePoint,
-        colorValue: const Color(0xFFF97316).toARGB32(),
+        colorValue: AppColors.orange.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -353,7 +354,7 @@ class MoneyCategory {
         name: 'Subscriptions',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.autorenew_rounded.codePoint,
-        colorValue: const Color(0xFF6366F1).toARGB32(),
+        colorValue: AppColors.indigo.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -364,7 +365,7 @@ class MoneyCategory {
         name: 'Other Expenses',
         type: MoneyCategoryType.expense,
         iconCodePoint: Icons.more_horiz_rounded.codePoint,
-        colorValue: const Color(0xFF6B7280).toARGB32(),
+        colorValue: AppColors.darkTextMuted.toARGB32(),
         isDefault: true,
         createdAt: now,
         updatedAt: now,

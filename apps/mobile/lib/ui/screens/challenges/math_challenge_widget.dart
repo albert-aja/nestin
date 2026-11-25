@@ -93,7 +93,7 @@ class _MathChallengeWidgetState extends State<MathChallengeWidget> {
                 color: AppColors.adaptive(
                   context,
                   dark: AppColors.accent,
-                  light: const Color(0xFFB45309),
+                  light: AppColors.twillDark,
                 ),
               ),
             ),

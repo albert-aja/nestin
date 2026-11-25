@@ -65,8 +65,8 @@ class MentalWellnessScreen extends StatefulWidget {
 }
 
 class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
-  static const Color _serenPurple = Color(0xFF8B5CF6);
-  static const Color _serenLavender = Color(0xFFA78BFA);
+  static const Color _serenPurple = AppColors.seren;
+  static const Color _serenLavender = AppColors.serenLight;
 
   late int _selectedLayer;
   bool _calmMode = false;
@@ -136,7 +136,7 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
         content: Text(msg, style: const TextStyle(color: Colors.white)),
         backgroundColor: AppColors.adaptive(
           context,
-          dark: const Color(0xFF23252E),
+          dark: AppColors.darkSurfaceSubtle,
           light: AppColors.lightTextPrimary,
         ),
         duration: const Duration(seconds: 2),
@@ -500,7 +500,7 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                 icon: const Icon(
                   Icons.health_and_safety_outlined,
                   size: 17,
-                  color: Color(0xFFE11D48),
+                  color: AppColors.rose,
                 ),
                 label: Text(
                   l10n.tr('mw_l4_open_crisis_btn'),
@@ -1216,7 +1216,7 @@ class _MentalWellnessScreenState extends State<MentalWellnessScreen> {
                     icon: const Icon(
                       Icons.health_and_safety_outlined,
                       size: 16,
-                      color: Color(0xFFE11D48),
+                      color: AppColors.rose,
                     ),
                     label: Text(
                       l10n.tr('mw_l4_open_crisis_btn'),

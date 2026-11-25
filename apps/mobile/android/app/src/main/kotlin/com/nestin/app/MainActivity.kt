@@ -22,6 +22,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import com.nestin.app.geofencing.GeofencingPlugin
 import com.nestin.app.oem.OemHardeningPlugin
@@ -65,6 +66,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setAlarmLockScreenMode(isAlarmLaunchIntent(intent))
         intent?.dataString?.let {
             initialUri = it
         }
@@ -73,9 +75,44 @@ class MainActivity : FlutterActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (isAlarmLaunchIntent(intent)) {
+            setAlarmLockScreenMode(true)
+        }
         intent.dataString?.let { uri ->
             initialUri = uri
             methodChannel?.invokeMethod("onDeepLink", uri)
+        }
+    }
+
+    private fun isAlarmLaunchIntent(intent: Intent?): Boolean {
+        if (intent == null) return false
+        if (intent.getBooleanExtra("nestin_alarm_fullscreen", false)) return true
+        val payload = intent.getStringExtra("payload")
+        if (payload != null && payload.startsWith("alarm_")) return true
+        val dataHost = intent.data?.host
+        return dataHost == "alarm_ring"
+    }
+
+    private fun setAlarmLockScreenMode(enabled: Boolean) {
+        runOnUiThread {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                setShowWhenLocked(enabled)
+                setTurnScreenOn(enabled)
+            }
+            @Suppress("DEPRECATION")
+            val legacyFlags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            if (enabled) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
+                    window.addFlags(legacyFlags)
+                }
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
+                    window.clearFlags(legacyFlags)
+                }
+            }
         }
     }
 
@@ -190,6 +227,11 @@ class MainActivity : FlutterActivity() {
                         } catch (e: Exception) {
                             result.error("UPDATE_ERROR", e.message, null)
                         }
+                    }
+                    "setAlarmLockScreenMode" -> {
+                        val enabled = call.argument<Boolean>("enabled") ?: false
+                        setAlarmLockScreenMode(enabled)
+                        result.success(true)
                     }
                     "launchExternalUri" -> {
                         try {

@@ -55,7 +55,7 @@ class _JournalPromptCarouselState extends State<JournalPromptCarousel> {
     final accent = AppColors.adaptive(
       context,
       dark: AppColors.accent,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -81,7 +81,7 @@ class _JournalPromptCarouselState extends State<JournalPromptCarousel> {
                     fontWeight: FontWeight.w700,
                     color: AppColors.adaptive(
                       context,
-                      dark: const Color(0xFFD1D5DB),
+                      dark: AppColors.gray300,
                       light: AppColors.lightTextPrimary,
                     ),
                   ),

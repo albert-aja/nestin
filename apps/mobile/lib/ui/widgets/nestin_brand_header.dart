@@ -101,7 +101,7 @@ class NestinBrandHeader extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFF9E9EA7) : const Color(0xFF6C757D),
+                    color: isDark ? const Color(0xFF9E9EA7) : AppColors.catOther,
                   ),
                 ),
               ],

@@ -23,69 +23,183 @@ T? tryReadProvider<T>(BuildContext context) {
   }
 }
 
-/// Shared AppBar for every Bird House screen with back button, mini bird sprite,
-/// and subtle subtitle.
+/// Unified borderless surface decoration for Bird House Hero cards and tool
+/// tiles: `#FFFFFF` + soft diffused shadow on `#F4F6F9` in Light Mode, and
+/// `#1A1B20` on `#111215` in Dark Mode, with optional subtle `4–6%` top tint
+/// for Hero cards.
+BoxDecoration birdHouseCardDecoration(
+  BuildContext context, {
+  Color? heroTintColor,
+  double radius = 18,
+}) {
+  final isDark = AppColors.isDark(context);
+  final baseSurface = AppColors.cardSurface(context);
+  final topTint = heroTintColor != null
+      ? Color.lerp(baseSurface, heroTintColor, isDark ? 0.06 : 0.05)!
+      : null;
+
+  return BoxDecoration(
+    color: topTint == null ? baseSurface : null,
+    gradient: topTint != null
+        ? LinearGradient(
+            colors: [topTint, baseSurface],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : null,
+    borderRadius: BorderRadius.circular(radius),
+    boxShadow: isDark
+        ? null
+        : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.045),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+  );
+}
+
+/// Soft radial domain-tinted glow (`12–16%` opacity) anchored behind each Hero
+/// bird sprite so dark feathers stay crisp on dark and light surfaces alike.
+class BirdHeroSpriteHalo extends StatelessWidget {
+  final String assetPath;
+  final Color accentColor;
+  final IconData fallbackIcon;
+  final double size;
+
+  const BirdHeroSpriteHalo({
+    super.key,
+    required this.assetPath,
+    required this.accentColor,
+    required this.fallbackIcon,
+    this.size = 82,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            accentColor.withValues(alpha: isDark ? 0.16 : 0.13),
+            accentColor.withValues(alpha: 0.0),
+          ],
+          stops: const [0.35, 1.0],
+        ),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => Icon(
+          fallbackIcon,
+          size: size * 0.54,
+          color: accentColor,
+        ),
+      ),
+    );
+  }
+}
+
+/// Borderless `999dp` status pill with a `6dp` colored status dot and crisp
+/// `AppColors.textPrimary(context)` ink.
+class BirdStatusPill extends StatelessWidget {
+  final String label;
+  final Color dotColor;
+  final bool tabular;
+  final Key? pillKey;
+
+  const BirdStatusPill({
+    super.key,
+    required this.label,
+    required this.dotColor,
+    this.tabular = false,
+    this.pillKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    return Container(
+      key: pillKey,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+      decoration: BoxDecoration(
+        color: dotColor.withValues(alpha: isDark ? 0.15 : 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary(context),
+                fontFeatures:
+                    tabular ? const [FontFeature.tabularFigures()] : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Clean shared AppBar for every Bird House screen: Back arrow, House title,
+/// and subtle subtitle (no redundant boxed bird avatar).
 PreferredSizeWidget buildBirdHouseAppBar(
   BuildContext context, {
   required String title,
   required String subtitle,
-  required String spriteAsset,
-  required Color accentColor,
-  required IconData fallbackIcon,
+  String? spriteAsset,
+  Color? accentColor,
+  IconData? fallbackIcon,
   List<Widget>? actions,
   PreferredSizeWidget? bottom,
 }) {
   return AppBar(
     titleSpacing: 4,
-    title: Row(
+    title: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 34,
-          height: 34,
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: accentColor.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: accentColor.withValues(alpha: 0.35),
-            ),
-          ),
-          child: Image.asset(
-            spriteAsset,
-            fit: BoxFit.contain,
-            errorBuilder: (_, _, _) => Icon(
-              fallbackIcon,
-              color: accentColor,
-              size: 18,
-            ),
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary(context),
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary(context),
-                ),
-              ),
-            ],
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary(context),
           ),
         ),
       ],
@@ -142,7 +256,7 @@ class BirdSectionLabel extends StatelessWidget {
   }
 }
 
-/// Compact scannable tool tile used inside each Bird House's tool grid.
+/// Borderless scannable tool tile used inside each Bird House's 2-column grid.
 class BirdToolTile extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -171,14 +285,9 @@ class BirdToolTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface(context),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: AppColors.border(context),
-          ),
-        ),
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        padding: const EdgeInsets.all(16),
+        decoration: birdHouseCardDecoration(context, radius: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -188,7 +297,7 @@ class BirdToolTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: isDark ? 0.18 : 0.12),
+                    color: accentColor.withValues(alpha: isDark ? 0.16 : 0.11),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -228,6 +337,7 @@ class BirdToolTile extends StatelessWidget {
                 fontSize: 11.5,
                 height: 1.25,
                 color: AppColors.textSecondary(context),
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ],

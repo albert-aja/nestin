@@ -8,10 +8,10 @@ import '../../data/models/location_reminder.dart';
 import '../../data/models/saved_place.dart';
 import '../../providers/geofence_provider.dart';
 
-const Color _scoutBlue = Color(0xFF3B82F6);
-const Color _emerald = Color(0xFF10B981);
-const Color _amber = Color(0xFFF59E0B);
-const Color _coral = Color(0xFFE04A3A);
+const Color _scoutBlue = AppColors.scout;
+const Color _emerald = AppColors.pippin;
+const Color _amber = AppColors.twill;
+const Color _coral = AppColors.roo;
 
 class LocationRemindersSheet extends StatefulWidget {
   final int initialTab;
@@ -510,7 +510,6 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
               ),
               Switch(
                 value: item.isEnabled,
-                activeThumbColor: _scoutBlue,
                 onChanged: (_) => provider.toggleEnabled(item.id),
               ),
             ],
@@ -539,7 +538,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                 AppColors.adaptive(
                   context,
                   dark: _emerald,
-                  light: const Color(0xFF047857),
+                  light: AppColors.pippinDark,
                 ),
               ),
               _metaPill(
@@ -554,7 +553,7 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                   AppColors.adaptive(
                     context,
                     dark: _amber,
-                    light: const Color(0xFFB45309),
+                    light: AppColors.twillDark,
                   ),
                 ),
               if (distanceMeters != null)
@@ -957,12 +956,12 @@ class _LocationRemindersSheetState extends State<LocationRemindersSheet> {
                         ? AppColors.adaptive(
                             context,
                             dark: _amber,
-                            light: const Color(0xFFB45309),
+                            light: AppColors.twillDark,
                           )
                         : AppColors.adaptive(
                             context,
                             dark: _emerald,
-                            light: const Color(0xFF047857),
+                            light: AppColors.pippinDark,
                           ),
                   ),
                 ],
@@ -1181,7 +1180,7 @@ class _LocationReminderEditorDialogState
                       color: AppColors.adaptive(
                         context,
                         dark: _amber,
-                        light: const Color(0xFFB45309),
+                        light: AppColors.twillDark,
                       ),
                     ),
                   ),
@@ -1248,7 +1247,6 @@ class _LocationReminderEditorDialogState
                   ),
                 ),
                 value: _oneTimeOnly,
-                activeThumbColor: _scoutBlue,
                 onChanged: (val) => setState(() => _oneTimeOnly = val),
               ),
               if (!_oneTimeOnly)
@@ -1297,7 +1295,6 @@ class _LocationReminderEditorDialogState
                     ),
                   ),
                   value: _checkDeparture,
-                  activeThumbColor: _amber,
                   onChanged: (val) => setState(() => _checkDeparture = val),
                 ),
               const SizedBox(height: 8),

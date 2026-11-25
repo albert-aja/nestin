@@ -174,6 +174,8 @@ class DailyWallpaperService {
     int days = rollingCacheDays,
     DateTime? startDate,
     double pixelRatio = defaultPixelRatio,
+    String? customWallpaperAsset,
+    String? customWallpaperFilePath,
   }) async {
     final base = startDate ?? _now();
     final start = DateTime(base.year, base.month, base.day);
@@ -192,6 +194,8 @@ class DailyWallpaperService {
         showMascotSprite: config.showMascotSprite,
         referenceDate: date,
         l10nOverride: l10n,
+        customWallpaperAsset: customWallpaperAsset,
+        customWallpaperFilePath: customWallpaperFilePath,
       );
 
       final bytes = await renderCanvasToPng(

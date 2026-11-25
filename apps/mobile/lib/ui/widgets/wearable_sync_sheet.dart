@@ -256,7 +256,7 @@ class WearableSyncSheet extends StatelessWidget {
                       _metricTile(
                         context: context,
                         icon: Icons.bedtime_rounded,
-                        color: const Color(0xFF8338EC),
+                        color: AppColors.electricPurple,
                         label: 'Sleep Duration',
                         value: record.sleepDurationFormatted,
                         subtext: record.sleepMinutes != null
@@ -266,7 +266,7 @@ class WearableSyncSheet extends StatelessWidget {
                       _metricTile(
                         context: context,
                         icon: Icons.water_drop_rounded,
-                        color: const Color(0xFF3A86FF),
+                        color: AppColors.electricBlue,
                         label: 'Hydration',
                         value: record.waterIntakeMl != null
                             ? '${record.waterIntakeMl} ml'
@@ -276,7 +276,7 @@ class WearableSyncSheet extends StatelessWidget {
                       _metricTile(
                         context: context,
                         icon: Icons.directions_walk_rounded,
-                        color: const Color(0xFF10B981),
+                        color: AppColors.pippin,
                         label: 'Daily Steps',
                         value: record.stepCount != null
                             ? '${record.stepCount}'
@@ -286,7 +286,7 @@ class WearableSyncSheet extends StatelessWidget {
                       _metricTile(
                         context: context,
                         icon: Icons.favorite_rounded,
-                        color: const Color(0xFFEF4444),
+                        color: AppColors.error,
                         label: 'Resting HR',
                         value: record.restingHeartRate != null
                             ? '${record.restingHeartRate} bpm'
@@ -319,7 +319,6 @@ class WearableSyncSheet extends StatelessWidget {
                             'Compare actual sleep with 90m cycle targets',
                             style: TextStyle(fontSize: 11, color: AppColors.textSecondary(context))),
                         value: config.syncSleep,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncSleep: val),
                         ),
@@ -333,7 +332,6 @@ class WearableSyncSheet extends StatelessWidget {
                             'Bidirectional water sync with health app',
                             style: TextStyle(fontSize: 11, color: AppColors.textSecondary(context))),
                         value: config.syncHydration,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncHydration: val),
                         ),
@@ -344,7 +342,6 @@ class WearableSyncSheet extends StatelessWidget {
                         title: const Text('Daily Steps & Activity',
                             style: TextStyle(fontSize: 13)),
                         value: config.syncSteps,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncSteps: val),
                         ),
@@ -355,7 +352,6 @@ class WearableSyncSheet extends StatelessWidget {
                         title: const Text('Resting Heart Rate',
                             style: TextStyle(fontSize: 13)),
                         value: config.syncHeartRate,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(syncHeartRate: val),
                         ),
@@ -366,7 +362,6 @@ class WearableSyncSheet extends StatelessWidget {
                         title: const Text('Auto-Sync on Launch',
                             style: TextStyle(fontSize: 13)),
                         value: config.autoSyncOnLaunch,
-                        activeThumbColor: AppColors.accent,
                         onChanged: (val) => provider.updateConfig(
                           config.copyWith(autoSyncOnLaunch: val),
                         ),
@@ -383,7 +378,7 @@ class WearableSyncSheet extends StatelessWidget {
                     icon: const Icon(Icons.link_off_rounded, size: 18),
                     label: const Text('Disconnect Health Platform'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFEF4444),
+                      foregroundColor: AppColors.error,
                       side: BorderSide(color: AppColors.border(context)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

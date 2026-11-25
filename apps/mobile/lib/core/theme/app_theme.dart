@@ -84,7 +84,7 @@ class AppTheme {
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkCard,
         selectedItemColor: AppColors.primaryLight,
-        unselectedItemColor: Color(0xFF8E929E),
+        unselectedItemColor: AppColors.darkTextSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 12,
         selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
@@ -110,11 +110,15 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return Colors.white;
-          return const Color(0xFFA0A5B1);
+          return AppColors.darkSwitchThumb;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return AppColors.primaryLight;
-          return const Color(0xFF333640);
+          return AppColors.darkSwitchTrack;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return Colors.transparent;
+          return AppColors.darkBorder;
         }),
       ),
     );
@@ -229,11 +233,15 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return Colors.white;
-          return const Color(0xFFBDC2CC);
+          return AppColors.lightSwitchThumb;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return AppColors.primary;
-          return const Color(0xFFE2E5EA);
+          return AppColors.lightSwitchTrack;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return Colors.transparent;
+          return AppColors.lightBorder;
         }),
       ),
     );

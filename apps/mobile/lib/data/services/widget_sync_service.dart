@@ -57,6 +57,23 @@ class WidgetSyncService {
     _showMascotsEnabled = enabled;
   }
 
+  /// Dynamically toggles Android lock-screen bypass (`setShowWhenLocked` /
+  /// `setTurnScreenOn` + `FLAG_KEEP_SCREEN_ON`) strictly while an alarm is
+  /// actively ringing so normal app usage locks cleanly with the phone.
+  Future<void> setAlarmLockScreenMode(bool enabled) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      if (methodInvoker != null) {
+        await methodInvoker!('setAlarmLockScreenMode', {'enabled': enabled});
+        return;
+      }
+      await _channel.invokeMethod<void>(
+        'setAlarmLockScreenMode',
+        {'enabled': enabled},
+      );
+    } catch (_) {}
+  }
+
   static const List<WidgetMascotAvatar> quickCaptureMascots = [
     WidgetMascotAvatar(
       widgetType: 'quick_capture',

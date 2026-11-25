@@ -35,9 +35,9 @@ class BucketListScreen extends StatefulWidget {
 }
 
 class _BucketListScreenState extends State<BucketListScreen> {
-  static const Color _pippinEmerald = Color(0xFF10B981);
-  static const Color _echoAmber = Color(0xFFF59E0B);
-  static const Color _scoutBlue = Color(0xFF3B82F6);
+  static const Color _pippinEmerald = AppColors.pippin;
+  static const Color _echoAmber = AppColors.twill;
+  static const Color _scoutBlue = AppColors.scout;
 
   final TextEditingController _searchController = TextEditingController();
   _BucketStatusFilter _statusFilter = _BucketStatusFilter.all;
@@ -597,7 +597,7 @@ class _BucketListScreenState extends State<BucketListScreen> {
                               color: AppColors.adaptive(
                                 context,
                                 dark: _pippinEmerald,
-                                light: const Color(0xFF047857),
+                                light: AppColors.pippinDark,
                               ),
                             ),
                           ),
@@ -656,7 +656,7 @@ class _BucketListScreenState extends State<BucketListScreen> {
                   context,
                   emoji: '✨',
                   label: l10n.tr('in_echo_memories', {'provider_promotedCount': provider.promotedCount}),
-                  accent: const Color(0xFFD97706),
+                  accent: AppColors.echo,
                 ),
               ),
             ],
@@ -881,12 +881,12 @@ class _BucketGoalCard extends StatelessWidget {
         icon: item.isCompleted
             ? Icons.replay_rounded
             : Icons.check_circle_rounded,
-        color: const Color(0xFF10B981),
+        color: AppColors.pippin,
       ),
       swipeLeftStyle: SwipeActionStyle(
         label: isIndonesian ? 'Hapus' : 'Delete',
         icon: Icons.delete_outline_rounded,
-        color: const Color(0xFFEF4444),
+        color: AppColors.error,
       ),
       onSwipeRight: onToggleCompleted,
       onSwipeLeft: onDelete,
@@ -897,9 +897,9 @@ class _BucketGoalCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isHighlighted
-                ? const Color(0xFFF59E0B)
+                ? AppColors.twill
                 : (item.isCompleted
-                    ? const Color(0xFF10B981).withValues(alpha: 0.45)
+                    ? AppColors.pippin.withValues(alpha: 0.45)
                     : accent.withValues(alpha: 0.35)),
             width: isHighlighted ? 2 : 1.2,
           ),
@@ -943,11 +943,11 @@ class _BucketGoalCard extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: item.isCompleted
-                                      ? const Color(0xFF10B981)
+                                      ? AppColors.pippin
                                       : accent.withValues(alpha: 0.12),
                                   border: Border.all(
                                     color: item.isCompleted
-                                        ? const Color(0xFF10B981)
+                                        ? AppColors.pippin
                                         : accent.withValues(alpha: 0.65),
                                     width: 1.8,
                                   ),
@@ -992,7 +992,7 @@ class _BucketGoalCard extends StatelessWidget {
                                   ? Icons.star_rounded
                                   : Icons.star_border_rounded,
                               color: item.isStarred
-                                  ? const Color(0xFFF59E0B)
+                                  ? AppColors.twill
                                   : AppColors.textSecondary(context),
                               size: 20,
                             ),
@@ -1051,7 +1051,7 @@ class _BucketGoalCard extends StatelessWidget {
                             _pill(
                               context,
                               text: targetWindow,
-                              color: const Color(0xFFF59E0B),
+                              color: AppColors.twill,
                             ),
                           if (placeName.isNotEmpty)
                             InkWell(
@@ -1063,7 +1063,7 @@ class _BucketGoalCard extends StatelessWidget {
                                     ? '${linkedPlace?.category.emoji ?? '📍'} $placeName${distanceMeters != null ? ' • ${_formatDistance(distanceMeters)}' : ''}'
                                     : '📌 $placeName',
                                 color: item.hasSavedPlaceLink
-                                    ? const Color(0xFF3B82F6)
+                                    ? AppColors.scout
                                     : AppColors.textSecondary(context),
                               ),
                             )
@@ -1077,7 +1077,7 @@ class _BucketGoalCard extends StatelessWidget {
                                 text: isIndonesian
                                     ? '+ Tautkan Tempat'
                                     : '+ Link SavedPlace',
-                                color: const Color(0xFF3B82F6),
+                                color: AppColors.scout,
                               ),
                             ),
                           if (item.completedAt != null)
@@ -1085,7 +1085,7 @@ class _BucketGoalCard extends StatelessWidget {
                               context,
                               text:
                                   '✓ ${DateFormat.yMMMd().format(item.completedAt!)}',
-                              color: const Color(0xFF10B981),
+                              color: AppColors.pippin,
                             ),
                         ],
                       ),
@@ -1138,10 +1138,10 @@ class _BucketGoalCard extends StatelessWidget {
         key: Key('bucket_promoted_badge_${item.id}'),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
+          color: AppColors.twill.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFF59E0B).withValues(alpha: 0.40),
+            color: AppColors.twill.withValues(alpha: 0.40),
           ),
         ),
         child: Row(
@@ -1149,7 +1149,7 @@ class _BucketGoalCard extends StatelessWidget {
             const Icon(
               Icons.auto_awesome_rounded,
               size: 18,
-              color: Color(0xFFD97706),
+              color: AppColors.echo,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -1162,8 +1162,8 @@ class _BucketGoalCard extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                   color: AppColors.adaptive(
                     context,
-                    dark: const Color(0xFFFBBF24),
-                    light: const Color(0xFF92400E),
+                    dark: AppColors.twillLight,
+                    light: AppColors.echoDark,
                   ),
                 ),
               ),
@@ -1191,10 +1191,10 @@ class _BucketGoalCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withValues(alpha: 0.10),
+        color: AppColors.pippin.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.42),
+          color: AppColors.twill.withValues(alpha: 0.42),
         ),
       ),
       child: Row(
@@ -1208,7 +1208,7 @@ class _BucketGoalCard extends StatelessWidget {
               errorBuilder: (_, _, _) => const Icon(
                 Icons.photo_album_rounded,
                 size: 20,
-                color: Color(0xFFD97706),
+                color: AppColors.echo,
               ),
             ),
           ),
@@ -1218,7 +1218,7 @@ class _BucketGoalCard extends StatelessWidget {
               key: Key('bucket_promote_btn_${item.id}'),
               onPressed: onPromoteToMemory,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD97706),
+                backgroundColor: AppColors.echo,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding:
@@ -1579,7 +1579,7 @@ class _BucketGoalEditorSheetState extends State<_BucketGoalEditorSheet> {
               key: const Key('bucket_editor_save_btn'),
               onPressed: _save,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
+                backgroundColor: AppColors.pippin,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

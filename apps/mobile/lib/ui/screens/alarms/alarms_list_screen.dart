@@ -96,39 +96,54 @@ class AlarmsListScreen extends StatelessWidget {
               // Top Row: Category, Challenge Badge & Switch
               Row(
                 children: [
-                  CategoryBadge(category: alarm.category, compact: true),
-                  const SizedBox(width: 8),
-                  if (challenge.isEnabled)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.psychology_rounded,
-                              size: 11, color: AppColors.accent),
-                          const SizedBox(width: 4),
-                          Text(
-                            alarm.challengeInherited
-                                ? '${challenge.typeLabel} (Default)'
-                                : '${challenge.typeLabel} (Custom)',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.accent,
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        CategoryBadge(category: alarm.category, compact: true),
+                        if (challenge.isEnabled)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.psychology_rounded,
+                                    size: 11, color: AppColors.accent),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    alarm.challengeInherited
+                                        ? '${challenge.typeLabel} (Default)'
+                                        : '${challenge.typeLabel} (Custom)',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                  const Spacer(),
+                  ),
+                  const SizedBox(width: 4),
                   Transform.scale(
                     scale: 0.85,
                     child: Switch(
                       value: alarm.isEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: AppColors.rooCrimson,
                       onChanged: (val) {
                         provider.toggleAlarm(alarm.id, val);
                         if (val) {
@@ -165,15 +180,19 @@ class AlarmsListScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   if (alarm.isEnabled)
-                    Text(
-                      alarm.timeUntilNext(now),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.adaptive(
-                          context,
-                          dark: AppColors.accent,
-                          light: const Color(0xFFB45309),
+                    Flexible(
+                      child: Text(
+                        alarm.timeUntilNext(now),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.adaptive(
+                            context,
+                            dark: AppColors.accent,
+                            light: AppColors.twillDark,
+                          ),
                         ),
                       ),
                     ),

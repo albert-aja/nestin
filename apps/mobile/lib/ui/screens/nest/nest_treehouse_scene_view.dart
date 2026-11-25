@@ -473,7 +473,7 @@ class _NestTreehouseSceneViewState extends State<NestTreehouseSceneView>
                               style: const TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFFE5E7EB),
+                                color: AppColors.gray200,
                               ),
                             ),
                           ),
@@ -920,14 +920,14 @@ class _ScenePhasePreviewScrubber extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFFF59E0B).withValues(alpha: 0.28)
+                    ? AppColors.twill.withValues(alpha: 0.28)
                     : (isLiveActive
                         ? Colors.white.withValues(alpha: 0.10)
                         : Colors.transparent),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFFFBBF24)
+                      ? AppColors.twillLight
                       : (isLiveActive
                           ? Colors.white.withValues(alpha: 0.24)
                           : Colors.transparent),
@@ -941,8 +941,8 @@ class _ScenePhasePreviewScrubber extends StatelessWidget {
                     icon,
                     size: 12,
                     color: isSelected
-                        ? const Color(0xFFFDE68A)
-                        : const Color(0xFFD1D5DB),
+                        ? AppColors.twillBorder
+                        : AppColors.gray300,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -952,7 +952,7 @@ class _ScenePhasePreviewScrubber extends StatelessWidget {
                       fontWeight:
                           isSelected ? FontWeight.w800 : FontWeight.w600,
                       color:
-                          isSelected ? Colors.white : const Color(0xFFD1D5DB),
+                          isSelected ? Colors.white : AppColors.gray300,
                     ),
                   ),
                 ],
@@ -1075,7 +1075,7 @@ class _SceneTopStatusPill extends StatelessWidget {
                               Icon(
                                 weatherVisual?.icon ?? Icons.wb_cloudy_outlined,
                                 size: 14,
-                                color: const Color(0xFF93C5FD),
+                                color: AppColors.skyLight,
                               ),
                               const SizedBox(width: 5),
                               Text(
@@ -1083,7 +1083,7 @@ class _SceneTopStatusPill extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFFE5E7EB),
+                                  color: AppColors.gray200,
                                 ),
                               ),
                             ],

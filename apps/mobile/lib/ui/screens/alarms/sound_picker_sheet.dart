@@ -195,7 +195,7 @@ class _SoundPickerSheetState extends State<SoundPickerSheet> {
                               ? AppColors.adaptive(
                                   context,
                                   dark: AppColors.accent,
-                                  light: const Color(0xFFC26A00),
+                                  light: AppColors.twillDeep,
                                 )
                               : AppColors.textSecondary(context),
                         ),
@@ -319,8 +319,8 @@ class _SoundPickerSheetState extends State<SoundPickerSheet> {
                                 fontSize: 11,
                                 color: AppColors.adaptive(
                                   context,
-                                  dark: const Color(0xFFFF8A65),
-                                  light: const Color(0xFFC2410C),
+                                  dark: AppColors.coral,
+                                  light: AppColors.orangeDeep,
                                 ),
                                 fontWeight: FontWeight.w500,
                               ),
@@ -332,8 +332,8 @@ class _SoundPickerSheetState extends State<SoundPickerSheet> {
                                     fontSize: 11,
                                     color: AppColors.adaptive(
                                       context,
-                                      dark: const Color(0xFFA78BFA),
-                                      light: const Color(0xFF7C3AED),
+                                      dark: AppColors.serenLight,
+                                      light: AppColors.serenDeep,
                                     ),
                                   ),
                                 )

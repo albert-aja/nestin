@@ -138,12 +138,12 @@ class RoutinesScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: (isMorning ? AppColors.accent : const Color(0xFF8338EC)).withValues(alpha: 0.18),
+                          color: (isMorning ? AppColors.accent : AppColors.electricPurple).withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           isMorning ? Icons.wb_sunny_rounded : Icons.bedtime_rounded,
-                          color: isMorning ? AppColors.accent : const Color(0xFF8338EC),
+                          color: isMorning ? AppColors.accent : AppColors.electricPurple,
                           size: 20,
                         ),
                       ),

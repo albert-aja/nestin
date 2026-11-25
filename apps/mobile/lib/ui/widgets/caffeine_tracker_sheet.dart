@@ -32,7 +32,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
   int _selectedOffsetMinutes = 0; // 0 = Now, 60 = -1h, 120 = -2h, -1 = custom
   TimeOfDay? _customTime;
 
-  static const Color _caffeineAmber = Color(0xFFD97706);
+  static const Color _caffeineAmber = AppColors.echo;
 
   T? _tryWatch<T>(BuildContext context) {
     try {
@@ -450,7 +450,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                       backgroundColor: AppColors.trackSurface(context),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         todayTotalMg > limitMg
-                            ? const Color(0xFFEF4444)
+                            ? AppColors.error
                             : _caffeineAmber,
                       ),
                     ),
@@ -588,7 +588,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.16),
+                      color: AppColors.twill.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -596,7 +596,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFFD97706),
+                        color: AppColors.echo,
                       ),
                     ),
                   ),
@@ -740,7 +740,6 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                       ),
                       Switch.adaptive(
                         value: caffeine.curfewEnabled,
-                        activeThumbColor: _caffeineAmber,
                         onChanged: (val) => caffeine.toggleCurfewEnabled(
                           val,
                           targetBedtime: targetBedtime,
@@ -791,7 +790,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                           ),
                         ),
                         selected: caffeine.config.syncCurfewWithBedtime,
-                        selectedColor: const Color(0xFF8B5CF6),
+                        selectedColor: AppColors.seren,
                         backgroundColor: AppColors.trackSurface(context),
                         onSelected: (selected) => caffeine.updateConfig(
                           caffeine.config.copyWith(
@@ -837,7 +836,7 @@ class _CaffeineTrackerSheetState extends State<CaffeineTrackerSheet> {
                             ),
                           ),
                           selected: (caffeine.halfLifeHours - hl).abs() < 0.01,
-                          selectedColor: const Color(0xFF8B5CF6),
+                          selectedColor: AppColors.seren,
                           backgroundColor: AppColors.trackSurface(context),
                           onSelected: (_) => caffeine.updateConfig(
                             caffeine.config.copyWith(halfLifeHours: hl),
@@ -1057,7 +1056,7 @@ class _TimeOffsetChip extends StatelessWidget {
         ),
       ),
       selected: selected,
-      selectedColor: const Color(0xFFD97706),
+      selectedColor: AppColors.echo,
       backgroundColor: AppColors.trackSurface(context),
       onSelected: (_) => onTap(),
     );

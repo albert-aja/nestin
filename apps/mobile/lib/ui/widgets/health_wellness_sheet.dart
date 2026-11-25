@@ -39,11 +39,11 @@ class HealthWellnessSheet extends StatefulWidget {
 
 class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     with SingleTickerProviderStateMixin {
-  static const Color _serenPurple = Color(0xFF8B5CF6);
-  static const Color _serenLight = Color(0xFFA78BFA);
-  static const Color _emerald = Color(0xFF10B981);
-  static const Color _skyBlue = Color(0xFF38BDF8);
-  static const Color _amber = Color(0xFFF59E0B);
+  static const Color _serenPurple = AppColors.seren;
+  static const Color _serenLight = AppColors.serenLight;
+  static const Color _emerald = AppColors.pippin;
+  static const Color _skyBlue = AppColors.sky;
+  static const Color _amber = AppColors.twill;
 
   late TabController _tabController;
   int? _selectedStepDayIndex;
@@ -450,11 +450,11 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     final serenAccent =
         AppColors.adaptive(context, dark: _serenLight, light: _serenPurple);
     final emeraldAccent = AppColors.adaptive(
-        context, dark: _emerald, light: const Color(0xFF047857));
+        context, dark: _emerald, light: AppColors.pippinDark);
     final skyAccent = AppColors.adaptive(
-        context, dark: _skyBlue, light: const Color(0xFF0284C7));
+        context, dark: _skyBlue, light: AppColors.skyDark);
     final amberAccent = AppColors.adaptive(
-        context, dark: _amber, light: const Color(0xFFB45309));
+        context, dark: _amber, light: AppColors.twillDark);
     final daySuffix = l10n.tr('d');
 
     return ListView(
@@ -858,11 +858,11 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     final serenAccent =
         AppColors.adaptive(context, dark: _serenLight, light: _serenPurple);
     final emeraldAccent = AppColors.adaptive(
-        context, dark: _emerald, light: const Color(0xFF047857));
+        context, dark: _emerald, light: AppColors.pippinDark);
     final skyAccent = AppColors.adaptive(
-        context, dark: _skyBlue, light: const Color(0xFF0284C7));
+        context, dark: _skyBlue, light: AppColors.skyDark);
     final amberAccent = AppColors.adaptive(
-        context, dark: _amber, light: const Color(0xFFB45309));
+        context, dark: _amber, light: AppColors.twillDark);
 
     return ListView(
       children: [
@@ -1012,7 +1012,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                         if (latestSleep.deepMinutes > 0)
                           Expanded(
                             flex: latestSleep.deepMinutes,
-                            child: Container(color: const Color(0xFF6366F1)),
+                            child: Container(color: AppColors.indigo),
                           ),
                         if (latestSleep.remMinutes > 0)
                           Expanded(
@@ -1038,7 +1038,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   spacing: 12,
                   runSpacing: 4,
                   children: [
-                    _stageLegend(context, const Color(0xFF6366F1),
+                    _stageLegend(context, AppColors.indigo,
                         context.l10n.tr('deep'),
                         '${latestSleep.deepMinutes}m'),
                     _stageLegend(context, _serenPurple, 'REM',
@@ -1173,7 +1173,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                         log != null && log.meetsTarget(goals.sleepTargetMinutes);
                     final color = mins == 0
                         ? AppColors.trackSurface(context)
-                        : (meetsTarget ? _emerald : const Color(0xFF6366F1));
+                        : (meetsTarget ? _emerald : AppColors.indigo);
 
                     return Expanded(
                       child: GestureDetector(
@@ -1338,11 +1338,11 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     final serenAccent =
         AppColors.adaptive(context, dark: _serenLight, light: _serenPurple);
     final emeraldAccent = AppColors.adaptive(
-        context, dark: _emerald, light: const Color(0xFF047857));
+        context, dark: _emerald, light: AppColors.pippinDark);
     final skyAccent = AppColors.adaptive(
-        context, dark: _skyBlue, light: const Color(0xFF0284C7));
+        context, dark: _skyBlue, light: AppColors.skyDark);
     final hrAccent = AppColors.adaptive(
-        context, dark: const Color(0xFFEF4444), light: const Color(0xFFDC2626));
+        context, dark: AppColors.error, light: AppColors.errorDark);
     final noReading = l10n.tr('no_reading');
 
     return ListView(
@@ -1595,7 +1595,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
     final emeraldAccent = AppColors.adaptive(
       context,
       dark: _emerald,
-      light: const Color(0xFF047857),
+      light: AppColors.pippinDark,
     );
 
     return ListView(
@@ -1700,7 +1700,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                           color: AppColors.adaptive(
                             context,
                             dark: Colors.white,
-                            light: const Color(0xFF4C1D95),
+                            light: AppColors.violetMidnight,
                           ),
                         ),
                       ),
@@ -1716,7 +1716,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                           color: AppColors.adaptive(
                             context,
                             dark: Colors.white,
-                            light: const Color(0xFF4C1D95),
+                            light: AppColors.violetMidnight,
                           ),
                         ),
                       ),
@@ -1762,7 +1762,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        _isBreathingActive ? const Color(0xFFEF4444) : _serenPurple,
+                        _isBreathingActive ? AppColors.error : _serenPurple,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
@@ -1845,7 +1845,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
         return AlertDialog(
           backgroundColor: AppColors.adaptive(
             ctx,
-            dark: const Color(0xFF1E2028),
+            dark: AppColors.darkPanel,
             light: Colors.white,
           ),
           shape:
@@ -1867,8 +1867,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
               filled: true,
               fillColor: AppColors.adaptive(
                 ctx,
-                dark: const Color(0xFF16171D),
-                light: const Color(0xFFF1F4F8),
+                dark: AppColors.darkSheet,
+                light: AppColors.lightPanel,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1937,8 +1937,8 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
           final isDark = AppColors.isDark(ctx);
           final fieldFill = AppColors.adaptive(
             ctx,
-            dark: const Color(0xFF16171D),
-            light: const Color(0xFFF1F4F8),
+            dark: AppColors.darkSheet,
+            light: AppColors.lightPanel,
           );
           final serenAccent = AppColors.adaptive(
               ctx, dark: _serenLight, light: _serenPurple);
@@ -1946,7 +1946,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
           return AlertDialog(
             backgroundColor: AppColors.adaptive(
               ctx,
-              dark: const Color(0xFF1E2028),
+              dark: AppColors.darkPanel,
               light: Colors.white,
             ),
             shape:
@@ -2156,13 +2156,13 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
           final isDark = AppColors.isDark(ctx);
           final fieldFill = AppColors.adaptive(
             ctx,
-            dark: const Color(0xFF16171D),
-            light: const Color(0xFFF1F4F8),
+            dark: AppColors.darkSheet,
+            light: AppColors.lightPanel,
           );
           return AlertDialog(
             backgroundColor: AppColors.adaptive(
               ctx,
-              dark: const Color(0xFF1E2028),
+              dark: AppColors.darkPanel,
               light: Colors.white,
             ),
             shape:
@@ -2320,7 +2320,7 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
           return AlertDialog(
             backgroundColor: AppColors.adaptive(
               ctx,
-              dark: const Color(0xFF1E2028),
+              dark: AppColors.darkPanel,
               light: Colors.white,
             ),
             shape:
@@ -2401,7 +2401,6 @@ class _HealthWellnessSheetState extends State<HealthWellnessSheet>
                           fontSize: 11, color: AppColors.textSecondary(ctx)),
                     ),
                     value: draft.moveReminderEnabled,
-                    activeThumbColor: _serenPurple,
                     onChanged: (v) => setDialogState(() {
                       draft = draft.copyWith(moveReminderEnabled: v);
                     }),

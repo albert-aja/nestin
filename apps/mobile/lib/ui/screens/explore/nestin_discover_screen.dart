@@ -58,15 +58,15 @@ class NestinDiscoverBannerCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF0EA5E9).withValues(alpha: 0.14),
-                  const Color(0xFF10B981).withValues(alpha: 0.12),
+                  AppColors.skyMid.withValues(alpha: 0.14),
+                  AppColors.pippin.withValues(alpha: 0.12),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                color: AppColors.skyMid.withValues(alpha: 0.35),
               ),
             ),
             child: Column(
@@ -77,7 +77,7 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.18),
+                        color: AppColors.skyMid.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text('🧭', style: TextStyle(fontSize: 22)),
@@ -106,7 +106,7 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981)
+                                  color: AppColors.pippin
                                       .withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
@@ -117,8 +117,8 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.adaptive(
                                       context,
-                                      dark: const Color(0xFF34D399),
-                                      light: const Color(0xFF047857),
+                                      dark: AppColors.pippinLight,
+                                      light: AppColors.pippinDark,
                                     ),
                                   ),
                                 ),
@@ -149,7 +149,7 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.16),
+                      color: AppColors.twill.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -157,7 +157,7 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                         const Icon(
                           Icons.pause_circle_filled_rounded,
                           size: 15,
-                          color: Color(0xFFF59E0B),
+                          color: AppColors.twill,
                         ),
                         const SizedBox(width: 6),
                         Expanded(
@@ -201,7 +201,7 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                             horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color:
-                              const Color(0xFF0EA5E9).withValues(alpha: 0.18),
+                              AppColors.skyMid.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -212,7 +212,7 @@ class NestinDiscoverBannerCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF0284C7),
+                            color: AppColors.skyDark,
                           ),
                         ),
                       ),
@@ -491,7 +491,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
         color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.45),
+          color: AppColors.pippin.withValues(alpha: 0.45),
         ),
       ),
       child: Column(
@@ -511,7 +511,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.16),
+                        color: AppColors.pippin.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -519,7 +519,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF10B981),
+                          color: AppColors.pippin,
                         ),
                       ),
                     ),
@@ -549,7 +549,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
+                color: AppColors.twill.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -647,7 +647,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
         color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFFD97706).withValues(alpha: 0.45),
+          color: AppColors.echo.withValues(alpha: 0.45),
         ),
       ),
       child: Column(
@@ -667,7 +667,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD97706).withValues(alpha: 0.16),
+                        color: AppColors.echo.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -675,7 +675,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFD97706),
+                          color: AppColors.echo,
                         ),
                       ),
                     ),
@@ -705,7 +705,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
+                color: AppColors.twill.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -839,13 +839,13 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
     final estDays = profile.estimatedDaysToFinish(dailyMins);
 
     String tierBadgeKey = 'bm_tier_1_badge';
-    Color tierColor = const Color(0xFF10B981);
+    Color tierColor = AppColors.pippin;
     if (profile.tierSource == 2) {
       tierBadgeKey = 'bm_tier_2_badge';
-      tierColor = const Color(0xFFD97706);
+      tierColor = AppColors.echo;
     } else if (profile.tierSource == 3) {
       tierBadgeKey = 'bm_tier_3_badge';
-      tierColor = const Color(0xFF6366F1);
+      tierColor = AppColors.indigo;
     }
 
     return Container(
@@ -1002,7 +1002,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD97706).withValues(alpha: 0.16),
+                  color: AppColors.echo.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -1012,7 +1012,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFFD97706),
+                    color: AppColors.echo,
                   ),
                 ),
               ),
@@ -1051,7 +1051,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   const Icon(
                     Icons.check_circle_outline_rounded,
                     size: 15,
-                    color: Color(0xFFD97706),
+                    color: AppColors.echo,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -1092,7 +1092,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'btn_bm_pippin_add_book',
             icon: Icons.auto_stories_rounded,
-            accentColor: const Color(0xFF10B981),
+            accentColor: AppColors.pippin,
             label: result.addedToPippinBookId != null
                 ? l10n.tr('bm_action_pippin_added')
                 : l10n.tr('bm_action_pippin_add_book', {
@@ -1115,7 +1115,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'btn_bm_seren_play_sound',
             icon: Icons.spa_rounded,
-            accentColor: const Color(0xFFEC4899),
+            accentColor: AppColors.pink,
             label: result.playedSerenSoundId != null
                 ? l10n.tr('bm_action_seren_sound_done')
                 : l10n.tr('bm_action_seren_sound', {
@@ -1137,7 +1137,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'btn_bm_roo_schedule_habit',
             icon: Icons.schedule_rounded,
-            accentColor: const Color(0xFF8B5CF6),
+            accentColor: AppColors.seren,
             label: result.createdRooRoutineId != null ||
                     result.createdRooTaskId != null
                 ? l10n.tr('bm_action_roo_habit_done')
@@ -1192,7 +1192,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
         color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFF3B82F6).withValues(alpha: 0.45),
+          color: AppColors.scout.withValues(alpha: 0.45),
         ),
       ),
       child: Column(
@@ -1218,7 +1218,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.16),
+                        color: AppColors.scout.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -1226,7 +1226,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF3B82F6),
+                          color: AppColors.scout,
                         ),
                       ),
                     ),
@@ -1256,7 +1256,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.10),
+                color: AppColors.scout.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -1267,7 +1267,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         ? Icons.umbrella_rounded
                         : Icons.wb_sunny_rounded,
                     size: 15,
-                    color: const Color(0xFF3B82F6),
+                    color: AppColors.scout,
                   ),
                   const SizedBox(width: 6),
                   Flexible(
@@ -1292,7 +1292,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                color: AppColors.scout.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -1488,7 +1488,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.16),
+                  color: AppColors.scout.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -1498,7 +1498,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF3B82F6),
+                    color: AppColors.scout,
                   ),
                 ),
               ),
@@ -1528,7 +1528,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF3B82F6),
+                      color: AppColors.scout,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -1558,7 +1558,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   const Icon(
                     Icons.check_circle_outline_rounded,
                     size: 15,
-                    color: Color(0xFF3B82F6),
+                    color: AppColors.scout,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -1637,7 +1637,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'btn_wg_scout_before_you_go',
             icon: Icons.explore_rounded,
-            accentColor: const Color(0xFF3B82F6),
+            accentColor: AppColors.scout,
             label: result.createdScoutPresetId != null
                 ? l10n.tr('wg_action_scout_done')
                 : l10n.tr('wg_action_scout_departure'),
@@ -1673,7 +1673,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'btn_wg_roo_calendar',
             icon: Icons.calendar_month_rounded,
-            accentColor: const Color(0xFFE04A3A),
+            accentColor: AppColors.roo,
             label: result.createdRooCalendarEventId != null
                 ? l10n.tr('wg_action_roo_calendar_done')
                 : l10n.tr('wg_action_roo_calendar', {
@@ -1706,7 +1706,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'btn_wg_twill_pack_budget',
             icon: Icons.backpack_rounded,
-            accentColor: const Color(0xFFF59E0B),
+            accentColor: AppColors.twill,
             label: result.createdTwillChecklistId != null
                 ? l10n.tr('wg_action_twill_done')
                 : l10n.tr('wg_action_twill_pack_budget'),
@@ -1753,7 +1753,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
         color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFF6366F1).withValues(alpha: 0.45),
+          color: AppColors.indigo.withValues(alpha: 0.45),
         ),
       ),
       child: Column(
@@ -1773,7 +1773,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.16),
+                        color: AppColors.indigo.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -1781,7 +1781,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF6366F1),
+                          color: AppColors.indigo,
                         ),
                       ),
                     ),
@@ -1854,7 +1854,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.10),
+                    color: AppColors.indigo.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -1879,7 +1879,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF6366F1),
+                              color: AppColors.indigo,
                             ),
                           ),
                         ],
@@ -1995,7 +1995,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
         color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
+          color: AppColors.seren.withValues(alpha: 0.45),
         ),
       ),
       child: Column(
@@ -2015,7 +2015,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                        color: AppColors.seren.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -2023,7 +2023,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF8B5CF6),
+                          color: AppColors.seren,
                         ),
                       ),
                     ),
@@ -2094,7 +2094,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.10),
+                    color: AppColors.seren.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -2122,7 +2122,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF8B5CF6),
+                              color: AppColors.seren,
                             ),
                           ),
                         ],
@@ -2312,7 +2312,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.16),
+                  color: AppColors.pippin.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -2322,7 +2322,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF10B981),
+                    color: AppColors.pippin,
                   ),
                 ),
               ),
@@ -2350,7 +2350,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                   const Icon(
                     Icons.check_circle_outline_rounded,
                     size: 15,
-                    color: Color(0xFF10B981),
+                    color: AppColors.pippin,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -2391,7 +2391,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'action_pippin_add_hobby',
             icon: Icons.emoji_nature_rounded,
-            accentColor: const Color(0xFF10B981),
+            accentColor: AppColors.pippin,
             label: result.addedToPippinHobbyId != null
                 ? l10n.tr('exp_action_pippin_added')
                 : l10n.tr('exp_action_pippin_add_hobby', {
@@ -2416,7 +2416,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'action_twill_checklist',
             icon: Icons.checklist_rounded,
-            accentColor: const Color(0xFF0EA5E9),
+            accentColor: AppColors.skyMid,
             label: result.createdTwillChecklistId != null
                 ? l10n.tr('exp_action_twill_checklist_done')
                 : l10n.tr('exp_action_twill_checklist'),
@@ -2437,7 +2437,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'action_twill_wishlist',
             icon: Icons.savings_outlined,
-            accentColor: const Color(0xFFF59E0B),
+            accentColor: AppColors.twill,
             label: result.createdTwillWishlistId != null
                 ? l10n.tr('exp_action_twill_wishlist_done')
                 : l10n.tr('exp_action_twill_wishlist', {
@@ -2460,7 +2460,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'action_roo_task',
             icon: Icons.task_alt_rounded,
-            accentColor: const Color(0xFF8B5CF6),
+            accentColor: AppColors.seren,
             label: result.createdRooTaskId != null
                 ? l10n.tr('exp_action_roo_task_done')
                 : l10n.tr('exp_action_roo_task'),
@@ -2486,7 +2486,7 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
             context: context,
             keyName: 'action_seren_sound',
             icon: Icons.spa_rounded,
-            accentColor: const Color(0xFFEC4899),
+            accentColor: AppColors.pink,
             label: result.playedSerenSoundId != null
                 ? l10n.tr('exp_action_seren_sound_done')
                 : l10n.tr('exp_action_seren_sound'),
@@ -2606,8 +2606,8 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: (isLive
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFF0EA5E9))
+                            ? AppColors.pippin
+                            : AppColors.skyMid)
                         .withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -2617,8 +2617,8 @@ class _NestinDiscoverScreenState extends State<NestinDiscoverScreen> {
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: isLive
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFF0284C7),
+                          ? AppColors.pippin
+                          : AppColors.skyDark,
                     ),
                   ),
                 ),
@@ -2932,12 +2932,12 @@ class HobbyFinderFlowSheet extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   color: selectedIds.contains(option.id)
-                      ? const Color(0xFF10B981).withValues(alpha: 0.16)
+                      ? AppColors.pippin.withValues(alpha: 0.16)
                       : AppColors.trackSurface(context),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: selectedIds.contains(option.id)
-                        ? const Color(0xFF10B981)
+                        ? AppColors.pippin
                         : AppColors.border(context),
                   ),
                 ),
@@ -2958,7 +2958,7 @@ class HobbyFinderFlowSheet extends StatelessWidget {
                         selectedIds.contains(option.id))
                       CircleAvatar(
                         radius: 11,
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppColors.pippin,
                         child: Text(
                           '${selectedIds.indexOf(option.id) + 1}',
                           style: const TextStyle(
@@ -2971,7 +2971,7 @@ class HobbyFinderFlowSheet extends StatelessWidget {
                     else if (selectedIds.contains(option.id))
                       const Icon(
                         Icons.check_circle_rounded,
-                        color: Color(0xFF10B981),
+                        color: AppColors.pippin,
                         size: 18,
                       ),
                   ],
@@ -3075,7 +3075,7 @@ class KnowledgeArenaFlowSheet extends StatelessWidget {
                     value: (currentIndex + 1) / cards.length,
                     minHeight: 6,
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6366F1),
+                      AppColors.indigo,
                     ),
                   ),
                 ),
@@ -3110,12 +3110,12 @@ class KnowledgeArenaFlowSheet extends StatelessWidget {
                               Color borderColor = AppColors.border(context);
                               Color bgColor = AppColors.trackSurface(context);
                               if (showGreen) {
-                                borderColor = const Color(0xFF10B981);
-                                bgColor = const Color(0xFF10B981)
+                                borderColor = AppColors.pippin;
+                                bgColor = AppColors.pippin
                                     .withValues(alpha: 0.16);
                               } else if (showAmber) {
-                                borderColor = const Color(0xFFF59E0B);
-                                bgColor = const Color(0xFFF59E0B)
+                                borderColor = AppColors.twill;
+                                bgColor = AppColors.twill
                                     .withValues(alpha: 0.16);
                               }
 
@@ -3153,13 +3153,13 @@ class KnowledgeArenaFlowSheet extends StatelessWidget {
                                         if (showGreen)
                                           const Icon(
                                             Icons.check_circle_rounded,
-                                            color: Color(0xFF10B981),
+                                            color: AppColors.pippin,
                                             size: 18,
                                           )
                                         else if (showAmber)
                                           const Icon(
                                             Icons.lightbulb_outline_rounded,
-                                            color: Color(0xFFF59E0B),
+                                            color: AppColors.twill,
                                             size: 18,
                                           ),
                                       ],
@@ -3178,11 +3178,11 @@ class KnowledgeArenaFlowSheet extends StatelessWidget {
                             key: const ValueKey('ka_explanation_card'),
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1)
+                              color: AppColors.indigo
                                   .withValues(alpha: 0.10),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: const Color(0xFF6366F1)
+                                color: AppColors.indigo
                                     .withValues(alpha: 0.35),
                               ),
                             ),
@@ -3197,8 +3197,8 @@ class KnowledgeArenaFlowSheet extends StatelessWidget {
                                           : Icons.menu_book_rounded,
                                       size: 18,
                                       color: isCorrect
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFF6366F1),
+                                          ? AppColors.pippin
+                                          : AppColors.indigo,
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
@@ -3210,8 +3210,8 @@ class KnowledgeArenaFlowSheet extends StatelessWidget {
                                           fontSize: 12,
                                           fontWeight: FontWeight.w800,
                                           color: isCorrect
-                                              ? const Color(0xFF10B981)
-                                              : const Color(0xFF6366F1),
+                                              ? AppColors.pippin
+                                              : AppColors.indigo,
                                         ),
                                       ),
                                     ),
@@ -3524,7 +3524,7 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                     value: (currentIndex + 1) / puzzles.length,
                     minHeight: 6,
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF8B5CF6),
+                      AppColors.seren,
                     ),
                   ),
                 ),
@@ -3542,7 +3542,7 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                       ),
                       decoration: BoxDecoration(
                         color:
-                            const Color(0xFF8B5CF6).withValues(alpha: 0.14),
+                            AppColors.seren.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -3553,7 +3553,7 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                                 ? Icons.timer_outlined
                                 : Icons.spa_outlined,
                             size: 14,
-                            color: const Color(0xFF8B5CF6),
+                            color: AppColors.seren,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -3565,7 +3565,7 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF8B5CF6),
+                              color: AppColors.seren,
                             ),
                           ),
                         ],
@@ -3598,11 +3598,11 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                             vertical: 14,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8B5CF6)
+                            color: AppColors.seren
                                 .withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: const Color(0xFF8B5CF6)
+                              color: AppColors.seren
                                   .withValues(alpha: 0.30),
                             ),
                           ),
@@ -3643,12 +3643,12 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                               Color borderColor = AppColors.border(context);
                               Color bgColor = AppColors.trackSurface(context);
                               if (showGreen) {
-                                borderColor = const Color(0xFF10B981);
-                                bgColor = const Color(0xFF10B981)
+                                borderColor = AppColors.pippin;
+                                bgColor = AppColors.pippin
                                     .withValues(alpha: 0.16);
                               } else if (showAmber) {
-                                borderColor = const Color(0xFFF59E0B);
-                                bgColor = const Color(0xFFF59E0B)
+                                borderColor = AppColors.twill;
+                                bgColor = AppColors.twill
                                     .withValues(alpha: 0.16);
                               }
 
@@ -3686,13 +3686,13 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                                         if (showGreen)
                                           const Icon(
                                             Icons.check_circle_rounded,
-                                            color: Color(0xFF10B981),
+                                            color: AppColors.pippin,
                                             size: 18,
                                           )
                                         else if (showAmber)
                                           const Icon(
                                             Icons.lightbulb_outline_rounded,
-                                            color: Color(0xFFF59E0B),
+                                            color: AppColors.twill,
                                             size: 18,
                                           ),
                                       ],
@@ -3711,11 +3711,11 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                             key: const ValueKey('bp_explanation_card'),
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6)
+                              color: AppColors.seren
                                   .withValues(alpha: 0.10),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: const Color(0xFF8B5CF6)
+                                color: AppColors.seren
                                     .withValues(alpha: 0.35),
                               ),
                             ),
@@ -3730,8 +3730,8 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                                           : Icons.lightbulb_outline_rounded,
                                       size: 18,
                                       color: isCorrect
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFF8B5CF6),
+                                          ? AppColors.pippin
+                                          : AppColors.seren,
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
@@ -3743,8 +3743,8 @@ class _BrainPlaygroundFlowSheetState extends State<BrainPlaygroundFlowSheet> {
                                           fontSize: 12,
                                           fontWeight: FontWeight.w800,
                                           color: isCorrect
-                                              ? const Color(0xFF10B981)
-                                              : const Color(0xFF8B5CF6),
+                                              ? AppColors.pippin
+                                              : AppColors.seren,
                                         ),
                                       ),
                                     ),

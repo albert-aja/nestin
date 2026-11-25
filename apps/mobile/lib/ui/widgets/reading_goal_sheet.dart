@@ -9,8 +9,8 @@ import 'reading_sparkline_history.dart';
 class ReadingGoalSettingsSheet extends StatelessWidget {
   const ReadingGoalSettingsSheet({super.key});
 
-  static const Color _pippinEmerald = Color(0xFF10B981);
-  static const Color _pippinGold = Color(0xFFF59E0B);
+  static const Color _pippinEmerald = AppColors.pippin;
+  static const Color _pippinGold = AppColors.twill;
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
@@ -27,12 +27,12 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
     final emeraldInk = AppColors.adaptive(
       context,
       dark: _pippinEmerald,
-      light: const Color(0xFF047857),
+      light: AppColors.pippinDark,
     );
     final goldInk = AppColors.adaptive(
       context,
       dark: _pippinGold,
-      light: const Color(0xFFB45309),
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -352,7 +352,6 @@ class ReadingGoalSettingsSheet extends StatelessWidget {
                           ),
                           Switch(
                             value: eveningEnabled,
-                            activeThumbColor: _pippinEmerald,
                             onChanged: (val) =>
                                 provider.toggleEveningReminder(val),
                           ),

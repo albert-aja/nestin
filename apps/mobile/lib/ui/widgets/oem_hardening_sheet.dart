@@ -65,7 +65,7 @@ class OemHardeningSheet extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: isProtected
                                   ? AppColors.success.withValues(alpha: 0.18)
-                                  : const Color(0xFFE04A3A).withValues(alpha: 0.18),
+                                  : AppColors.roo.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
@@ -74,7 +74,7 @@ class OemHardeningSheet extends StatelessWidget {
                                   : Icons.shield_rounded,
                               color: isProtected
                                   ? AppColors.success
-                                  : const Color(0xFFE04A3A),
+                                  : AppColors.roo,
                               size: 22,
                             ),
                           ),
@@ -120,12 +120,12 @@ class OemHardeningSheet extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isProtected
                         ? AppColors.success.withValues(alpha: 0.12)
-                        : const Color(0xFFE04A3A).withValues(alpha: 0.12),
+                        : AppColors.roo.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isProtected
                           ? AppColors.success.withValues(alpha: 0.3)
-                          : const Color(0xFFE04A3A).withValues(alpha: 0.3),
+                          : AppColors.roo.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -136,7 +136,7 @@ class OemHardeningSheet extends StatelessWidget {
                             : Icons.warning_amber_rounded,
                         color: isProtected
                             ? AppColors.success
-                            : const Color(0xFFE04A3A),
+                            : AppColors.roo,
                         size: 24,
                       ),
                       const SizedBox(width: 12),
@@ -153,7 +153,7 @@ class OemHardeningSheet extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                                 color: isProtected
                                     ? AppColors.success
-                                    : const Color(0xFFE04A3A),
+                                    : AppColors.roo,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -214,7 +214,7 @@ class OemHardeningSheet extends StatelessWidget {
                               color: AppColors.adaptive(
                                 context,
                                 dark: AppColors.accent,
-                                light: const Color(0xFFC26A00),
+                                light: AppColors.twillDeep,
                               )),
                           const SizedBox(width: 8),
                           Text(
@@ -225,7 +225,7 @@ class OemHardeningSheet extends StatelessWidget {
                               color: AppColors.adaptive(
                                 context,
                                 dark: AppColors.accent,
-                                light: const Color(0xFFC26A00),
+                                light: AppColors.twillDeep,
                               ),
                             ),
                           ),
@@ -330,7 +330,7 @@ class OemHardeningSheet extends StatelessWidget {
                           color: AppColors.adaptive(
                             context,
                             dark: AppColors.accent,
-                            light: const Color(0xFFC26A00),
+                            light: AppColors.twillDeep,
                           ),
                         ),
                       ),
@@ -388,7 +388,6 @@ class OemHardeningSheet extends StatelessWidget {
                           ),
                           Switch(
                             value: isKeepAliveEnabled,
-                            activeThumbColor: AppColors.accent,
                             onChanged: (val) =>
                                 provider.toggleKeepAliveService(val),
                           ),
@@ -409,7 +408,7 @@ class OemHardeningSheet extends StatelessWidget {
                               foregroundColor: AppColors.adaptive(
                                 context,
                                 dark: AppColors.accent,
-                                light: const Color(0xFFC26A00),
+                                light: AppColors.twillDeep,
                               ),
                               side: BorderSide(color: AppColors.border(context)),
                               padding: const EdgeInsets.symmetric(
@@ -457,7 +456,7 @@ class OemHardeningSheet extends StatelessWidget {
                       foregroundColor: AppColors.adaptive(
                         context,
                         dark: AppColors.accent,
-                        light: const Color(0xFFC26A00),
+                        light: AppColors.twillDeep,
                       ),
                       side: BorderSide(color: AppColors.border(context)),
                       shape: RoundedRectangleBorder(

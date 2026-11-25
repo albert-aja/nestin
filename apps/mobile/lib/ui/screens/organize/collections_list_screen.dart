@@ -531,7 +531,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                 avatar: const Icon(
                   Icons.explore_rounded,
                   size: 15,
-                  color: Color(0xFF10B981),
+                  color: AppColors.pippin,
                 ),
                 label: Text(
                   l10n.tr('dream_bucket_list'),
@@ -801,7 +801,7 @@ class _CollectionsListScreenState extends State<CollectionsListScreen> {
                     color: AppColors.adaptive(
                       context,
                       dark: AppColors.accent,
-                      light: const Color(0xFFB45309),
+                      light: AppColors.twillDark,
                     ),
                   ),
                   tooltip: l10n.tr('add_entry'),

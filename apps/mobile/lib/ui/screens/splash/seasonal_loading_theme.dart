@@ -49,6 +49,15 @@ extension SeasonalSplashThemeExt on SeasonalSplashTheme {
         SeasonalSplashTheme.christmas => 'splash_season_opt_christmas',
       };
 
+  bool get isEveryday => switch (this) {
+        SeasonalSplashTheme.everydaySunnyPicnic ||
+        SeasonalSplashTheme.everydayTreehouse ||
+        SeasonalSplashTheme.everydayFireplace ||
+        SeasonalSplashTheme.everydayStarlight =>
+          true,
+        _ => false,
+      };
+
   static SeasonalSplashTheme? fromNameOrNull(String? name) {
     if (name == null || name.isEmpty || name == 'auto') return null;
     for (final value in SeasonalSplashTheme.values) {
@@ -56,6 +65,13 @@ extension SeasonalSplashThemeExt on SeasonalSplashTheme {
     }
     return null;
   }
+}
+
+/// Category distinguishing Everyday (non-seasonal) vs Seasonal/Holiday
+/// downloadable wallpaper packs.
+enum WallpaperPackCategory {
+  everyday,
+  seasonal,
 }
 
 /// Visual and localized specification for a seasonal loading wallpaper.
@@ -128,11 +144,14 @@ class SeasonalLoadingSpec {
   }
 }
 
-/// Metadata for a curated seasonal/holiday wallpaper pack in the `/api/v1/media`
-/// backend catalog that users can download and activate for Phase 2 of [SplashScreen].
+/// Metadata for a curated downloadable wallpaper pack (both Everyday
+/// non-seasonal and Seasonal/Holiday) in the `/api/v1/media` backend catalog
+/// that users can download, preview, and activate for Phase 2 of [SplashScreen]
+/// or as a Daily Affirmation Lock-Screen backdrop.
 class RemoteHolidayWallpaperPack {
   final String id;
   final String slug;
+  final WallpaperPackCategory category;
   final String optionLabelKey;
   final String badgeKey;
   final String titleKey;
@@ -153,6 +172,7 @@ class RemoteHolidayWallpaperPack {
   const RemoteHolidayWallpaperPack({
     required this.id,
     required this.slug,
+    this.category = WallpaperPackCategory.seasonal,
     required this.optionLabelKey,
     required this.badgeKey,
     required this.titleKey,
@@ -171,12 +191,16 @@ class RemoteHolidayWallpaperPack {
     required this.secondaryAccentColor,
   });
 
+  bool get isEveryday => category == WallpaperPackCategory.everyday;
+  bool get isSeasonal => category == WallpaperPackCategory.seasonal;
+
   String get formattedSizeKb => '${(byteSize / 1024).round()} KB';
 
   RemoteHolidayWallpaperPack mergeRemoteMetadata(Map<String, dynamic> json) {
     return RemoteHolidayWallpaperPack(
       id: (json['id'] as String?) ?? id,
       slug: (json['slug'] as String?) ?? slug,
+      category: category,
       optionLabelKey: optionLabelKey,
       badgeKey: badgeKey,
       titleKey: titleKey,
@@ -333,7 +357,495 @@ class RemoteHolidayWallpaperCatalog {
       accentColor: Color(0xFF10B981),
       secondaryAccentColor: Color(0xFF6EE7B7),
     ),
+    // -------------------------------------------------------------------------
+    // Everyday (Non-Seasonal) Downloadable Wallpaper Packs
+    // -------------------------------------------------------------------------
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000007',
+      slug: 'botanical-greenhouse',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_botanical_greenhouse_opt',
+      badgeKey: 'splash_pack_botanical_greenhouse_badge',
+      titleKey: 'splash_pack_botanical_greenhouse_title',
+      subtitleKey: 'splash_pack_botanical_greenhouse_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_botanical_greenhouse.jpg',
+      mascotAsset: 'assets/mascots/sprites/pippin/discover.png',
+      storagePath: 'wallpapers/everyday/everyday_botanical_greenhouse.jpg',
+      byteSize: 258048,
+      mascotDomain: 'pippin',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF0E2119),
+        Color(0xFF173428),
+        Color(0xFF1F2B20),
+      ],
+      lightGradient: [
+        Color(0xFFECFDF5),
+        Color(0xFFD1FAE5),
+        Color(0xFFFEF9C3),
+      ],
+      accentColor: Color(0xFF10B981),
+      secondaryAccentColor: Color(0xFF6EE7B7),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000008',
+      slug: 'cozy-library-rain',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_cozy_library_opt',
+      badgeKey: 'splash_pack_cozy_library_badge',
+      titleKey: 'splash_pack_cozy_library_title',
+      subtitleKey: 'splash_pack_cozy_library_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_cozy_library_rain.jpg',
+      mascotAsset: 'assets/mascots/sprites/echo/reflect.png',
+      storagePath: 'wallpapers/everyday/everyday_cozy_library_rain.jpg',
+      byteSize: 266240,
+      mascotDomain: 'echo',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayFireplace,
+      darkGradient: [
+        Color(0xFF18141F),
+        Color(0xFF282032),
+        Color(0xFF211A18),
+      ],
+      lightGradient: [
+        Color(0xFFFEF3C7),
+        Color(0xFFF3E8FF),
+        Color(0xFFE2E8F0),
+      ],
+      accentColor: Color(0xFFD97706),
+      secondaryAccentColor: Color(0xFFA78BFA),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000009',
+      slug: 'morning-bakery-veranda',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_morning_bakery_opt',
+      badgeKey: 'splash_pack_morning_bakery_badge',
+      titleKey: 'splash_pack_morning_bakery_title',
+      subtitleKey: 'splash_pack_morning_bakery_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_morning_bakery_veranda.jpg',
+      mascotAsset: 'assets/mascots/sprites/twill/organized.png',
+      storagePath: 'wallpapers/everyday/everyday_morning_bakery_veranda.jpg',
+      byteSize: 247808,
+      mascotDomain: 'twill',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayTreehouse,
+      darkGradient: [
+        Color(0xFF221811),
+        Color(0xFF352419),
+        Color(0xFF241D18),
+      ],
+      lightGradient: [
+        Color(0xFFFFFBEB),
+        Color(0xFFFEF3C7),
+        Color(0xFFFFEDD5),
+      ],
+      accentColor: Color(0xFFF59E0B),
+      secondaryAccentColor: Color(0xFFFDE68A),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000010',
+      slug: 'hilltop-stargazing',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_hilltop_stargazing_opt',
+      badgeKey: 'splash_pack_hilltop_stargazing_badge',
+      titleKey: 'splash_pack_hilltop_stargazing_title',
+      subtitleKey: 'splash_pack_hilltop_stargazing_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_hilltop_stargazing.jpg',
+      mascotAsset: 'assets/mascots/sprites/echo/stargazing.png',
+      storagePath: 'wallpapers/everyday/everyday_hilltop_stargazing.jpg',
+      byteSize: 241664,
+      mascotDomain: 'echo',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayStarlight,
+      darkGradient: [
+        Color(0xFF0A1124),
+        Color(0xFF15203E),
+        Color(0xFF1A1730),
+      ],
+      lightGradient: [
+        Color(0xFFEEF2FF),
+        Color(0xFFE0E7FF),
+        Color(0xFFF3E8FF),
+      ],
+      accentColor: Color(0xFF8B5CF6),
+      secondaryAccentColor: Color(0xFF93C5FD),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000011',
+      slug: 'mountain-camp-morning',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_mountain_camp_opt',
+      badgeKey: 'splash_pack_mountain_camp_badge',
+      titleKey: 'splash_pack_mountain_camp_title',
+      subtitleKey: 'splash_pack_mountain_camp_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_mountain_camp.jpg',
+      mascotAsset: 'assets/mascots/sprites/scout/ready.png',
+      storagePath: 'wallpapers/everyday/everyday_mountain_camp.jpg',
+      byteSize: 256000,
+      mascotDomain: 'scout',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF0E1D2B),
+        Color(0xFF183145),
+        Color(0xFF142823),
+      ],
+      lightGradient: [
+        Color(0xFFE0F2FE),
+        Color(0xFFECFDF5),
+        Color(0xFFFEF3C7),
+      ],
+      accentColor: Color(0xFF3B82F6),
+      secondaryAccentColor: Color(0xFF34D399),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000012',
+      slug: 'flock-sky-huddle',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_flock_sky_opt',
+      badgeKey: 'splash_pack_flock_sky_badge',
+      titleKey: 'splash_pack_flock_sky_title',
+      subtitleKey: 'splash_pack_flock_sky_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_flock_huddle_sky.jpg',
+      mascotAsset: 'assets/mascots/sprites/roo/welcome.png',
+      storagePath: 'wallpapers/everyday/everyday_flock_huddle_sky.jpg',
+      byteSize: 237568,
+      mascotDomain: 'roo',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayTreehouse,
+      darkGradient: [
+        Color(0xFF102033),
+        Color(0xFF1A3452),
+        Color(0xFF282022),
+      ],
+      lightGradient: [
+        Color(0xFFE0F2FE),
+        Color(0xFFF0F9FF),
+        Color(0xFFFFF7ED),
+      ],
+      accentColor: Color(0xFFE04A3A),
+      secondaryAccentColor: Color(0xFF38BDF8),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000013',
+      slug: 'roo-morning-wakeup',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_roo_wakeup_opt',
+      badgeKey: 'splash_pack_roo_wakeup_badge',
+      titleKey: 'splash_pack_roo_wakeup_title',
+      subtitleKey: 'splash_pack_roo_wakeup_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_roo_morning_wakeup.jpg',
+      mascotAsset: 'assets/mascots/sprites/roo/alarm.png',
+      storagePath: 'wallpapers/everyday/everyday_roo_morning_wakeup.jpg',
+      byteSize: 251904,
+      mascotDomain: 'roo',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF241412),
+        Color(0xFF3A1E1B),
+        Color(0xFF281D16),
+      ],
+      lightGradient: [
+        Color(0xFFFFF1EE),
+        Color(0xFFFFEDD5),
+        Color(0xFFFEF3C7),
+      ],
+      accentColor: Color(0xFFE04A3A),
+      secondaryAccentColor: Color(0xFFFBBF24),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000014',
+      slug: 'scout-departure-brief',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_scout_brief_opt',
+      badgeKey: 'splash_pack_scout_brief_badge',
+      titleKey: 'splash_pack_scout_brief_title',
+      subtitleKey: 'splash_pack_scout_brief_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_scout_departure_brief.jpg',
+      mascotAsset: 'assets/mascots/sprites/scout/briefing.png',
+      storagePath: 'wallpapers/everyday/everyday_scout_departure_brief.jpg',
+      byteSize: 249856,
+      mascotDomain: 'scout',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayTreehouse,
+      darkGradient: [
+        Color(0xFF0E1B2A),
+        Color(0xFF172C44),
+        Color(0xFF1A2636),
+      ],
+      lightGradient: [
+        Color(0xFFEFF6FF),
+        Color(0xFFE0F2FE),
+        Color(0xFFF0FDF4),
+      ],
+      accentColor: Color(0xFF3B82F6),
+      secondaryAccentColor: Color(0xFF60A5FA),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000015',
+      slug: 'seren-calm-circle',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_seren_calm_opt',
+      badgeKey: 'splash_pack_seren_calm_badge',
+      titleKey: 'splash_pack_seren_calm_title',
+      subtitleKey: 'splash_pack_seren_calm_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_seren_calm_circle.jpg',
+      mascotAsset: 'assets/mascots/sprites/seren/hello.png',
+      storagePath: 'wallpapers/everyday/everyday_seren_calm_circle.jpg',
+      byteSize: 245760,
+      mascotDomain: 'seren',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayStarlight,
+      darkGradient: [
+        Color(0xFF171328),
+        Color(0xFF251E3F),
+        Color(0xFF1A1E30),
+      ],
+      lightGradient: [
+        Color(0xFFF5F3FF),
+        Color(0xFFEDE9FE),
+        Color(0xFFECFDF5),
+      ],
+      accentColor: Color(0xFF8B5CF6),
+      secondaryAccentColor: Color(0xFFC4B5FD),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000016',
+      slug: 'pippin-hobby-studio',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_pippin_studio_opt',
+      badgeKey: 'splash_pack_pippin_studio_badge',
+      titleKey: 'splash_pack_pippin_studio_title',
+      subtitleKey: 'splash_pack_pippin_studio_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_pippin_hobby_studio.jpg',
+      mascotAsset: 'assets/mascots/sprites/pippin/reading.png',
+      storagePath: 'wallpapers/everyday/everyday_pippin_hobby_studio.jpg',
+      byteSize: 260096,
+      mascotDomain: 'pippin',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF0E221A),
+        Color(0xFF17362A),
+        Color(0xFF212B1E),
+      ],
+      lightGradient: [
+        Color(0xFFECFDF5),
+        Color(0xFFD1FAE5),
+        Color(0xFFFEF3C7),
+      ],
+      accentColor: Color(0xFF10B981),
+      secondaryAccentColor: Color(0xFF34D399),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000017',
+      slug: 'twill-packing-ledger',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_twill_desk_opt',
+      badgeKey: 'splash_pack_twill_desk_badge',
+      titleKey: 'splash_pack_twill_desk_title',
+      subtitleKey: 'splash_pack_twill_desk_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_twill_packing_ledger.jpg',
+      mascotAsset: 'assets/mascots/sprites/twill/organized.png',
+      storagePath: 'wallpapers/everyday/everyday_twill_packing_ledger.jpg',
+      byteSize: 253952,
+      mascotDomain: 'twill',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayTreehouse,
+      darkGradient: [
+        Color(0xFF21180E),
+        Color(0xFF332615),
+        Color(0xFF221E18),
+      ],
+      lightGradient: [
+        Color(0xFFFFFBEB),
+        Color(0xFFFEF3C7),
+        Color(0xFFFFEDD5),
+      ],
+      accentColor: Color(0xFFF59E0B),
+      secondaryAccentColor: Color(0xFFFCD34D),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000018',
+      slug: 'echo-gratitude-jar',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_echo_jar_opt',
+      badgeKey: 'splash_pack_echo_jar_badge',
+      titleKey: 'splash_pack_echo_jar_title',
+      subtitleKey: 'splash_pack_echo_jar_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_echo_gratitude_jar.jpg',
+      mascotAsset: 'assets/mascots/sprites/echo/grateful.png',
+      storagePath: 'wallpapers/everyday/everyday_echo_gratitude_jar.jpg',
+      byteSize: 247808,
+      mascotDomain: 'echo',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayFireplace,
+      darkGradient: [
+        Color(0xFF1F160E),
+        Color(0xFF312214),
+        Color(0xFF1A1B26),
+      ],
+      lightGradient: [
+        Color(0xFFFFF7ED),
+        Color(0xFFFEF3C7),
+        Color(0xFFF3E8FF),
+      ],
+      accentColor: Color(0xFFD97706),
+      secondaryAccentColor: Color(0xFFFBBF24),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000019',
+      slug: 'flock-overhead-circle',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_flock_circle_opt',
+      badgeKey: 'splash_pack_flock_circle_badge',
+      titleKey: 'splash_pack_flock_circle_title',
+      subtitleKey: 'splash_pack_flock_circle_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_flock_overhead_circle.jpg',
+      mascotAsset: 'assets/mascots/sprites/pippin/discover.png',
+      storagePath: 'wallpapers/everyday/everyday_flock_overhead_circle.jpg',
+      byteSize: 243712,
+      mascotDomain: 'flock',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF11202B),
+        Color(0xFF1C3344),
+        Color(0xFF192822),
+      ],
+      lightGradient: [
+        Color(0xFFE0F2FE),
+        Color(0xFFECFDF5),
+        Color(0xFFFEF9C3),
+      ],
+      accentColor: Color(0xFF38BDF8),
+      secondaryAccentColor: Color(0xFF34D399),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000020',
+      slug: 'flock-overhead-circle-close',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_flock_circle_close_opt',
+      badgeKey: 'splash_pack_flock_circle_close_badge',
+      titleKey: 'splash_pack_flock_circle_close_title',
+      subtitleKey: 'splash_pack_flock_circle_close_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_flock_overhead_circle_close.jpg',
+      mascotAsset: 'assets/mascots/sprites/seren/hello.png',
+      storagePath:
+          'wallpapers/everyday/everyday_flock_overhead_circle_close.jpg',
+      byteSize: 241664,
+      mascotDomain: 'flock',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF14212E),
+        Color(0xFF203549),
+        Color(0xFF212A22),
+      ],
+      lightGradient: [
+        Color(0xFFF0F9FF),
+        Color(0xFFECFDF5),
+        Color(0xFFFFFBEB),
+      ],
+      accentColor: Color(0xFF649330),
+      secondaryAccentColor: Color(0xFF38BDF8),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000021',
+      slug: 'flock-side-stack',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_flock_side_stack_opt',
+      badgeKey: 'splash_pack_flock_side_stack_badge',
+      titleKey: 'splash_pack_flock_side_stack_title',
+      subtitleKey: 'splash_pack_flock_side_stack_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_flock_side_stack.jpg',
+      mascotAsset: 'assets/mascots/sprites/roo/welcome.png',
+      storagePath: 'wallpapers/everyday/everyday_flock_side_stack.jpg',
+      byteSize: 239616,
+      mascotDomain: 'flock',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayTreehouse,
+      darkGradient: [
+        Color(0xFF1C1822),
+        Color(0xFF2A2334),
+        Color(0xFF1E2620),
+      ],
+      lightGradient: [
+        Color(0xFFFDF2F8),
+        Color(0xFFFEF3C7),
+        Color(0xFFECFDF5),
+      ],
+      accentColor: Color(0xFFF59E0B),
+      secondaryAccentColor: Color(0xFF8B5CF6),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000022',
+      slug: 'flock-stacked-totem',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_flock_totem_opt',
+      badgeKey: 'splash_pack_flock_totem_badge',
+      titleKey: 'splash_pack_flock_totem_title',
+      subtitleKey: 'splash_pack_flock_totem_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_flock_stacked_totem.jpg',
+      mascotAsset: 'assets/mascots/sprites/twill/organized.png',
+      storagePath: 'wallpapers/everyday/everyday_flock_stacked_totem.jpg',
+      byteSize: 237568,
+      mascotDomain: 'flock',
+      pairedParticlesTheme: SeasonalSplashTheme.everydayTreehouse,
+      darkGradient: [
+        Color(0xFF1A1D16),
+        Color(0xFF282E22),
+        Color(0xFF241E18),
+      ],
+      lightGradient: [
+        Color(0xFFF7FEE7),
+        Color(0xFFFEF3C7),
+        Color(0xFFE0F2FE),
+      ],
+      accentColor: Color(0xFF649330),
+      secondaryAccentColor: Color(0xFFFBBF24),
+    ),
+    RemoteHolidayWallpaperPack(
+      id: '30000000-0000-0000-0000-000000000023',
+      slug: 'flock-tiered-pyramid',
+      category: WallpaperPackCategory.everyday,
+      optionLabelKey: 'splash_pack_flock_pyramid_opt',
+      badgeKey: 'splash_pack_flock_pyramid_badge',
+      titleKey: 'splash_pack_flock_pyramid_title',
+      subtitleKey: 'splash_pack_flock_pyramid_subtitle',
+      bundledPreviewAsset:
+          'assets/mascots/wallpapers/everyday/everyday_flock_tiered_pyramid.jpg',
+      mascotAsset: 'assets/mascots/sprites/echo/reflect.png',
+      storagePath: 'wallpapers/everyday/everyday_flock_tiered_pyramid.jpg',
+      byteSize: 241664,
+      mascotDomain: 'flock',
+      pairedParticlesTheme: SeasonalSplashTheme.everydaySunnyPicnic,
+      darkGradient: [
+        Color(0xFF161D28),
+        Color(0xFF222E40),
+        Color(0xFF241D1A),
+      ],
+      lightGradient: [
+        Color(0xFFEEF2FF),
+        Color(0xFFFFF7ED),
+        Color(0xFFECFDF5),
+      ],
+      accentColor: Color(0xFFE04A3A),
+      secondaryAccentColor: Color(0xFF10B981),
+    ),
   ];
+
+  static List<RemoteHolidayWallpaperPack> get everydayPacks => packs
+      .where((p) => p.category == WallpaperPackCategory.everyday)
+      .toList(growable: false);
+
+  static List<RemoteHolidayWallpaperPack> get seasonalPacks => packs
+      .where((p) => p.category == WallpaperPackCategory.seasonal)
+      .toList(growable: false);
 
   static RemoteHolidayWallpaperPack? bySlug(String? slug) {
     if (slug == null || slug.trim().isEmpty) return null;

@@ -93,10 +93,7 @@ flutter:
     - assets/mascots/wallpapers/seasonal/winter_snow_cabin.jpg
     - assets/mascots/wallpapers/seasonal/sunset_seaside_lighthouse.jpg
     - assets/mascots/wallpapers/seasonal/tropical_bamboo_mist.jpg
-    - assets/mascots/wallpapers/everyday/everyday_sunny_picnic.jpg
-    - assets/mascots/wallpapers/everyday/everyday_treehouse_welcome.jpg
-    - assets/mascots/wallpapers/everyday/everyday_rainy_fireplace.jpg
-    - assets/mascots/wallpapers/everyday/everyday_starlight_slumber.jpg
+    - assets/mascots/wallpapers/everyday/
     - assets/mascots/flock_mascots.jpg
     - assets/mascots/sprites/roo/
     - assets/mascots/sprites/seren/

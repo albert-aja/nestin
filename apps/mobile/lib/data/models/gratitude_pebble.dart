@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'journal_entry.dart';
 
+import '../../core/theme/app_colors.dart';
 /// Represents a single gratitude pebble stored in Echo's Gratitude Jar,
 /// derived from a [JournalEntry]'s non-empty [JournalEntry.gratitudeNote].
 class GratitudePebble {
@@ -25,13 +26,13 @@ class GratitudePebble {
   });
 
   static const List<Color> palette = [
-    Color(0xFFF59E0B), // Warm Amber
-    Color(0xFF10B981), // Sea-Glass Emerald
-    Color(0xFF38BDF8), // Sky Pebble
-    Color(0xFFFB7185), // Dawn Rose
-    Color(0xFFA78BFA), // Lavender Quartz
-    Color(0xFF2DD4BF), // Coastal Jade
-    Color(0xFFF97316), // Terracotta Glow
+    AppColors.twill, // Warm Amber
+    AppColors.pippin, // Sea-Glass Emerald
+    AppColors.sky, // Sky Pebble
+    AppColors.roseLight, // Dawn Rose
+    AppColors.serenLight, // Lavender Quartz
+    AppColors.tealLight, // Coastal Jade
+    AppColors.orange, // Terracotta Glow
   ];
 
   Color get color => palette[colorIndex % palette.length];

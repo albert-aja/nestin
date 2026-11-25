@@ -47,8 +47,8 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
       builder: (ctx) {
         final violetAccent = AppColors.adaptive(
           ctx,
-          dark: const Color(0xFFA78BFA),
-          light: const Color(0xFF7C3AED),
+          dark: AppColors.serenLight,
+          light: AppColors.serenDeep,
         );
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
@@ -97,7 +97,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                       return ChoiceChip(
                         label: Text('+$qty'),
                         selected: isSel,
-                        selectedColor: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                        selectedColor: AppColors.seren.withValues(alpha: 0.3),
                         backgroundColor: AppColors.elevatedSurface(ctx),
                         labelStyle: TextStyle(
                           color: isSel ? violetAccent : AppColors.textPrimary(ctx),
@@ -133,7 +133,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B5CF6),
+                    backgroundColor: AppColors.seren,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   child: Text(
@@ -154,18 +154,18 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
     final l10n = context.l10n;
     final violetAccent = AppColors.adaptive(
       context,
-      dark: const Color(0xFFA78BFA),
-      light: const Color(0xFF7C3AED),
+      dark: AppColors.serenLight,
+      light: AppColors.serenDeep,
     );
     final emeraldText = AppColors.adaptive(
       context,
-      dark: const Color(0xFF10B981),
-      light: const Color(0xFF047857),
+      dark: AppColors.pippin,
+      light: AppColors.pippinDark,
     );
     final amberText = AppColors.adaptive(
       context,
-      dark: const Color(0xFFF59E0B),
-      light: const Color(0xFFB45309),
+      dark: AppColors.twill,
+      light: AppColors.twillDark,
     );
 
     return Container(
@@ -196,7 +196,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                          color: AppColors.seren.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -285,8 +285,8 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: weeklyRate >= 80
-                            ? const Color(0xFF10B981).withValues(alpha: 0.18)
-                            : const Color(0xFFF59E0B).withValues(alpha: 0.18),
+                            ? AppColors.pippin.withValues(alpha: 0.18)
+                            : AppColors.twill.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -308,10 +308,10 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                    color: AppColors.twill.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                      color: AppColors.twill.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
@@ -343,7 +343,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                       TextButton(
                         onPressed: () => _promptRefillDialog(context, lowStockMeds.first),
                         style: TextButton.styleFrom(
-                          backgroundColor: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                          backgroundColor: AppColors.twill.withValues(alpha: 0.2),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         ),
                         child: Text(
@@ -372,7 +372,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                 child: TabBar(
                   controller: _tabController,
                   indicator: BoxDecoration(
-                    color: const Color(0xFF8B5CF6),
+                    color: AppColors.seren,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   labelColor: Colors.white,
@@ -419,7 +419,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5CF6),
+                  backgroundColor: AppColors.seren,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
@@ -439,18 +439,18 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
     final l10n = context.l10n;
     final violetAccent = AppColors.adaptive(
       context,
-      dark: const Color(0xFFA78BFA),
-      light: const Color(0xFF7C3AED),
+      dark: AppColors.serenLight,
+      light: AppColors.serenDeep,
     );
     final emeraldText = AppColors.adaptive(
       context,
-      dark: const Color(0xFF10B981),
-      light: const Color(0xFF047857),
+      dark: AppColors.pippin,
+      light: AppColors.pippinDark,
     );
     final amberText = AppColors.adaptive(
       context,
-      dark: const Color(0xFFF59E0B),
-      light: const Color(0xFFB45309),
+      dark: AppColors.twill,
+      light: AppColors.twillDark,
     );
 
     if (doses.isEmpty) {
@@ -495,10 +495,10 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.14),
+              color: AppColors.pippin.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                color: AppColors.pippin.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -528,7 +528,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
 
           return Card(
             color: isTaken
-                ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                ? AppColors.pippin.withValues(alpha: 0.08)
                 : AppColors.elevatedSurface(context),
             elevation: 0,
             margin: const EdgeInsets.only(bottom: 10),
@@ -536,7 +536,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
                 color: isTaken
-                    ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                    ? AppColors.pippin.withValues(alpha: 0.3)
                     : (isPending ? AppColors.border(context) : Colors.transparent),
               ),
             ),
@@ -576,7 +576,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                          color: AppColors.seren.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -623,11 +623,11 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF59E0B)
+                                  color: AppColors.twill
                                       .withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFFF59E0B)
+                                    color: AppColors.twill
                                         .withValues(alpha: 0.4),
                                   ),
                                 ),
@@ -678,7 +678,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                                   horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color:
-                                    const Color(0xFF10B981).withValues(alpha: 0.2),
+                                    AppColors.pippin.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
@@ -784,7 +784,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                             ),
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(
-                                color: const Color(0xFFF59E0B)
+                                color: AppColors.twill
                                     .withValues(alpha: 0.5),
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -836,7 +836,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981),
+                              backgroundColor: AppColors.pippin,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 6),
@@ -862,13 +862,13 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
     final medications = provider.medications;
     final violetAccent = AppColors.adaptive(
       context,
-      dark: const Color(0xFFA78BFA),
-      light: const Color(0xFF7C3AED),
+      dark: AppColors.serenLight,
+      light: AppColors.serenDeep,
     );
     final amberText = AppColors.adaptive(
       context,
-      dark: const Color(0xFFF59E0B),
-      light: const Color(0xFFB45309),
+      dark: AppColors.twill,
+      light: AppColors.twillDark,
     );
 
     if (medications.isEmpty) {
@@ -915,7 +915,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
               color: isLow
-                  ? const Color(0xFFF59E0B).withValues(alpha: 0.5)
+                  ? AppColors.twill.withValues(alpha: 0.5)
                   : AppColors.border(context),
             ),
           ),
@@ -935,7 +935,7 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: med.isActive
-                                ? const Color(0xFF10B981)
+                                ? AppColors.pippin
                                 : AppColors.textMuted(context),
                           ),
                         ),
@@ -954,7 +954,6 @@ class _MedicationTrackerSheetState extends State<MedicationTrackerSheet>
                     ),
                     Switch(
                       value: med.isActive,
-                      activeThumbColor: const Color(0xFF8B5CF6),
                       onChanged: (_) => provider.toggleActive(med.id),
                     ),
                   ],
